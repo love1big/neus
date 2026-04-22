@@ -1,0 +1,6 @@
+{
+  "name": "NexusEngine Sandbox",
+  "description": "Full-blown Game Engine IDE structure with offline-style code and 3D simulation editors acting like Unreal Engine or Unity, powered by a Multi-Agent AI system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
