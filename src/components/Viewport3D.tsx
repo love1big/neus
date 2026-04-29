@@ -9,12 +9,25 @@ interface Viewport3DProps {
 export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) {
   
   // Sky Environment
-  const [skybox, setSkybox] = useState('Default (Dark)');
+  const [skybox, setSkybox] = useState(() => localStorage.getItem('skybox') || 'Default (Dark)');
+  const [skyboxRotation, setSkyboxRotation] = useState(() => parseInt(localStorage.getItem('skyboxRotation') || '0'));
+  const [skyboxIntensity, setSkyboxIntensity] = useState(() => parseFloat(localStorage.getItem('skyboxIntensity') || '1'));
   const [showSkyboxMenu, setShowSkyboxMenu] = useState(false);
+  
+  useEffect(() => {
+    localStorage.setItem('skybox', skybox);
+    localStorage.setItem('skyboxRotation', skyboxRotation.toString());
+    localStorage.setItem('skyboxIntensity', skyboxIntensity.toString());
+  }, [skybox, skyboxRotation, skyboxIntensity]);
+
+  // Target Tool states
+  const [aiTestingMode, setAiTestingMode] = useState(false);
+  const [aiTestLogs, setAiTestLogs] = useState<{action: string, result: string, type: 'info'|'warn'|'error'}[]>([]);
+  const [aiTestingPhase, setAiTestingPhase] = useState('Idle');
 
   // Object and Transform State
   const [isObjectSelected, setIsObjectSelected] = useState(true);
-  const [activeTransformTool, setActiveTransformTool] = useState<'select' | 'translate' | 'rotate' | 'scale'>('translate');
+  const [activeTransformTool, setActiveTransformTool] = useState<'select' | 'translate' | 'rotate' | 'scale' | 'physics'>('translate');
   const [objTransform, setObjTransform] = useState({ posX: 0, posY: 0, rotX: 65, rotY: 0, rotZ: 45, scale: 1 });
   
   const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, startObj: objTransform, axis: '' });
@@ -72,6 +85,58 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
     };
   }, []);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (aiTestingMode) {
+      setAiTestingPhase('Initializing Advanced Threat Simulation...');
+      setAiTestLogs([{ action: 'Boot Agent', result: 'AI Hacking & QA Module Attached to Viewport', type: 'info' }]);
+      
+      let step = 0;
+      interval = setInterval(() => {
+        step++;
+        setObjTransform(prev => ({
+          ...prev,
+          posX: prev.posX + (Math.random() * 40 - 20),
+          posY: prev.posY + (Math.random() * 40 - 20),
+          rotZ: prev.rotZ + (Math.random() * 10 - 5)
+        }));
+
+        if (step === 2) {
+           setAiTestingPhase('Fuzzing Physics Boundaries & OOB');
+           setAiTestLogs(prev => [...prev, { action: 'Bounds Check', result: 'Left wall collision nominal. Velocity within safe limits.', type: 'info' }]);
+        } else if (step === 4) {
+           setAiTestLogs(prev => [...prev, { action: 'NavMesh Exploit', result: 'VULNERABILITY: Map clipping exploit detected at [X: 120, Y: -45].', type: 'error' }]);
+        } else if (step === 6) {
+           setAiTestingPhase('Packet & Memory Injection Simulation');
+           setAiTestLogs(prev => [...prev, { action: 'Memory Inj.', result: 'Attempting to inject rogue packets into replicated state...', type: 'warn' }]);
+        } else if (step === 8) {
+           setAiTestLogs(prev => [...prev, { action: 'Net Exploit', result: 'CRITICAL VULNERABILITY: Server accepts negative values for health state! (Invincibility Exploit)', type: 'error' }]);
+        } else if (step === 10) {
+           setAiTestingPhase('Autonomous Patching Process');
+           setAiTestLogs(prev => [...prev, { action: 'Synthesizing Patch', result: 'Drafting logic to seal network gaps and solidify geometry...', type: 'info' }]);
+        } else if (step === 12) {
+           setAiTestLogs(prev => [...prev, { action: 'Patch Applied', result: 'Physics Update: Continuous Collision Detection (CCD) enabled.', type: 'info' }]);
+        } else if (step === 14) {
+           setAiTestLogs(prev => [...prev, { action: 'Patch Applied', result: 'Netcode Update: Strict schema bound added to `ApplyDamage()` RPC.', type: 'info' }]);
+        } else if (step === 16) {
+           setAiTestingPhase('Verifying Fixes (Regression Test)');
+           setAiTestLogs(prev => [...prev, { action: 'Regression', result: 'Re-running exploitation vectors to confirm closure...', type: 'info' }]);
+        } else if (step === 18) {
+           setAiTestLogs(prev => [...prev, { action: 'Status', result: 'All vulnerabilities mitigated successfully. Network is sealed.', type: 'info' }]);
+           setAiTestingPhase('Audit Complete \u2714\uFE0F');
+        } else if (step > 21) {
+           setAiTestingPhase('Idle');
+           setAiTestingMode(false);
+        }
+      }, 1000);
+    } else {
+       if (aiTestingPhase !== 'Idle') {
+         setAiTestingPhase('Idle');
+       }
+    }
+    return () => clearInterval(interval);
+  }, [aiTestingMode]);
+
   const getSkyboxStyle = () => {
     switch(skybox) {
       case 'Clear Day': return 'linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%)';
@@ -86,16 +151,84 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
   // Post Processing States
   const [showPP, setShowPP] = useState(false);
   
-  const [ppBloom, setPpBloom] = useState(true);
-  const [bloomIntensity, setBloomIntensity] = useState(1.5);
+  const [ppBloom, setPpBloom] = useState(() => JSON.parse(localStorage.getItem('ppBloom') || 'true'));
+  const [bloomIntensity, setBloomIntensity] = useState(() => parseFloat(localStorage.getItem('bloomIntensity') || '1.5'));
   
-  const [ppColor, setPpColor] = useState(true);
-  const [colorContrast, setColorContrast] = useState(110);
-  const [colorSaturation, setColorSaturation] = useState(120);
-  const [colorHue, setColorHue] = useState(0);
+  const [ppColor, setPpColor] = useState(() => JSON.parse(localStorage.getItem('ppColor') || 'true'));
+  const [colorContrast, setColorContrast] = useState(() => parseInt(localStorage.getItem('colorContrast') || '110'));
+  const [colorSaturation, setColorSaturation] = useState(() => parseInt(localStorage.getItem('colorSaturation') || '120'));
+  const [colorHue, setColorHue] = useState(() => parseInt(localStorage.getItem('colorHue') || '0'));
 
-  const [ppDof, setPpDof] = useState(false);
-  const [dofBlur, setDofBlur] = useState(4);
+  const [ppDof, setPpDof] = useState(() => JSON.parse(localStorage.getItem('ppDof') || 'false'));
+  const [dofBlur, setDofBlur] = useState(() => parseFloat(localStorage.getItem('dofBlur') || '4'));
+
+  useEffect(() => {
+    localStorage.setItem('ppBloom', JSON.stringify(ppBloom));
+    localStorage.setItem('bloomIntensity', bloomIntensity.toString());
+    localStorage.setItem('ppColor', JSON.stringify(ppColor));
+    localStorage.setItem('colorContrast', colorContrast.toString());
+    localStorage.setItem('colorSaturation', colorSaturation.toString());
+    localStorage.setItem('colorHue', colorHue.toString());
+    localStorage.setItem('ppDof', JSON.stringify(ppDof));
+    localStorage.setItem('dofBlur', dofBlur.toString());
+  }, [ppBloom, bloomIntensity, ppColor, colorContrast, colorSaturation, colorHue, ppDof, dofBlur]);
+
+  // Physics Simulation
+  const velocityRef = useRef({ vx: 0, vy: 0, vz: 0 });
+
+  useEffect(() => {
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const updatePhysics = (time: number) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
+
+      if (activeTransformTool === 'physics' && !dragRef.current.isDragging && !aiTestingMode) {
+        setObjTransform(prev => {
+          let { posX, posY, rotX, rotY, rotZ, scale } = prev;
+          let { vx, vy, vz } = velocityRef.current;
+
+          // Apply Gravity (downward in our pseudo-3D is positive Y)
+          vy += 980 * dt; // Gravity
+
+          posX += vx * dt;
+          posY += vy * dt;
+
+          // Floor collision (floor is roughly at Y=150)
+          const floorY = 150;
+          if (posY > floorY) {
+            posY = floorY;
+            vy = -vy * 0.6; // Bounce and dampen
+            vx = vx * 0.8;  // Friction
+            
+            // Random spin on bounce
+            if (Math.abs(vy) > 10) {
+                rotX += vx * dt * 10;
+                rotY += vy * dt * 5;
+            }
+          }
+
+          // Ceiling bounds
+          if (posY < -300) {
+              posY = -300;
+              vy = -vy * 0.5;
+          }
+
+          // Horizontal bounds
+          if (posX > 400) { posX = 400; vx = -vx * 0.7; }
+          if (posX < -400) { posX = -400; vx = -vx * 0.7; }
+
+          velocityRef.current = { vx, vy, vz };
+          return { posX, posY, rotX, rotY, rotZ, scale };
+        });
+      }
+      animationFrameId = requestAnimationFrame(updatePhysics);
+    };
+    
+    animationFrameId = requestAnimationFrame(updatePhysics);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [activeTransformTool, aiTestingMode]);
 
   const getToolDisplayName = () => {
     switch (activeTool) {
@@ -154,13 +287,30 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
                <ImageIcon size={12} /> {skybox} <ChevronDown size={10} />
              </button>
              {showSkyboxMenu && (
-                <div className="absolute top-full mt-2 left-0 w-44 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl z-50 flex flex-col py-1 overflow-hidden">
+                <div className="absolute top-full mt-2 left-0 w-48 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl z-50 flex flex-col py-1 overflow-hidden">
                    <div className="px-3 py-2 text-[10px] text-[#8b949e] uppercase tracking-wider font-bold border-b border-[#30363d] mb-1">Environment Material</div>
                    {['Default (Dark)', 'Clear Day', 'Sunset', 'Sci-Fi Nebula', 'Studio Light'].map(s => (
-                     <button key={s} onClick={() => { setSkybox(s); setShowSkyboxMenu(false); }} className={`text-left px-3 py-2 text-[12px] hover:bg-[#21262d] transition-colors ${skybox === s ? 'text-[#58a6ff] bg-[#21262d]/50' : 'text-[#c9d1d9]'}`}>
+                     <button key={s} onClick={() => setSkybox(s)} className={`text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors ${skybox === s ? 'text-[#58a6ff] bg-[#21262d]/50' : 'text-[#c9d1d9]'}`}>
                        {s}
                      </button>
                    ))}
+                   
+                   <div className="border-t border-[#30363d] mt-1 pt-2 px-3 pb-3 flex flex-col gap-3">
+                     <div className="flex flex-col gap-1.5">
+                       <div className="flex justify-between text-[10px] text-[#8b949e]">
+                          <span>Intensity</span>
+                          <span>{skyboxIntensity.toFixed(1)}</span>
+                       </div>
+                       <input type="range" min="0" max="2" step="0.1" value={skyboxIntensity} onChange={(e) => setSkyboxIntensity(parseFloat(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer accent-[#58a6ff]" />
+                     </div>
+                     <div className="flex flex-col gap-1.5">
+                       <div className="flex justify-between text-[10px] text-[#8b949e]">
+                          <span>Rotation</span>
+                          <span>{skyboxRotation}°</span>
+                       </div>
+                       <input type="range" min="0" max="360" step="1" value={skyboxRotation} onChange={(e) => setSkyboxRotation(parseInt(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer accent-[#58a6ff]" />
+                     </div>
+                   </div>
                 </div>
              )}
            </div>
@@ -174,6 +324,17 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
            >
              <SlidersHorizontal size={12} /> Post Processing
            </button>
+
+           <div className="w-[1px] h-4 bg-[#30363d]"></div>
+           
+           <button 
+             onClick={() => setAiTestingMode(!aiTestingMode)} 
+             className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-colors font-bold ${aiTestingMode ? 'bg-[#f85149]/20 text-[#f85149]' : 'hover:bg-[#f85149]/10 text-[#c9d1d9] hover:text-[#f85149]'}`}
+             title="Run AI Offline Tests on this Viewport"
+           >
+             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+             AI Playtest
+           </button>
          </div>
          <div className="flex gap-4">
            <span className="text-[#3fb950] font-mono select-none">120 FPS</span>
@@ -183,16 +344,32 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
       
       {/* 3D Render Area */}
       <div 
-        className="flex-1 relative overflow-hidden transition-all duration-300"
-        style={{ background: getSkyboxStyle(), filter: getSimulatedPostProcessing() }}
+        className="flex-1 relative overflow-hidden transition-all duration-300 bg-black"
+        style={{ filter: getSimulatedPostProcessing() }}
         onPointerDown={() => setIsObjectSelected(false)}
       >
+         {/* Skybox Background Layer */}
+         <div 
+           className="absolute pointer-events-none transition-all duration-300"
+           style={{ 
+             top: '-50%', left: '-50%', width: '200%', height: '200%',
+             background: getSkyboxStyle(),
+             transform: `rotate(${skyboxRotation}deg)`,
+             filter: `brightness(${skyboxIntensity})`,
+             zIndex: 0
+           }}
+         />
+
          {/* Transform Tools Gizmo */}
          <div className="absolute top-4 right-4 bg-[#161b22] border border-[#30363d] rounded p-1 flex flex-col gap-1 shadow-2xl z-50">
             <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('select'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'select' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Select"><MousePointer2 size={16}/></button>
             <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('translate'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'translate' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Translate"><Move size={16}/></button>
             <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('rotate'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'rotate' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Rotate"><RotateCcw size={16}/></button>
             <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('scale'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'scale' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Scale"><Maximize size={16}/></button>
+            <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
+            <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('physics'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'physics' ? 'text-[#3fb950] bg-[#3fb950]/10 shadow-inner' : 'text-[#8b949e] hover:text-[#3fb950]'}`} title="Simulate Physics">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </button>
          </div>
 
          {/* 3D Grid Floor Mock via CSS Perspective */}
@@ -222,18 +399,30 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
          </div>
          
          {/* Center Subject Content / Interactive Object */}
-         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none perspective-[800px]">
+         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none perspective-[1200px]">
            <div 
-             className={`w-32 h-32 bg-[#21262d] border border-[#30363d] relative flex items-center justify-center shadow-2xl cursor-pointer pointer-events-auto ${isObjectSelected ? 'ring-2 ring-[#e3b341]' : ''}`}
+             className={`w-48 h-48 relative flex items-center justify-center cursor-pointer pointer-events-auto group ${isObjectSelected ? 'ring-0' : ''}`}
              style={{
                transformStyle: 'preserve-3d',
                transform: `translate3d(${objTransform.posX}px, ${objTransform.posY}px, 0) rotateX(${objTransform.rotX}deg) rotateY(${objTransform.rotY}deg) rotateZ(${objTransform.rotZ}deg) scale(${objTransform.scale})`,
              }}
              onPointerDown={(e) => { e.stopPropagation(); setIsObjectSelected(true); }}
            >
-             <span className="text-[#c9d1d9] text-[10px] uppercase font-mono tracking-wider drop-shadow-md z-10 select-none">MOCK_OBJ</span>
-             <div className="absolute inset-0 bg-[#58a6ff] opacity-10 rounded border border-[#58a6ff]/30 pointer-events-none"></div>
-             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+             {/* Quantum/Neural Mesh representation */}
+             <div className="absolute inset-0 border border-[#58a6ff]/30 rounded-full animate-[spin_10s_linear_infinite]" style={{ transformStyle: 'preserve-3d', transform: 'rotateX(75deg)' }}></div>
+             <div className="absolute inset-0 border border-[#bc8cff]/30 rounded-full animate-[spin_8s_linear_infinite_reverse]" style={{ transformStyle: 'preserve-3d', transform: 'rotateY(75deg)' }}></div>
+             <div className="absolute inset-0 border border-[#3fb950]/30 rounded-full animate-[spin_12s_linear_infinite]" style={{ transformStyle: 'preserve-3d', transform: 'rotateZ(75deg)' }}></div>
+             
+             {/* Inner Core */}
+             <div className="w-16 h-16 bg-[radial-gradient(circle_at_center,#ffffff_0%,#a476ed_40%,#161b22_100%)] rounded-full absolute shadow-[0_0_40px_rgba(164,118,237,0.8)] animate-pulse" style={{ transformStyle: 'preserve-3d', transform: `rotateX(${-objTransform.rotX}deg) rotateY(${-objTransform.rotY}deg) rotateZ(${-objTransform.rotZ}deg)` }}></div>
+             
+             {/* Holographic shell */}
+             <div className="w-48 h-48 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0iIzU4YTZmZiIvPjwvc3ZnPg==')] opacity-30 animate-pulse absolute mix-blend-screen" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', transform: 'translateZ(20px)' }}></div>
+             <div className="w-48 h-48 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0iI2JjOGNmZiIvPjwvc3ZnPg==')] opacity-30 animate-[pulse_3s_ease-in-out_infinite] absolute mix-blend-screen" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', transform: 'translateZ(-20px) rotate(30deg)' }}></div>
+
+             <div className="absolute inset-x-0 bottom-[-4rem] text-center whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `rotateX(${-objTransform.rotX}deg) rotateY(${-objTransform.rotY}deg) rotateZ(${-objTransform.rotZ}deg)` }}>
+                <span className="bg-[#0a0a0a]/80 backdrop-blur border border-[#30363d] px-3 py-1 rounded text-[#c9d1d9] text-[10px] font-mono tracking-widest shadow-lg">NX_QUANTUM_ACTOR_01</span>
+             </div>
 
              {/* Gizmos */}
              {isObjectSelected && activeTransformTool === 'translate' && (
@@ -287,6 +476,39 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
               </span>
             </p>
          </div>
+
+         {/* Target Content: AI Offline Playtesting Overlay */}
+         {aiTestingMode && (
+           <div className="absolute inset-x-4 bottom-4 top-auto md:top-4 md:bottom-auto md:right-4 md:left-auto md:w-80 pointer-events-none z-50">
+             <div className="bg-[#111]/90 backdrop-blur-xl border border-[#f85149]/30 rounded shadow-[0_0_20px_rgba(248,81,73,0.15)] flex flex-col pointer-events-auto">
+                <div className="bg-[#f85149]/20 px-3 py-2 border-b border-[#f85149]/30 flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                     <span className="relative flex h-2.5 w-2.5">
+                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f85149] opacity-75"></span>
+                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#f85149]"></span>
+                     </span>
+                     <span className="text-[#f85149] font-bold text-[10px] tracking-widest uppercase">AI Playtesting Active</span>
+                   </div>
+                   <button onClick={() => setAiTestingMode(false)} className="text-[#888] hover:text-[#fff]"><X size={14}/></button>
+                </div>
+                <div className="p-3">
+                   <div className="mb-3 border-b border-[#333] pb-2">
+                      <span className="text-[#888] text-[9px] uppercase tracking-wide">Current Phase</span>
+                      <div className="text-[#fff] font-mono text-xs mt-0.5">{aiTestingPhase}</div>
+                   </div>
+                   <div className="flex flex-col gap-1.5 h-48 overflow-y-auto pr-1 font-mono text-[10px] mt-1">
+                      {aiTestLogs.map((log, i) => (
+                         <div key={i} className={`flex flex-col p-1.5 rounded border ${log.type === 'error' ? 'bg-[#f85149]/10 border-[#f85149]/30 text-[#ff7b72]' : log.type === 'warn' ? 'bg-[#e3b341]/10 border-[#e3b341]/30 text-[#f2cc60]' : 'bg-[#0a0a0a] border-[#333] text-[#ccc]'}`}>
+                            <div className="font-bold border-b border-[#333]/50 pb-0.5 mb-0.5">[{log.action}]</div>
+                            <div className="break-words">{log.result}</div>
+                         </div>
+                      ))}
+                      {/* Anchor element to force scroll could go here if we had a ref */}
+                   </div>
+                </div>
+             </div>
+           </div>
+         )}
       </div>
 
       {/* Post Processing Panel Overlay */}

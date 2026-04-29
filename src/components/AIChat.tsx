@@ -101,6 +101,8 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
         aiSystemInstruction = "You are 'SoundNet-7.0', a Music Composition & DSP Audio AI operating offline. You generate procedural audio graphs, ambient soundscapes, and synth scripts. ALWAYS use 'writeFiles'.";
       }
 
+      aiSystemInstruction += "\n\nCRITICAL INSTRUCTION: Whenever a user requests an online game, a multiplayer game, or a program that inherently requires a server, you MUST ascertain whether it is an online authoritative server architecture or a Local/LAN/Peer-to-Peer architecture. If it is online, you MUST automatically write the detailed server-side architecture and code (e.g., Node.js, Express, WebSocket, scalable backend services, state synchronization servers) alongside the client code. However, if the request explicitly allows LAN or requires NO server, do NOT generate unnecessary server code. Furthermore, when writing server infrastructure, you MUST aggressively optimize for maximum performance and minimum footprint: ensure that CPU, RAM, GPU, and NPU usage per connection are kept absolutely as low as possible. Utilize highly efficient data structures, binary protocols where applicable, and asynchronous optimized IO.";
+
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview',
         contents: `You are an expert programming AI assistant embedded in a code editor.\n\nConversation history:\n${historyContext}\n\n${contextMessage}`,

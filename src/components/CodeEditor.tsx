@@ -116,6 +116,37 @@ export default function CodeEditor({ code, setCode, language, setLanguage }: Cod
     editor.addCommand(monacoInstance.KeyCode.Escape, () => {
       setShowSearch(false);
     });
+
+    // Add AI Actions to right click menu
+    editor.addAction({
+      id: 'ai-refactor',
+      label: '✨ AI Refactor / Optimize...',
+      contextMenuGroupId: 'navigation',
+      contextMenuOrder: 1.5,
+      run: function (ed: any) {
+        alert("NEXUS AI: Refactoring selection to improve performance and readability...");
+      }
+    });
+
+    editor.addAction({
+      id: 'ai-explain',
+      label: '💭 AI Explain Code...',
+      contextMenuGroupId: 'navigation',
+      contextMenuOrder: 1.6,
+      run: function (ed: any) {
+        alert("NEXUS AI: Analyzing code logic and generating documentation...");
+      }
+    });
+
+    editor.addAction({
+      id: 'ai-fix-bugs',
+      label: '🐛 AI Debug & Fix...',
+      contextMenuGroupId: 'navigation',
+      contextMenuOrder: 1.7,
+      run: function (ed: any) {
+        alert("NEXUS AI: Running static analysis and memory leak detection...");
+      }
+    });
   };
 
   const handleUndo = () => {

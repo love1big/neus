@@ -7,13 +7,14 @@ import CodeEditor from './components/CodeEditor';
 import AIChat from './components/AIChat';
 import Viewport3D from './components/Viewport3D';
 import GitPanel from './components/GitPanel';
-import { Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform } from 'lucide-react';
+import { Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame } from 'lucide-react';
 import MaterialEditor from './components/MaterialEditor';
 import SettingsModal from './components/SettingsModal';
 import PipelineEditor from './components/PipelineEditor';
 import GamePreview from './components/GamePreview';
 import ModulePanel from './components/ModulePanel';
 import BlueprintEditor from './components/BlueprintEditor';
+import ContentBrowser from './components/ContentBrowser';
 import { IDEFile, TEMPLATES, DEFAULT_FOLDERS } from './lib/project';
 import { Settings } from 'lucide-react';
 
@@ -27,6 +28,17 @@ import { Settings } from 'lucide-react';
 export default function App() {
   // --- State Management ---
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [terminalHistory, setTerminalHistory] = useState([
+    { type: 'sys', text: 'Virtual Environment Activated: (nexus-env) python 3.10.12' },
+    { type: 'cmd', text: 'npm run dev' },
+    { type: 'sys', text: 'VITE v5.0.0 ready in 420 ms' },
+    { type: 'success', text: '➜  Local:   http://localhost:3000/' },
+    { type: 'success', text: '➜  Network: use --host to expose' }
+  ]);
+  const [terminalInput, setTerminalInput] = useState('');
+  
+  const [isServerRunning, setIsServerRunning] = useState(false);
+  const [serverLogs, setServerLogs] = useState<{time: string, msg: string, type: 'info'|'warn'|'error'|'success'}[]>([]);
   const [files, setFiles] = useState<IDEFile[]>([
     { 
       id: '1', 
@@ -47,13 +59,14 @@ export default function App() {
   const [activeFileId, setActiveFileId] = useState('1');
   const [mobileView, setMobileView] = useState<'explorer' | 'editor' | 'chat'>('editor');
   const [activeTool, setActiveTool] = useState('Select');
+  const [showEditorViewport, setShowEditorViewport] = useState(true);
   const [aiAgentMode, setAiAgentMode] = useState('copilot');
-  const [leftPanel, setLeftPanel] = useState<'explorer' | 'git' | 'outliner'>('explorer');
+  const [leftPanel, setLeftPanel] = useState<'explorer' | 'git' | 'outliner' | 'debug' | 'extensions' | 'test'>('explorer');
   const [isSimulating, setIsSimulating] = useState(false);
   const [showConsole, setShowConsole] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWindowMenu, setShowWindowMenu] = useState(false);
-  const [bottomTab, setBottomTab] = useState<'log' | 'messages' | 'cmd' | 'content'>('log');
+  const [bottomTab, setBottomTab] = useState<'log' | 'messages' | 'cmd' | 'content' | 'terminal' | 'problems' | 'output' | 'debugConsole'>('log');
 
   React.useEffect(() => {
     setFiles(currentFiles => {
@@ -163,75 +176,42 @@ export default function App() {
   // ---------------------------------------------------------------------------
 
   const renderTopNavigation = () => (
-    <nav className="h-[48px] md:h-[50px] bg-[#000000] border-b border-[#222] flex items-center px-4 justify-between shrink-0 select-none shadow-md">
+    <nav className="h-[44px] bg-[#111] border-b border-[#000] flex items-center px-4 justify-between shrink-0 select-none text-[#ccc]">
       <div className="flex gap-4 items-center flex-1">
-        <span className="font-black text-[#ffffff] flex items-center gap-2 text-[15px] cursor-help tracking-tight" title="AI Turbo Engine (Batchx8, FP16 Cache, CUDA)">
-          <span className="bg-gradient-to-r from-[#58a6ff] to-[#bc8cff] text-transparent bg-clip-text">Nexus</span>Engine 
-          <span className="text-[#000] bg-[#fff] px-1 py-0.5 rounded-sm text-[8px] ml-0.5 font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(255,255,255,0.4)]">PRO</span>
+        <span className="font-bold text-[#fff] flex items-center gap-2 text-[13px] tracking-wide">
+          <Box size={16} className="text-[#a476ed] animate-pulse"/> NEXUS <span className="font-medium opacity-80 text-[#a476ed]">ENGINE 100</span>
         </span>
         <div className="w-[1px] h-[16px] bg-[#333] mx-2 hidden md:block"></div>
-        <div className="hidden md:flex gap-4 text-[12px] text-[#aaa] font-medium cursor-pointer ml-2 items-center">
-          <span className="hover:text-[#fff] transition-colors relative group py-2" onMouseEnter={() => setShowWindowMenu(true)} onMouseLeave={() => setShowWindowMenu(false)}>
-            File
-            {showWindowMenu && (
-              <div className="absolute left-0 top-full mt-0 w-[240px] bg-[#1a1a1a] border border-[#333] rounded shadow-2xl z-[100] py-1 text-[12px]">
-                 <button className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">New Level <span className="text-[#666] group-hover:text-[#fff]/70">Ctrl+N</span></button>
-                 <button className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">Open Asset... <span className="text-[#666]">Ctrl+O</span></button>
-                 <button className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">Save All <span className="text-[#666]">Ctrl+Shift+S</span></button>
-                 <div className="border-t border-[#333] my-1"></div>
-                 <button onClick={() => { setShowConsole(true); setBottomTab('content'); }} className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">Content Browser <span className="text-[#666]">Ctrl+Space</span></button>
-                 <button onClick={() => { setLeftPanel('outliner'); }} className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">World Outliner <span className="text-[#666]">Ctrl+W</span></button>
-                 <button onClick={() => { setShowConsole(true); setBottomTab('log'); }} className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">Output Log <span className="text-[#666]">`</span></button>
-                 <div className="border-t border-[#333] my-1"></div>
-                 <button className="w-full text-left px-4 py-1.5 hover:bg-[#58a6ff] hover:text-white text-[#ccc] flex justify-between">Exit</button>
-              </div>
-            )}
-          </span>
-          <span className="hover:text-[#fff] transition-colors py-2">Edit</span>
-          <span className="hover:text-[#fff] transition-colors py-2 text-[#58a6ff]">Window</span>
-          <span className="hover:text-[#fff] transition-colors py-2 text-[#bc8cff]">Tools</span>
-          <span className="hover:text-[#fff] transition-colors py-2 text-[#ff7b72]">Build</span>
-          
-          <div className="flex gap-2 ml-4">
-             <span className="flex items-center gap-1 bg-[#222] border border-[#d29922]/50 text-[#d29922] px-2 py-0.5 rounded-sm text-[10px] font-bold" title="Houdini / Gaea / World Creator">
-               WORLD
-             </span>
-             <span className="flex items-center gap-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#333] hover:border-[#58a6ff] text-[#888] hover:text-[#fff] transition-colors px-2 py-0.5 rounded-sm text-[10px] font-bold" title="Blender / Maya / ZBrush">
-               MODEL
-             </span>
-             <span className="flex items-center gap-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#333] hover:border-[#58a6ff] text-[#888] hover:text-[#fff] transition-colors px-2 py-0.5 rounded-sm text-[10px] font-bold" title="Substance Painter">
-               TEXTURE
-             </span>
-             <span className="flex items-center gap-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#333] hover:border-[#58a6ff] text-[#888] hover:text-[#fff] transition-colors px-2 py-0.5 rounded-sm text-[10px] font-bold" title="Maya / Mixamo">
-               RIG/ANIM
-             </span>
-             <span className="flex items-center gap-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#333] hover:border-[#58a6ff] text-[#888] hover:text-[#fff] transition-colors px-2 py-0.5 rounded-sm text-[10px] font-bold" title="Unreal Blueprints">
-               BLUEPRINT
-             </span>
-             <span className="flex items-center gap-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#333] hover:border-[#bc8cff] text-[#888] hover:text-[#bc8cff] transition-colors px-2 py-0.5 rounded-sm text-[10px] font-bold shadow-[0_0_8px_rgba(188,140,255,0.1)]" title="AI Offline Tools">
-               ✨ AI OFFLINE
-             </span>
-          </div>
+        <div className="hidden md:flex gap-1 text-[11px] text-[#ccc] font-medium cursor-pointer ml-2 items-center">
+          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors flex items-center gap-1"><FileCode2 size={12}/> File</button>
+          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Edit</button>
+          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Window</button>
+          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Tools</button>
+          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Build</button>
+          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Help</button>
         </div>
       </div>
       
       {/* Simulation Controls - Center */}
-      <div className="hidden lg:flex items-center gap-1 bg-[#111] border border-[#333] rounded-md p-1 mx-4 shadow-inner">
+      <div className="hidden lg:flex items-center gap-1 bg-[#1a1a1a] border border-[#30363d] rounded-md p-1 mx-4 shadow-inner">
         <button 
           onClick={() => setIsSimulating(!isSimulating)}
-          className={`px-4 py-1.5 rounded-sm flex items-center gap-2 text-[11px] font-bold transition-all ${isSimulating ? 'bg-[#2ea043] text-white shadow-[0_0_15px_rgba(46,160,67,0.4)]' : 'text-[#aaa] hover:bg-[#222] hover:text-[#fff]'}`}
+          className={`px-3 py-1.5 rounded-sm flex items-center gap-2 text-[11px] font-bold transition-all ${isSimulating ? 'text-[#3fb950]' : 'text-[#3fb950] hover:bg-[#222]'}`}
         >
-           <Play size={14} fill={isSimulating ? 'white' : 'currentColor'}/> {isSimulating ? 'SIMULATING' : 'PLAY'}
+           <Play size={14} fill={isSimulating ? 'currentColor' : 'currentColor'}/>
         </button>
-        <button className="px-3 py-1.5 rounded-sm text-[#aaa] hover:bg-[#222] hover:text-[#fff] transition-colors">
+        <button className="px-3 py-1.5 rounded-sm text-[#888] hover:bg-[#222] hover:text-[#fff] transition-colors">
            <Pause size={14} fill="currentColor"/>
         </button>
-        <div className="w-[1px] h-[16px] bg-[#333] mx-1"></div>
         <button 
           onClick={() => setIsSimulating(false)}
-          className="px-3 py-1.5 rounded-sm text-[#aaa] hover:bg-[#222] hover:text-[#f85149] transition-colors"
+          className="px-3 py-1.5 rounded-sm text-[#888] hover:bg-[#222] hover:text-[#fff] transition-colors"
         >
            <Square size={14} fill="currentColor"/>
+        </button>
+        <div className="w-[1px] h-[16px] bg-[#333] mx-1"></div>
+        <button className="px-3 py-1.5 rounded-sm text-[#888] hover:bg-[#222] hover:text-[#fff] transition-colors">
+           <MessageSquare size={14} />
         </button>
       </div>
       
@@ -255,60 +235,21 @@ export default function App() {
           </div>
       </div>
 
-      <div className="flex gap-3 items-center flex-1 justify-end">
-        <button 
-          className="hidden md:flex items-center gap-2 text-[11px] font-semibold text-[#aaa] hover:text-[#58a6ff] transition-colors border border-[#333] px-3 py-1.5 rounded-sm hover:border-[#58a6ff] bg-[#111] shadow-sm"
-          title="Submit to Cloud Render Farm"
-        >
-          <div className="flex gap-0.5 relative">
-             <div className="w-1 h-3 bg-[#58a6ff] animate-pulse"></div>
-             <div className="w-1 h-3 bg-[#58a6ff] animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-             <div className="w-1 h-3 bg-[#58a6ff] animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-          </div>
-          <Server size={14} /> Swarm Compute
+      <div className="flex gap-4 items-center flex-1 justify-end mr-4">
+        <button className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#ccc] hover:text-[#fff] px-2 py-1">
+          <Play size={12} fill="currentColor"/> Play ▼
         </button>
-        <div className="w-[1px] h-[20px] bg-[#333] mx-1 hidden md:block"></div>
-        <button 
-          onClick={() => setShowConsole(!showConsole)}
-          className={`flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1.5 rounded transition-colors ${showConsole ? 'bg-[#222] text-[#fff]' : 'text-[#aaa] hover:text-[#fff]'}`}
-          title="Toggle Output Console"
-        >
-           <Terminal size={14} /> Log
+        <button className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#ccc] hover:text-[#fff] px-2 py-1">
+          <Layers size={12}/> Platforms ▼
         </button>
-        <div className="relative">
-          <div 
-            onClick={() => setShowExportMenu(!showExportMenu)}
-            className="flex bg-gradient-to-b from-[#2ea043] to-[#238636] hover:from-[#3fb950] hover:to-[#2ea043] border border-[#111] rounded-sm cursor-pointer transition-colors text-white text-[12px] px-4 py-1.5 md:py-1.5 font-bold tracking-wide shadow-[0_2px_5px_rgba(0,0,0,0.5)] items-center gap-2 h-[32px] select-none uppercase"
-          >
-              <Download size={14}/> <span className="hidden sm:inline">Package Project</span>
-          </div>
-          {showExportMenu && (
-             <div className="absolute right-0 top-full mt-1 w-[240px] bg-[#1a1a1a] border border-[#333] rounded shadow-2xl z-[100] py-1 font-['Helvetica_Neue',Arial,sans-serif]">
-                <div className="px-3 py-2 text-[10px] text-[#888] uppercase font-bold tracking-wider border-b border-[#333] mb-1">Cook & Package For</div>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#58a6ff] hover:text-white text-[12px] text-[#ccc] flex justify-between items-center group">
-                   <span>🖥️ Windows (64-bit)</span>
-                </button>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#58a6ff] hover:text-white text-[12px] text-[#ccc] flex justify-between items-center group">
-                   <span>🐧 Linux (Cross-Compile)</span>
-                </button>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#21262d] text-[12px] text-[#c9d1d9] flex justify-between items-center group">
-                   <span>📱 Android (.apk)</span> <span className="text-[10px] text-[#8b949e] group-hover:text-[#58a6ff]">ARM64</span>
-                </button>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#21262d] text-[12px] text-[#c9d1d9] flex justify-between items-center group">
-                   <span>🍏 iOS (.ipa)</span> <span className="text-[10px] text-[#8b949e] group-hover:text-[#58a6ff]">Metal</span>
-                </button>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#21262d] text-[12px] text-[#c9d1d9] flex justify-between items-center group">
-                   <span>🍎 Mac OS (.app)</span> <span className="text-[10px] text-[#8b949e] group-hover:text-[#58a6ff]">Universal</span>
-                </button>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#21262d] text-[12px] text-[#c9d1d9] flex justify-between items-center group">
-                   <span>🌐 WebGL HTML5</span> <span className="text-[10px] text-[#8b949e] group-hover:text-[#58a6ff]">WASM</span>
-                </button>
-                <div className="border-t border-[#30363d] my-1"></div>
-                <button className="w-full text-left px-3 py-2 hover:bg-[#21262d] text-[12px] text-[#c9d1d9] flex justify-between items-center group">
-                   <span>🐳 Docker Image</span> <span className="text-[10px] text-[#3fb950] font-bold">100% CI/CD</span>
-                </button>
-             </div>
-          )}
+        <div className="w-[1px] h-[16px] bg-[#333] mx-2 hidden xl:block"></div>
+        <div className="text-[11px] text-[#888] mr-4 hidden xl:block tracking-wide">
+          Project: <span className="text-[#ccc] ml-1">FantasyWorld</span>
+        </div>
+        <div className="flex gap-4 text-[#888] ml-2">
+          <span className="hover:text-[#fff] cursor-pointer">—</span>
+          <span className="hover:text-[#fff] cursor-pointer drop-shadow">□</span>
+          <span className="hover:text-[#fff] cursor-pointer font-bold">✕</span>
         </div>
       </div>
     </nav>
@@ -323,17 +264,18 @@ export default function App() {
       { id: 'PhysicsEngine', title: 'Universal Physics Dynamics', icon: <Orbit size={20} />, activeColor: 'text-[#f85149]' },
       { id: 'AnimationAudio', title: 'Skeletal Anim, MoCap & Audio', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'BackendCloud', title: 'Server, Cloud, Sync & Economy', icon: <Cloud size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'ServerSim', title: 'Multiplayer Backend & Server Simulation', icon: <Server size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'AITestingQA', title: 'AI Offline QA, Perf Metric & Debug', icon: <ShieldCheck size={20} />, activeColor: 'text-[#2ea043]' },
       { id: 'WorldBible', title: 'World Bible (Lore & Setup)', icon: <BookOpen size={20} />, activeColor: 'text-[#d2a8ff]' },
       { id: 'GameSystems', title: 'AAA Game Systems Architecture', icon: <Blocks size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'MapEdit', title: 'Map & 2D/3D Environment Editor', icon: <Map size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'MapEdit', title: 'Apex Map Builder', icon: <Map size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'NPCEdit', title: 'Deep NPC Builder', icon: <Users size={20} />, activeColor: 'text-[#ff7b72]' },
       { id: 'MonsterEdit', title: 'Monster & Entities Builder', icon: <Ghost size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'Modeling', title: 'Meshy AI 3D Generator', icon: <Box size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'Landscape', title: 'Gaea Procedural Terrain AI', icon: <Mountain size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'Modeling', title: 'Apex 3D/2D Modeling Studio', icon: <Box size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'Landscape', title: 'Apex Terrain Editor', icon: <Mountain size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'PCG', title: 'Procedural Content Generation', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]' },
       { id: 'ControlRig', title: 'Control Rig & MoCap', icon: <PersonStanding size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'Sequencer', title: 'Cinematic Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'Sequencer', title: 'Apex Timeline Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'MetaHuman', title: 'MetaHuman System', icon: <UserSquare size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'Blueprint', title: 'Visual Scripting (Kismet)', icon: <Waypoints size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'Material', title: 'Node Material Editor', icon: <Palette size={20} />, activeColor: 'text-[#e3b341]' },
@@ -341,6 +283,8 @@ export default function App() {
       { id: 'MetaSound', title: 'Audio Mixer', icon: <Music size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'ImageEdit', title: 'Image & Texture Editor', icon: <Image size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'AudioEdit', title: 'Audio Studio & SFX', icon: <AudioWaveform size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'EffectEdit', title: 'VFX & Particle Studio', icon: <Flame size={20} />, activeColor: 'text-[#ff7b72]' },
+      { id: 'UIUXEdit', title: 'Apex UI/UX Builder', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#58a6ff]' },
     ];
 
     return (
@@ -370,134 +314,375 @@ export default function App() {
     );
   };
 
-  const renderSidebar = () => (
-    <aside className={`w-full md:w-[260px] bg-[#161616] border-r border-[#222] flex-col shrink-0 ${mobileView === 'explorer' ? 'flex' : 'hidden'} md:flex h-full`}>
-      <div className="flex bg-[#0a0a0a] border-b border-[#222] shrink-0">
-        <button 
-          onClick={() => setLeftPanel('explorer')}
-          className={`flex-1 p-3 text-[10px] uppercase tracking-[1px] font-bold border-b-[3px] flex flex-col items-center justify-center gap-1 transition-colors ${leftPanel === 'explorer' ? 'text-[#fff] border-[#58a6ff]' : 'text-[#888] border-transparent hover:text-[#fff]'}`}
-        >
-          <FolderTree size={14} /> EXPLORER
-        </button>
-        <button 
-          onClick={() => setLeftPanel('outliner')}
-          className={`flex-1 p-3 text-[10px] uppercase tracking-[1px] font-bold border-b-[3px] flex flex-col items-center justify-center gap-1 transition-colors ${leftPanel === 'outliner' ? 'text-[#fff] border-[#58a6ff]' : 'text-[#888] border-transparent hover:text-[#fff]'}`}
-        >
-          <Box size={14} /> OUTLINER
-        </button>
-        <button 
-          onClick={() => setLeftPanel('git')}
-          className={`flex-1 p-3 text-[10px] uppercase tracking-[1px] font-bold border-b-[3px] flex flex-col items-center justify-center gap-1 transition-colors ${leftPanel === 'git' ? 'text-[#fff] border-[#58a6ff]' : 'text-[#888] border-transparent hover:text-[#fff]'}`}
-        >
-          <GitBranch size={14} /> SOURCE
-        </button>
-      </div>
-      
-      {leftPanel === 'explorer' ? (
-        <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar">
-          <div className="flex-1 overflow-y-auto pt-2 pb-4 md:pb-0 px-2">
-            {DEFAULT_FOLDERS.map(folder => (
-              <div key={folder} className="px-2 py-1.5 md:py-1 text-[14px] md:text-[12px] text-[#888] flex flex-col group">
-                <div className="flex items-center gap-2 font-bold">
-                  <FolderTree size={12} className="text-[#e3b341]" />
-                  <span className="group-hover:text-[#fff] transition-colors">{folder.split('/').pop()}</span>
+  const renderSidebar = () => {
+    // Determine the title of the sidebar depending on the global active tool
+    const isCodeIDE = activeTool === 'Select';
+    
+    return (
+      <aside className={`w-full md:w-[260px] bg-[#1a1a1a] border-r border-[#000] flex-col shrink-0 ${mobileView === 'explorer' ? 'flex' : 'hidden'} md:flex h-full`}>
+        {isCodeIDE ? (
+          <div className="flex bg-[#111] shrink-0 h-[36px] items-center px-1 overflow-x-auto custom-scrollbar">
+            <button 
+              onClick={() => setLeftPanel('explorer')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <FolderTree size={14} /> EXPLORER
+            </button>
+            <button 
+              onClick={() => setLeftPanel('debug')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'debug' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <Bug size={14} /> DEBUG
+            </button>
+            <button 
+              onClick={() => setLeftPanel('git')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'git' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <GitBranch size={14} /> SOURCE
+            </button>
+            <button 
+              onClick={() => setLeftPanel('test')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'test' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <FlaskConical size={14} /> TEST
+            </button>
+            <button 
+              onClick={() => setLeftPanel('extensions')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'extensions' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <Puzzle size={14} /> EXTENSIONS
+            </button>
+          </div>
+        ) : (
+          <div className="flex bg-[#111] shrink-0 h-[36px] items-center px-1">
+            <button 
+              onClick={() => setLeftPanel('explorer')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <UserSquare size={14} /> ACTORS
+            </button>
+            <button 
+              onClick={() => setLeftPanel('outliner')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded ${leftPanel === 'outliner' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <Box size={14} /> WORLD
+            </button>
+            <button 
+              onClick={() => setLeftPanel('git')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded ${leftPanel === 'git' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <FolderTree size={14} /> EXPLORER
+            </button>
+          </div>
+        )}
+        
+        {leftPanel === 'explorer' ? (
+          <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar">
+            {isCodeIDE ? (
+              <div className="flex-1 overflow-y-auto pt-2 pb-4 md:pb-0 px-2">
+                <div className="uppercase text-[10px] text-[#888] font-bold tracking-wider px-2 mb-2 flex items-center justify-between">
+                  PROJECT FILES
+                  <div className="flex gap-1">
+                    <FileCode2 size={12} className="cursor-pointer hover:text-[#fff]" />
+                    <FolderTree size={12} className="cursor-pointer hover:text-[#fff]" />
+                  </div>
                 </div>
-                {files.filter(f => f.folder?.startsWith(folder)).map(f => (
+                {DEFAULT_FOLDERS.map(folder => (
+                  <div key={folder} className="px-2 py-1.5 md:py-1 text-[14px] md:text-[12px] text-[#888] flex flex-col group">
+                    <div className="flex items-center gap-2 font-bold cursor-pointer hover:bg-[#222] py-0.5 px-1 rounded transition-colors">
+                      <ChevronDown size={12} className="text-[#888]" />
+                      <FolderTree size={12} className="text-[#e3b341]" />
+                      <span className="group-hover:text-[#fff] transition-colors flex-1">{folder.split('/').pop()}</span>
+                    </div>
+                    {files.filter(f => f.folder?.startsWith(folder)).map(f => (
+                      <div 
+                        key={f.id}
+                        onClick={() => { setActiveFileId(f.id); setMobileView('editor'); }}
+                        className={`ml-5 pl-2 py-1.5 md:py-1 text-[13px] md:text-[12px] cursor-pointer flex items-center mt-0.5 truncate transition-colors border-l border-[#333]
+                          ${f.id === activeFileId ? 'text-[#fff] bg-[#222] rounded-r-sm shadow-[inset_2px_0_0_#58a6ff]' : 'text-[#888] hover:text-[#fff] hover:bg-[#1a1a1a]'}
+                        `}
+                      >
+                          <FileCode2 size={12} className="mr-1.5 text-[#58a6ff]" /> {f.name}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                
+                <div className="mt-4 md:mt-2 text-[12px] md:text-[11px] uppercase tracking-[1px] text-[#888] px-2 py-2 border-t border-[#222] font-semibold">Base Content</div>
+                {files.filter(f => !f.folder || f.folder === '').map(f => (
                   <div 
                     key={f.id}
                     onClick={() => { setActiveFileId(f.id); setMobileView('editor'); }}
-                    className={`ml-3 pl-2 py-2 md:py-1 text-[13px] md:text-[12px] cursor-pointer flex items-center mt-0.5 truncate transition-colors border-l border-[#333]
-                      ${f.id === activeFileId ? 'text-[#fff] bg-[#222] rounded-r-sm shadow-[inset_2px_0_0_#58a6ff]' : 'text-[#888] hover:text-[#fff] hover:bg-[#1a1a1a]'}
-                    `}
+                    className={`px-3 py-1.5 md:py-1 text-[14px] md:text-[12px] cursor-pointer flex items-center transition-colors rounded-sm ${
+                      f.id === activeFileId 
+                        ? 'bg-[#222] text-[#fff] shadow-[inset_2px_0_0_#58a6ff]' 
+                        : 'text-[#888] hover:text-[#fff] hover:bg-[#1a1a1a]'
+                    }`}
                   >
-                      {f.name}
+                    <FileCode2 size={12} className="mr-1.5 text-[#58a6ff]" /> {f.name}
                   </div>
                 ))}
               </div>
-            ))}
-            
-            <div className="mt-4 md:mt-2 text-[12px] md:text-[11px] uppercase tracking-[1px] text-[#888] px-2 py-2 border-t border-[#222] font-semibold">Base Content</div>
-            {files.filter(f => !f.folder || f.folder === '').map(f => (
-              <div 
-                key={f.id}
-                onClick={() => { setActiveFileId(f.id); setMobileView('editor'); }}
-                className={`px-2 py-2.5 md:py-1.5 text-[14px] md:text-[12px] cursor-pointer flex items-center transition-colors rounded-sm ${
-                  f.id === activeFileId 
-                    ? 'bg-[#222] text-[#fff] shadow-[inset_2px_0_0_#58a6ff]' 
-                    : 'text-[#888] hover:text-[#fff] hover:bg-[#1a1a1a]'
-                }`}
-              >
-                {f.name}
+            ) : (
+              <>
+                <div className="flex bg-[#0a0a0a] px-2 py-1.5 border-b border-[#222]">
+                  <div className="flex items-center bg-[#111] border border-[#333] w-full rounded px-2">
+                     <Search size={12} className="text-[#888]"/>
+                     <input type="text" placeholder="Search Actors" className="bg-transparent border-none outline-none text-[#ccc] text-[11px] px-2 py-1 w-full" />
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto pt-2 pb-4 md:pb-0">
+                   <div className="text-[10px] uppercase font-bold text-[#888] px-3 pb-1">Basic</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><Box size={14} className="text-[#888]"/> Empty Actor</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><PersonStanding size={14} className="text-[#888]"/> Empty Character</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><PersonStanding size={14} className="text-[#888]"/> Empty Pawn</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><div className="w-3 h-3 rounded-full bg-[#f85149] blur-[2px]"></div> Point Light</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><div className="w-3 h-3 rounded-full bg-[#58a6ff] blur-[2px]"></div> Player Start</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><Box size={14} className="text-[#888]"/> Cube</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><div className="w-3 h-3 rounded-full bg-white opacity-40"></div> Sphere</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><div className="w-3 h-3 rounded bg-white opacity-40"></div> Cylinder</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><div className="w-3 h-3 clip-path-triangle bg-white opacity-40"></div> Cone</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><div className="w-3 h-1 bg-white opacity-40"></div> Plane</div>
+                   <div className="px-3 py-1 text-[11px] text-[#ccc] flex items-center gap-2 hover:bg-[#222] cursor-pointer"><Box size={14} className="text-[#3fb950]"/> Box Trigger</div>
+                </div>
+              </>
+            )}
+          </div>
+        ) : leftPanel === 'outliner' ? (
+          <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar px-4 py-2">
+             <div className="text-[12px] md:text-[11px] uppercase tracking-[1px] text-[#888] pb-2 border-b border-[#222] font-semibold mb-2">Scene Hierarchy</div>
+             <div className="text-[12px] text-[#ccc] flex flex-col gap-1">
+               <div className="pl-0 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><FolderTree size={12} className="text-[#e3b341]" /> <span>World.Map</span></div>
+               
+               <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><Box size={12} className="text-[#888]" /> <span>Directional Light</span></div>
+               <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><Mountain size={12} className="text-[#888]" /> <span>Terrain Generation</span></div>
+               
+               <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><FolderTree size={12} className="text-[#e3b341]" /> <span>Player Start</span></div>
+               <div className="pl-6 cursor-pointer bg-[#222] border border-[#333] text-[#58a6ff] py-1 flex items-center gap-1.5 rounded-sm px-1 shadow-[inset_0_0_10px_rgba(88,166,255,0.1)]"><PersonStanding size={12} className="text-[#58a6ff]" /> <span className="font-bold">ThirdPersonCharacter_BP</span></div>
+               
+               <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 text-[#666] italic flex items-center gap-1.5 rounded-sm px-1"><Eye size={12} /> PostProcessVolume</div>
+             </div>
+          </div>
+        ) : leftPanel === 'debug' ? (
+          <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
+            <div className="px-3 py-2 border-b border-[#222] text-[#ccc] flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                 <span className="font-bold text-[11px] uppercase tracking-wide">Run and Debug</span>
+                 <div className="flex bg-[#222] rounded overflow-hidden">
+                    <button className="px-2 py-1 hover:bg-[#333] text-[#3fb950]"><Play size={12} /></button>
+                    <button className="px-2 py-1 hover:bg-[#333] text-[#888]"><Pause size={12} /></button>
+                    <button className="px-2 py-1 hover:bg-[#333] text-[#58a6ff]"><RotateCw size={12} /></button>
+                    <button className="px-2 py-1 hover:bg-[#333] text-[#f85149]"><Square size={12} /></button>
+                 </div>
               </div>
-            ))}
-          </div>
+              <div className="flex gap-1">
+                 <button className="flex-1 bg-[#222] hover:bg-[#333] text-[10px] text-[#ccc] py-1 rounded border border-[#333]">Step Over (F10)</button>
+                 <button className="flex-1 bg-[#222] hover:bg-[#333] text-[10px] text-[#ccc] py-1 rounded border border-[#333]">Step Into (F11)</button>
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-2 p-2">
+              {/* Context / Threads */}
+              <div className="bg-[#111] border border-[#333] rounded overflow-hidden">
+                <div className="bg-[#222] px-2 py-1 text-[10px] font-bold text-[#ccc] uppercase tracking-wider flex justify-between cursor-pointer border-b border-[#333]">
+                  <span>THREADS</span> <ChevronDown size={12} />
+                </div>
+                <div className="p-2 text-[11px] flex flex-col gap-1 text-[#888]">
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-white px-1">
+                     <Play size={10} className="text-[#3fb950]"/> <span className="text-[#fff]">Main Thread (GameLoop)</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-white px-1">
+                     <Pause size={10} className="text-[#e3b341]"/> <span>Worker 1 (PhysicsWorker)</span>
+                  </div>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-white px-1">
+                     <Pause size={10} className="text-[#e3b341]"/> <span>Worker 2 (AudioProcessor)</span>
+                  </div>
+                </div>
+              </div>
 
-          <div className="p-3 px-4 text-[11px] uppercase tracking-[1px] text-[#888] border-t border-[#222] font-semibold hidden md:block shrink-0 bg-[#0a0a0a]">Engine Modules Status</div>
-          <div className="p-4 text-[11px] text-[#888] flex-col gap-2 pb-4 hidden md:flex shrink-0 bg-[#111]">
-            <div className="flex justify-between items-center group">
-              <span className="group-hover:text-[#fff] transition-colors">Nanite Geometry:</span>
-              <span className="text-[#3fb950] font-mono">Hardware Raytraced</span>
-            </div>
-            <div className="flex justify-between items-center group">
-              <span className="group-hover:text-[#fff] transition-colors">Lumen GI:</span>
-              <span className="text-[#e3b341] font-mono">Realtime Dynamic</span>
-            </div>
-            <div className="flex justify-between items-center group">
-              <span className="group-hover:text-[#fff] transition-colors">Niagara FX:</span>
-              <span className="text-[#bc8cff] font-mono">Hardware Sync</span>
-            </div>
-            <div className="flex justify-between items-center group">
-              <span className="group-hover:text-[#fff] transition-colors">Chaos Physics:</span>
-              <span className="text-[#ff7b72] font-mono">Destruction Active</span>
-            </div>
-            <div className="flex justify-between items-center group">
-              <span className="group-hover:text-[#fff] transition-colors">World Partition:</span>
-              <span className="text-[#58a6ff] font-mono">Grid Loaded</span>
-            </div>
-            <div className="flex justify-between items-center group pt-2 border-t border-[#333] mt-1">
-              <span className="group-hover:text-[#fff] transition-colors">Mobile Cluster:</span>
-              <span className="text-[#3fb950] font-mono">3 Nodes Linked</span>
+              {/* Memory Profiler */}
+              <div className="bg-[#111] border border-[#333] rounded overflow-hidden">
+                <div className="bg-[#222] px-2 py-1 text-[10px] font-bold text-[#ccc] uppercase tracking-wider flex justify-between cursor-pointer border-b border-[#333]">
+                  <span>MEMORY PROFILER</span> <ChevronDown size={12} />
+                </div>
+                <div className="p-2 text-[10px] flex flex-col gap-2 text-[#888]">
+                   <div className="flex justify-between items-center text-[#ccc]">
+                      <span>Heap Size</span>
+                      <span className="text-[#e3b341]">245 MB / 1024 MB</span>
+                   </div>
+                   <div className="w-full h-2 bg-[#222] rounded overflow-hidden flex">
+                      <div className="h-full bg-[#f85149]" style={{ width: '4%' }}></div>
+                      <div className="h-full bg-[#3fb950]" style={{ width: '15%' }}></div>
+                      <div className="h-full bg-[#58a6ff]" style={{ width: '5%' }}></div>
+                   </div>
+                   <div className="flex gap-2 text-[9px]">
+                      <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 bg-[#f85149]"></div> GC Roots</span>
+                      <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 bg-[#3fb950]"></div> Objects</span>
+                      <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 bg-[#58a6ff]"></div> Strings</span>
+                   </div>
+                   <button className="w-full bg-[#222] hover:bg-[#333] text-[#ccc] py-1 mt-1 border border-[#444] rounded text-center">Capture Snapshot</button>
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-[#333] rounded overflow-hidden">
+                <div className="bg-[#222] px-2 py-1 text-[10px] font-bold text-[#ccc] uppercase tracking-wider flex justify-between cursor-pointer">
+                  <span>WATCHES</span> <Plus size={12} className="hover:text-white cursor-pointer" />
+                </div>
+                <div className="p-2 text-[11px] font-mono flex flex-col gap-1">
+                  <div className="flex justify-between items-center group cursor-text">
+                     <span className="text-[#58a6ff]">player.position</span>
+                     <span className="text-[#ccc]">&#123; x: 120, y: 0, z: -45.5 &#125;</span>
+                     <X size={10} className="hidden group-hover:block ml-1 cursor-pointer hover:text-white" />
+                  </div>
+                  <div className="flex justify-between items-center group cursor-text">
+                     <span className="text-[#58a6ff]">EnemyManager.count</span>
+                     <span className="text-[#fff]">14</span>
+                     <X size={10} className="hidden group-hover:block ml-1 cursor-pointer hover:text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-[#333] rounded overflow-hidden">
+                <div className="bg-[#222] px-2 py-1 text-[10px] font-bold text-[#ccc] uppercase tracking-wider flex justify-between cursor-pointer">
+                  <span>CALL STACK</span> <ChevronDown size={12} />
+                </div>
+                <div className="p-2 text-[11px] font-mono flex flex-col gap-1">
+                  <div className="text-[#e3b341] truncate bg-[#222] px-1 rounded flex justify-between">
+                    <span>PhysicsSystem.update()</span> <span className="text-[#888]">Physics.ts:142</span>
+                  </div>
+                  <div className="text-[#888] truncate hover:bg-[#222] px-1 rounded cursor-pointer flex justify-between">
+                    <span>GameLoop.tick()</span> <span className="text-[#444]">Core.ts:89</span>
+                  </div>
+                  <div className="text-[#888] truncate hover:bg-[#222] px-1 rounded cursor-pointer flex justify-between">
+                    <span>requestAnimationFrame</span> <span className="text-[#444]">anonymous</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#111] border border-[#333] rounded overflow-hidden">
+                <div className="bg-[#222] px-2 py-1 text-[10px] font-bold text-[#ccc] uppercase tracking-wider flex justify-between cursor-pointer">
+                  <span>BREAKPOINTS</span> <Plus size={12} className="hover:text-white cursor-pointer" />
+                </div>
+                <div className="p-2 text-[11px] font-mono flex flex-col gap-1">
+                  <div className="flex items-center gap-2 hover:bg-[#222] px-1 py-0.5 rounded cursor-pointer">
+                    <input type="checkbox" defaultChecked className="accent-[#f85149]" />
+                    <div className="w-2 h-2 rounded-full bg-[#f85149]"></div>
+                    <span className="text-[#ccc] truncate flex-1">PlayerControl.ts <span className="text-[#888] ml-2">16:4</span></span>
+                  </div>
+                  <div className="flex items-center gap-2 hover:bg-[#222] px-1 py-0.5 rounded cursor-pointer">
+                    <input type="checkbox" defaultChecked className="accent-[#f85149]" />
+                    <div className="w-2 h-2 rounded-full bg-[#f85149] rounded-sm transform rotate-45 border-none" title="Conditional Breakpoint"></div>
+                    <span className="text-[#ccc] truncate flex-1">EnemyAStar.ts <span className="text-[#888] ml-2 text-[9px] italic">if (hp &lt; 0)</span></span>
+                  </div>
+                </div>
+              </div>
+
+               {/* Network / Profiling */}
+              <div className="bg-[#111] border border-[#333] rounded overflow-hidden">
+                <div className="bg-[#222] px-2 py-1 text-[10px] font-bold text-[#ccc] uppercase tracking-wider flex justify-between cursor-pointer border-b border-[#333]">
+                  <span>NETWORK CALLS</span> <ChevronDown size={12} />
+                </div>
+                <div className="p-1 text-[10px] flex flex-col gap-0.5 text-[#888] font-mono">
+                  <div className="flex justify-between items-center hover:bg-[#222] px-1 cursor-pointer text-[#3fb950]">
+                     <span>GET /api/save</span> <span>200 OK</span> <span>12ms</span>
+                  </div>
+                  <div className="flex justify-between items-center hover:bg-[#222] px-1 cursor-pointer text-[#f85149]">
+                     <span>POST /api/telemetry</span> <span>500 ERR</span> <span>45ms</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
-        </div>
-      ) : leftPanel === 'outliner' ? (
-        <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar px-4 py-2">
-           <div className="text-[12px] md:text-[11px] uppercase tracking-[1px] text-[#888] pb-2 border-b border-[#222] font-semibold mb-2">Scene Hierarchy</div>
-           <div className="text-[12px] text-[#ccc] flex flex-col gap-1">
-             <div className="pl-0 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><FolderTree size={12} className="text-[#e3b341]" /> <span>World.Map</span></div>
-             
-             <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><Box size={12} className="text-[#888]" /> <span>Directional Light</span></div>
-             <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><Mountain size={12} className="text-[#888]" /> <span>Terrain Generation</span></div>
-             
-             <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 flex items-center gap-1.5 rounded-sm px-1"><FolderTree size={12} className="text-[#e3b341]" /> <span>Player Start</span></div>
-             <div className="pl-6 cursor-pointer bg-[#222] border border-[#333] text-[#58a6ff] py-1 flex items-center gap-1.5 rounded-sm px-1 shadow-[inset_0_0_10px_rgba(88,166,255,0.1)]"><PersonStanding size={12} className="text-[#58a6ff]" /> <span className="font-bold">ThirdPersonCharacter_BP</span></div>
-             
-             <div className="pl-3 cursor-pointer hover:bg-[#222] py-1 text-[#666] italic flex items-center gap-1.5 rounded-sm px-1"><Eye size={12} /> PostProcessVolume</div>
-           </div>
-        </div>
-      ) : (
-        <div className="flex-1 min-h-0 overflow-hidden">
-           <GitPanel files={files} />
-        </div>
-      )}
-    </aside>
-  );
+        ) : leftPanel === 'test' ? (
+          <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
+            <div className="px-4 py-3 border-b border-[#222] text-[#ccc] flex items-center justify-between">
+              <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-2"><FlaskConical size={14}/> Test Explorer</span>
+              <div className="flex gap-2">
+                <Play size={12} className="text-[#3fb950] cursor-pointer" />
+                <RotateCw size={12} className="text-[#888] cursor-pointer hover:text-[#fff]" />
+              </div>
+            </div>
+            <div className="p-2 text-[11px] flex flex-col gap-2">
+              <div className="flex items-center gap-2 cursor-pointer hover:bg-[#222] p-1 border border-transparent hover:border-[#333] rounded">
+                <ShieldCheck size={12} className="text-[#3fb950]" /> <span className="text-[#ccc]">MathUtils.test.js</span>
+              </div>
+              <div className="flex flex-col gap-1 pl-5 text-[#888]">
+                <div className="flex items-center gap-2 hover:text-[#ccc] cursor-pointer"><ShieldCheck size={10} className="text-[#3fb950]" /> Should calculate damage</div>
+                <div className="flex items-center gap-2 hover:text-[#ccc] cursor-pointer"><XCircle size={10} className="text-[#f85149]" /> Should normalize zero vector</div>
+              </div>
+            </div>
+          </div>
+        ) : leftPanel === 'extensions' ? (
+          <div className="flex-1 flex flex-col custom-scrollbar">
+            <div className="px-4 py-3 border-b border-[#222] text-[#ccc]">
+              <span className="font-bold text-[11px] uppercase tracking-wide">Extensions</span>
+            </div>
+            <div className="p-2 pb-0">
+               <input type="text" placeholder="Search Extensions in Marketplace" className="w-full bg-[#111] border border-[#333] rounded px-2 py-1.5 text-[11px] outline-none text-[#fff]" />
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
+              <div className="bg-[#111] border border-[#222] p-2 flex gap-3 rounded cursor-pointer hover:border-[#58a6ff]/50 transition-colors">
+                <div className="w-8 h-8 shrink-0 bg-[#bc8cff]/20 rounded flex items-center justify-center"><Sparkles size={16} className="text-[#bc8cff]" /></div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-[#fff]">Nexus AI Companion</span>
+                  <span className="text-[9px] text-[#888]">AI-native refactor, debug, predict</span>
+                </div>
+              </div>
+              <div className="bg-[#111] border border-[#222] p-2 flex gap-3 rounded cursor-pointer hover:border-[#58a6ff]/50 transition-colors">
+                <div className="w-8 h-8 shrink-0 bg-[#f85149]/20 rounded flex items-center justify-center"><Activity size={16} className="text-[#f85149]" /></div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-[#fff]">ESLint</span>
+                  <span className="text-[9px] text-[#888]">Integrates ESLint JavaScript</span>
+                </div>
+              </div>
+              <div className="bg-[#111] border border-[#222] p-2 flex gap-3 rounded cursor-pointer hover:border-[#58a6ff]/50 transition-colors">
+                <div className="w-8 h-8 shrink-0 bg-[#e3b341]/20 rounded flex items-center justify-center"><Cpu size={16} className="text-[#e3b341]" /></div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-[#fff]">C/C++ Build Tools</span>
+                  <span className="text-[9px] text-[#888]">C++ intellisense and debugging</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 min-h-0 overflow-hidden">
+             <GitPanel files={files} />
+          </div>
+        )}
+      </aside>
+    );
+  };
 
   const renderTabs = () => (
-    <div className="min-h-[44px] md:min-h-[35px] bg-[#161b22] flex border-b border-[#30363d] shrink-0 overflow-x-auto custom-scrollbar relative z-10 w-full">
-      {files.map(f => (
-        <div 
-          key={f.id}
-          onClick={() => setActiveFileId(f.id)}
-          className={`px-5 flex items-center text-[13px] md:text-[12px] border-r border-[#30363d] cursor-pointer whitespace-nowrap transition-colors select-none ${
-            f.id === activeFileId
-              ? 'bg-[#0d1117] text-[#c9d1d9] font-medium border-t-[2px] border-t-[#58a6ff]'
-              : 'text-[#8b949e] hover:bg-[#21262d] border-t-[2px] border-t-transparent'
-          }`}
-        >
-          {f.name}
+    <div className="min-h-[44px] md:min-h-[35px] bg-[#161b22] flex border-b border-[#30363d] shrink-0 custom-scrollbar relative z-10 w-full justify-between overflow-visible">
+      <div className="flex overflow-x-auto hide-scrollbar flex-1">
+        {files.map(f => (
+          <div 
+            key={f.id}
+            onClick={() => setActiveFileId(f.id)}
+            className={`px-5 flex items-center text-[13px] md:text-[12px] border-r border-[#30363d] cursor-pointer whitespace-nowrap transition-colors select-none ${
+              f.id === activeFileId
+                ? 'bg-[#0d1117] text-[#c9d1d9] font-medium border-t-[2px] border-t-[#58a6ff]'
+                : 'text-[#8b949e] hover:bg-[#21262d] border-t-[2px] border-t-transparent'
+            }`}
+          >
+            {f.name}
+          </div>
+        ))}
+      </div>
+      {activeTool === 'Select' && (
+        <div className="flex items-center px-3 border-l border-[#30363d] shrink-0 bg-[#161b22]">
+          <button 
+            onClick={() => setShowEditorViewport(!showEditorViewport)}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-bold transition-colors ${showEditorViewport ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d]'}`}
+            title="Toggle Engine Viewport"
+          >
+            <MonitorPlay size={14} />
+            {showEditorViewport ? 'Viewport: ON' : 'Viewport: OFF'}
+          </button>
         </div>
-      ))}
+      )}
     </div>
   );
 
@@ -608,14 +793,14 @@ export default function App() {
            </div>
          ) : activeTool === 'Material' ? (
            <div className="flex flex-col gap-3">
-             <div className="text-[#c9d1d9] font-medium border-b border-[#30363d] pb-1">Shader Properties</div>
-             <div className="flex justify-between items-center"><span className="text-[#8b949e]">Blend Mode:</span> <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 text-right text-[#c9d1d9]"><option>Opaque</option><option>Masked</option><option>Translucent</option></select></div>
-             <div className="flex justify-between items-center"><span className="text-[#8b949e]">Shading Model:</span> <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 text-right text-[#c9d1d9]"><option>Default Lit</option><option>Unlit</option><option>Clear Coat</option></select></div>
-             <div className="flex justify-between items-center"><span className="text-[#8b949e]">Two Sided:</span> <input type="checkbox" className="w-3 h-3 border-[#30363d]" /></div>
-             <div className="flex justify-between items-center"><span className="text-[#8b949e]">Is Wireframe:</span> <input type="checkbox" className="w-3 h-3 border-[#30363d]" /></div>
-             <div className="mt-4 text-[#c9d1d9] font-medium border-b border-[#30363d] pb-1">Graph Stats</div>
-             <div className="flex justify-between text-[10px]"><span className="text-[#8b949e]">Instructions:</span> <span className="text-[#c9d1d9]">142 ALU, 3 Tex</span></div>
-             <div className="flex justify-between text-[10px]"><span className="text-[#8b949e]">Samplers:</span> <span className="text-[#3fb950]">3/16</span></div>
+             <div className="text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Shader Properties</div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Blend Mode:</span> <select className="bg-[#111] border border-[#333] rounded px-1 text-right text-[#ccc] outline-none focus:border-[#58a6ff]"><option>Opaque</option><option>Masked</option><option>Translucent</option></select></div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Shading Model:</span> <select className="bg-[#111] border border-[#333] rounded px-1 text-right text-[#ccc] outline-none focus:border-[#58a6ff]"><option>Default Lit</option><option>Unlit</option><option>Clear Coat</option></select></div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Two Sided:</span> <input type="checkbox" className="w-3 h-3 border-[#333] accent-[#58a6ff]" /></div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Is Wireframe:</span> <input type="checkbox" className="w-3 h-3 border-[#333] accent-[#58a6ff]" /></div>
+             <div className="mt-4 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Graph Stats</div>
+             <div className="flex justify-between text-[10px]"><span className="text-[#888]">Instructions:</span> <span className="text-[#ccc]">142 ALU, 3 Tex</span></div>
+             <div className="flex justify-between text-[10px]"><span className="text-[#888]">Samplers:</span> <span className="text-[#3fb950] font-bold">3/16</span></div>
            </div>
          ) : (
            <div className="flex flex-col gap-3">
@@ -646,100 +831,191 @@ export default function App() {
     </aside>
   );
 
-  const renderBottomPanel = () => (
-    <div className={`h-[250px] bg-[#0a0a0a] border-t border-[#222] shrink-0 font-mono text-[11px] flex flex-col z-20 ${showConsole ? 'flex' : 'hidden'} shadow-[0_-5px_20px_rgba(0,0,0,0.5)]`}>
-      <div className="flex bg-[#111] border-b border-[#222] text-[#888]">
-        <button onClick={() => setBottomTab('content')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] ${bottomTab === 'content' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><FolderTree size={12}/> Content Drawer</button>
-        <button onClick={() => setBottomTab('log')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] ${bottomTab === 'log' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Output Log</button>
-        <button onClick={() => setBottomTab('cmd')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] ${bottomTab === 'cmd' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Server size={12}/> Cmd</button>
-        <button className="px-4 py-1.5 ml-auto border-transparent hover:text-[#fff] transition-colors" onClick={() => setShowConsole(false)}>X</button>
-      </div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar flex">
-        {bottomTab === 'content' ? (
-          <div className="flex flex-1 text-sans font-sans">
-            <div className="w-[200px] border-r border-[#222] p-2 flex flex-col gap-1 text-[#888]">
-               <div className="px-2 py-1 hover:bg-[#222] cursor-pointer rounded-sm flex items-center gap-2"><FolderTree size={14}/> CoreAssets</div>
-               <div className="px-2 py-1 hover:bg-[#222] cursor-pointer rounded-sm flex items-center gap-2 pl-6"><Mountain size={14}/> Environments</div>
-               <div className="px-2 py-1 hover:bg-[#222] cursor-pointer rounded-sm flex items-center gap-2 pl-6"><PersonStanding size={14}/> Characters</div>
-               <div className="px-2 py-1 hover:bg-[#222] cursor-pointer rounded-sm flex items-center gap-2 bg-[#222] text-[#fff]"><Palette size={14} className="text-[#58a6ff]"/> Materials</div>
+  const renderBottomPanel = () => {
+    const isCodeIDE = activeTool === 'Select';
+    return (
+      <div className={`h-[250px] bg-[#0a0a0a] border-t border-[#222] shrink-0 font-mono text-[11px] flex flex-col z-20 ${showConsole || isCodeIDE ? 'flex' : 'hidden'} shadow-[0_-5px_20px_rgba(0,0,0,0.5)]`}>
+        <div className="flex bg-[#111] border-b border-[#222] text-[#888] overflow-x-auto hide-scrollbar shrink-0">
+          {isCodeIDE ? (
+            <>
+              <button onClick={() => setBottomTab('problems')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'problems' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Bug size={12}/> Problems <span className="bg-[#161b22] px-1 rounded-full text-[9px] text-[#f85149]">3</span></button>
+              <button onClick={() => setBottomTab('output')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'output' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Activity size={12}/> Output</button>
+              <button onClick={() => setBottomTab('debugConsole')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'debugConsole' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Server size={12}/> Debug Console</button>
+              <button onClick={() => setBottomTab('terminal')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'terminal' || !['problems', 'output', 'debugConsole'].includes(bottomTab) ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Terminal</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setBottomTab('content')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'content' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><FolderTree size={12}/> Content Drawer</button>
+              <button onClick={() => setBottomTab('log')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'log' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Output Log</button>
+              <button onClick={() => setBottomTab('cmd')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'cmd' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Server size={12}/> Cmd</button>
+            </>
+          )}
+          {!isCodeIDE && <button className="px-4 py-1.5 ml-auto border-transparent hover:text-[#fff] transition-colors shrink-0" onClick={() => setShowConsole(false)}>X</button>}
+        </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex">
+          {!isCodeIDE && bottomTab === 'content' ? (
+            <ContentBrowser onOpenBlueprint={() => setActiveTool('Blueprint')} />
+          ) : isCodeIDE ? (
+            <div className="flex-1 p-4 flex flex-col gap-1 text-[#ccc] font-mono text-[12px]">
+              {bottomTab === 'terminal' || !['problems', 'output', 'debugConsole'].includes(bottomTab) ? (
+                <>
+                  {terminalHistory.map((item, index) => (
+                    <div key={index} className={
+                      item.type === 'sys' ? 'text-[#888]' :
+                      item.type === 'cmd' ? 'text-[#ccc] flex gap-2 items-center' :
+                      item.type === 'success' ? 'text-[#3fb950]' :
+                      item.type === 'error' ? 'text-[#f85149]' : 'text-[#ccc]'
+                    }>
+                      {item.type === 'cmd' ? (
+                        <>
+                          <span className="text-[#3fb950]">➜</span>
+                          <span className="text-[#58a6ff]">nexus-engine</span>
+                          <span className="text-[#888]">git:(</span><span className="text-[#f85149]">main</span><span className="text-[#888]">)</span>
+                          <span>{item.text}</span>
+                        </>
+                      ) : (
+                        item.text
+                      )}
+                    </div>
+                  ))}
+                  <div className="mt-2 text-[#ccc] flex gap-2 items-center">
+                    <span className="text-[#3fb950]">➜</span>
+                    <span className="text-[#58a6ff]">nexus-engine</span>
+                    <span className="text-[#888]">git:(</span><span className="text-[#f85149]">main</span><span className="text-[#888]">)</span>
+                    <input 
+                      type="text" 
+                      className="bg-transparent border-none outline-none flex-1 font-mono text-[#fff] caret-white" 
+                      value={terminalInput}
+                      onChange={(e) => setTerminalInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          if (terminalInput.trim()) {
+                            setTerminalHistory(prev => [...prev, { type: 'cmd', text: terminalInput }]);
+                            
+                            // Mocking different commands
+                            if (terminalInput === 'ls') {
+                              setTerminalHistory(prev => [...prev, { type: 'normal', text: 'src  public  package.json  vite.config.ts  README.md' }]);
+                            } else if (terminalInput === 'clear') {
+                              setTerminalHistory([]);
+                            } else if (terminalInput.startsWith('echo ')) {
+                               setTerminalHistory(prev => [...prev, { type: 'normal', text: terminalInput.substring(5) }]);
+                            } else {
+                              setTerminalHistory(prev => [...prev, { type: 'error', text: `command not found: ${terminalInput}` }]);
+                            }
+                            setTerminalInput('');
+                          }
+                        }
+                      }}
+                      autoFocus
+                    />
+                  </div>
+                </>
+              ) : bottomTab === 'problems' ? (
+                <div className="flex flex-col gap-2 relative">
+                  <div className="absolute right-0 top-0 text-[10px] bg-[#161b22] px-2 py-1 rounded border border-[#3fb950]/30 text-[#3fb950] font-bold flex items-center gap-1"><CheckCircle size={10} /> Universal Linter Active</div>
+                  <h4 className="text-[#c9d1d9] font-bold text-[12px] mb-1">Syntax Validation & Spell Check (All Languages Supported)</h4>
+                  <div className="text-[11px] text-[#ccc] bg-[#161b22] border-l-2 border-[#f85149] p-2 flex gap-4 items-start hover:bg-[#21262d] cursor-pointer">
+                     <span className="text-[#f85149]"><AlertTriangle size={14}/></span>
+                     <div className="flex flex-col gap-0.5">
+                       <span className="text-[#c9d1d9] font-bold">src/core/math/Transform.cpp <span className="text-[#8b949e] font-normal">[Line 42, Col 8]</span></span>
+                       <span className="text-[#8b949e]">Typo in variable name: 'quatrrnion'. Did you mean 'quaternion'? (AI Word Correction)</span>
+                       <span className="text-[#58a6ff] hover:underline hover:text-white mt-1 cursor-pointer w-max">Auto-Fix with AI</span>
+                     </div>
+                  </div>
+                  <div className="text-[11px] text-[#ccc] bg-[#161b22] border-l-2 border-[#f85149] p-2 flex gap-4 items-start hover:bg-[#21262d] cursor-pointer">
+                     <span className="text-[#f85149]"><AlertTriangle size={14}/></span>
+                     <div className="flex flex-col gap-0.5">
+                       <span className="text-[#c9d1d9] font-bold">src/scripts/NPCBehavior.lua <span className="text-[#8b949e] font-normal">[Line 128, Col 2]</span></span>
+                       <span className="text-[#8b949e]">Syntax Error: Missing 'end' statement for 'if' block.</span>
+                       <span className="text-[#58a6ff] hover:underline hover:text-white mt-1 cursor-pointer w-max">Auto-Fix with AI</span>
+                     </div>
+                  </div>
+                  <div className="text-[11px] text-[#ccc] bg-[#161b22] border-l-2 border-[#e3b341] p-2 flex gap-4 items-start hover:bg-[#21262d] cursor-pointer">
+                     <span className="text-[#e3b341]"><AlertTriangle size={14}/></span>
+                     <div className="flex flex-col gap-0.5">
+                       <span className="text-[#c9d1d9] font-bold">src/ui/MainMenu.tsx <span className="text-[#8b949e] font-normal">[Line 15, Col 12]</span></span>
+                       <span className="text-[#8b949e]">Warning: Possible grammar error in string literal "You has been defeated". Suggestion: "You have been defeated".</span>
+                       <span className="text-[#58a6ff] hover:underline hover:text-white mt-1 cursor-pointer w-max">Apply AI Correction</span>
+                     </div>
+                  </div>
+                </div>
+              ) : bottomTab === 'output' ? (
+                 <div className="flex flex-col gap-1">
+                   <div className="text-[#888]">[Info  - 12:45:01 PM] ESLint server initialized.</div>
+                   <div className="text-[#888]">[Info  - 12:45:03 PM] TypeScript language server started.</div>
+                   <div className="text-[#888]">[Info  - 12:45:05 PM] AI Context synchronized with workspace.</div>
+                 </div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-3 font-mono h-full overflow-y-auto w-full pr-2 pb-6">
+                  <div className="flex justify-between items-center bg-[#222]/50 p-2 rounded border border-[#333]">
+                    <div className="flex items-center gap-3">
+                       <span className="text-[#f85149] font-bold flex items-center gap-1"><XCircle size={14} /> Exceptions Caught</span>
+                       <span className="text-[#888] text-[10px]">main.js (Engine Thread)</span>
+                    </div>
+                    <button className="text-[#58a6ff] hover:bg-[#58a6ff]/10 px-2 py-1 flex items-center gap-1 rounded text-xs transition duration-200 border border-transparent hover:border-[#58a6ff]/30"><Sparkles size={12}/> AI Deep Analysis</button>
+                  </div>
+                  
+                  <div className="flex flex-col border border-[#f85149]/30 rounded bg-[#111] shadow-[0_4px_20px_rgba(248,81,73,0.05)] overflow-hidden">
+                    <div className="bg-[#f85149]/20 px-3 py-2 border-b border-[#f85149]/30 flex items-center gap-2">
+                       <Bug size={14} className="text-[#f85149]"/>
+                       <span className="text-[#fff] font-bold text-sm">TypeError: Cannot read properties of undefined (reading 'x')</span>
+                    </div>
+                    
+                    <div className="p-3 bg-[#0d1117] flex flex-col gap-2 relative">
+                        <div className="text-[#888] text-xs">At <span className="text-[#58a6ff]">PhysicsWorker.updatePhysics</span> <span className="text-[#888]">(physics/solver.js:401:12)</span></div>
+                        <div className="text-[#888] text-xs">At <span className="text-[#58a6ff]">Engine.tick</span> <span className="text-[#888]">(core/engine.js:899:4)</span></div>
+                        <div className="text-[#888] text-xs">At <span className="text-[#58a6ff]">requestAnimationFrame</span> <span className="text-[#888]">(Window)</span></div>
+                        
+                        <div className="mt-3 bg-[#1e2329] border border-[#30363d] rounded p-4 ml-6 relative">
+                            <div className="absolute -left-[24px] top-4 w-[24px] border-b border-[#30363d]"></div>
+                            <span className="text-[#e3b341] text-[10px] font-bold mb-3 flex items-center gap-1 uppercase tracking-wider"><Bot size={12}/> AI Root Cause Diagnostics</span>
+                            <p className="text-[#ccc] text-xs leading-relaxed max-w-[95%] mb-2">
+                                <span className="text-[#f85149] font-bold">What happened:</span> The engine tried to access the position <code className="text-[#ff7b72] bg-[#f85149]/10 px-1 rounded">['x']</code> of an active rigid body, but the rigid body reference is currently <code className="text-[#ff7b72] bg-[#f85149]/10 px-1 rounded">undefined</code>.
+                            </p>
+                            <p className="text-[#ccc] text-xs leading-relaxed max-w-[95%]">
+                                <span className="text-[#e3b341] font-bold">Why it happened:</span> Engine pool allocation bug. The multiplayer state replication system received a partial entity sync from the server but did not pre-allocate <code className="text-[#888] bg-[#222] px-1 rounded">Transform</code> data.
+                            </p>
+                            
+                            <div className="mt-4 bg-[#0d1117] border border-[#30363d] rounded overflow-hidden text-[11px]">
+                               <div className="flex bg-[#161b22] px-3 py-1.5 items-center justify-between border-b border-[#30363d]">
+                                  <span className="text-[#888] flex items-center gap-1"><FileCode2 size={12}/> Suggested Fix (physics/solver.js)</span>
+                                  <button className="text-[#3fb950] font-bold cursor-pointer hover:bg-[#3fb950]/10 px-2 rounded-sm border border-[#3fb950] transition">Apply Patch</button>
+                               </div>
+                               <pre className="text-[#ccc] p-3 overflow-x-auto whitespace-pre">
+<span className="text-[#888]">400 |   const entity = EntityManager.get(id);</span>
+<div className="bg-[#f85149]/20 w-full inline-block px-1 -ml-1"><span className="text-[#f85149]">- 401 |   if (entity.transform) {'{'}</span></div>
+<div className="bg-[#3fb950]/20 w-full inline-block px-1 -ml-1"><span className="text-[#3fb950]">+ 401 |   if (entity && entity.transform && entity.transform.position) {'{'}</span></div>
+<span className="text-[#888]">402 |      updatePosition(entity.transform);</span>
+<span className="text-[#888]">403 |   {'}'}</span>
+                               </pre>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              )}
             </div>
-            <div className="flex-1 p-4 grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 content-start">
-               {/* Asset Mocks */}
-               <div className="flex flex-col items-center gap-2 cursor-pointer group">
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] rounded flex items-center justify-center p-1 relative overflow-hidden drop-shadow-md">
-                     <div className="w-full h-full rounded-full bg-gradient-to-tr from-[#f85149] to-[#ff7b72] shadow-inner border border-white/10"></div>
-                     <div className="absolute top-0 right-0 bg-[#f85149] text-white text-[8px] font-bold px-1 rounded-bl">MAT</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">M_Ruby_PBR</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group">
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] rounded flex items-center justify-center p-1 relative overflow-hidden drop-shadow-md">
-                     <div className="w-full h-full rounded-full bg-gradient-to-tr from-[#333] to-[#888] shadow-inner border border-white/10"></div>
-                     <div className="absolute top-0 right-0 bg-[#f85149] text-white text-[8px] font-bold px-1 rounded-bl">MAT</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">M_ChromeBase</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group">
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] rounded flex items-center justify-center p-1 relative overflow-hidden drop-shadow-md">
-                     <div className="w-full h-full rounded-full bg-gradient-to-tr from-[#888] to-[#fff] shadow-inner border border-white/10"></div>
-                     <div className="absolute top-0 right-0 bg-[#f85149] text-white text-[8px] font-bold px-1 rounded-bl">MAT</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">M_PlasticWhite</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group" onClick={() => setActiveTool('Blueprint')}>
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] hover:bg-[#58a6ff]/10 rounded flex items-center justify-center relative overflow-hidden drop-shadow-md">
-                     <Waypoints size={32} className="text-[#3fb950]"/>
-                     <div className="absolute top-0 right-0 bg-[#3fb950] text-[#0a0a0a] text-[8px] font-bold px-1 rounded-bl">BP</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">BP_PlayerCharacter</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group">
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] rounded flex items-center justify-center relative overflow-hidden drop-shadow-md">
-                     <Image size={24} className="text-[#888]"/>
-                     <div className="absolute top-0 right-0 bg-[#bc8cff] text-[#0a0a0a] text-[8px] font-bold px-1 rounded-bl">TEX</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">T_Noise_01</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group">
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] rounded flex items-center justify-center relative overflow-hidden drop-shadow-md">
-                     <PersonStanding size={32} className="text-[#58a6ff]"/>
-                     <div className="absolute top-0 right-0 bg-[#58a6ff] text-[#0a0a0a] text-[8px] font-bold px-1 rounded-bl">SKM</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">SKM_HeroMesh</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group">
-                  <div className="w-16 h-16 bg-[#161616] border border-[#333] group-hover:border-[#58a6ff] rounded flex items-center justify-center relative overflow-hidden drop-shadow-md">
-                     <Music size={24} className="text-[#3fb950]"/>
-                     <div className="absolute top-0 right-0 bg-[#3fb950] text-[#0a0a0a] text-[8px] font-bold px-1 rounded-bl">WAV</div>
-                  </div>
-                  <span className="text-[10px] text-[#ccc] group-hover:text-[#fff] transition-colors text-center w-full truncate">S_Jump_01</span>
-               </div>
-               <div className="flex flex-col items-center gap-2 cursor-pointer group border border-dashed border-[#58a6ff]/50 rounded-sm hover:bg-[#58a6ff]/10">
-                  <div className="w-16 h-16 flex items-center justify-center relative overflow-hidden text-[#58a6ff]">
-                     Add/Import
-                  </div>
-                  <span className="text-[10px] text-[#58a6ff] text-center w-full truncate">&nbsp;</span>
-               </div>
+          ) : (
+            <div className="flex-1 p-4 flex flex-col gap-1 text-[#ccc]">
+               <div className="text-[#888]">NexusEngine AI initialized. (Local Cluster Offline)</div>
+               <div><span className="text-[#e3b341]">[LogEngine]</span> Found 2 physical CPU cores, 8 thread(s).</div>
+               <div><span className="text-[#e3b341]">[LogRenderer]</span> Initialized WebGL2 Rendering Context / WebGPU Support: OK.</div>
+               <div><span className="text-[#e3b341]">[LogRenderer]</span> Loading RHI pipeline... compiling shaders (142 nodes).</div>
+               <div><span className="text-[#e3b341]">[LogPhysics]</span> Rapier/Ammo.js Collision Solver Instantiated. 0 RigidBodies.</div>
+               <div><span className="text-[#e3b341]">[LogAnimation]</span> BlendTree / IK Solver initialized successfully.</div>
+               <div><span className="text-[#e3b341]">[LogAudio]</span> 3D Spatial Audio ready (Wwise/FMOD simulated bridge).</div>
+               <div><span className="text-[#e3b341]">[LogWorld]</span> Scene graph loaded. Streaming cell grid 0,0.</div>
+               <div className="text-[#58a6ff]">[LogCore] Frame budget target: 16.6ms (60 FPS). Asynchronous workers standing by.</div>
+               {isSimulating && <div className="text-[#3fb950] font-bold">[PlayMode] PIE (Play In Editor) session started. Game Loop Active.</div>}
+               {bottomTab === 'cmd' ? <div className="mt-2 text-[#58a6ff] flex gap-2 items-center">&gt; <input type="text" className="bg-transparent border-none outline-none flex-1 font-mono text-[#fff]" placeholder="engine.help()" /></div> : bottomTab === 'log' ? <div className="text-[#888]">Waiting for commands...</div> : null}
             </div>
-          </div>
-        ) : (
-          <div className="flex-1 p-4 flex flex-col gap-1 text-[#ccc]">
-             <div className="text-[#888]">NexusEngine AI initialized. (Local Cluster Offline)</div>
-             <div><span className="text-[#e3b341]">[LogEngine]</span> Found 2 physical CPU cores, 8 thread(s).</div>
-             <div><span className="text-[#e3b341]">[LogRenderer]</span> Initialized WebGL2 Rendering Context / WebGPU Support: OK.</div>
-             <div><span className="text-[#e3b341]">[LogRenderer]</span> Loading RHI pipeline... compiling shaders (142 nodes).</div>
-             <div><span className="text-[#e3b341]">[LogPhysics]</span> Rapier/Ammo.js Collision Solver Instantiated. 0 RigidBodies.</div>
-             <div><span className="text-[#e3b341]">[LogAnimation]</span> BlendTree / IK Solver initialized successfully.</div>
-             <div><span className="text-[#e3b341]">[LogAudio]</span> 3D Spatial Audio ready (Wwise/FMOD simulated bridge).</div>
-             <div><span className="text-[#e3b341]">[LogWorld]</span> Scene graph loaded. Streaming cell grid 0,0.</div>
-             <div className="text-[#58a6ff]">[LogCore] Frame budget target: 16.6ms (60 FPS). Asynchronous workers standing by.</div>
-             {isSimulating && <div className="text-[#3fb950] font-bold">[PlayMode] PIE (Play In Editor) session started. Game Loop Active.</div>}
-             {bottomTab === 'cmd' ? <div className="mt-2 text-[#58a6ff] flex gap-2 items-center">&gt; <input type="text" className="bg-transparent border-none outline-none flex-1 font-mono text-[#fff]" placeholder="engine.help()" /></div> : <div className="text-[#888]">Waiting for commands...</div>}
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ---------------------------------------------------------------------------
   // Main Render
@@ -760,12 +1036,21 @@ export default function App() {
             {isSimulating && <GamePreview files={files} />}
             <div className={`flex-1 min-h-0 relative ${isSimulating ? 'hidden' : 'block'}`}>
                {activeTool === 'Select' && (
-                 <CodeEditor 
-                   code={activeFile?.content || ''} 
-                   setCode={setCode} 
-                   language={activeFile?.language || 'plaintext'} 
-                   setLanguage={setLanguage} 
-                 />
+                 <div className="flex w-full h-full">
+                   <div className="flex-1 min-w-0 border-r border-[#30363d] relative">
+                     <CodeEditor 
+                       code={activeFile?.content || ''} 
+                       setCode={setCode} 
+                       language={activeFile?.language || 'plaintext'} 
+                       setLanguage={setLanguage} 
+                     />
+                   </div>
+                   {showEditorViewport && (
+                     <div className="flex-1 min-w-0 relative">
+                       <Viewport3D activeTool={activeTool} activeFile={activeFile} />
+                     </div>
+                   )}
+                 </div>
                )}
                {activeTool === 'Material' && (
                  <MaterialEditor />
@@ -774,17 +1059,239 @@ export default function App() {
                  <PipelineEditor />
                )}
                {activeTool === 'Blueprint' && (
-                 <BlueprintEditor />
+                 <BlueprintEditor 
+                    onCodeGenerated={(code) => {
+                      setFiles(prev => {
+                        const existing = prev.find(f => f.name === 'BlueprintCompiled.js');
+                        if (existing) {
+                           if (existing.content === code) return prev;
+                           return prev.map(f => f.id === existing.id ? { ...f, content: code } : f);
+                        } else {
+                           return [...prev, { id: 'bp_compiled_' + Date.now(), name: 'BlueprintCompiled.js', language: 'javascript', folder: 'Compiled', content: code }];
+                        }
+                      });
+                    }}
+                 />
                )}
-               {['Modeling', 'Landscape', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'MapEdit', 'PhysicsEngine', 'GameSystems', 'EngineCore', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'Niagara', 'ControlRig', 'Sequencer', 'MetaSound', 'PCG', 'MetaHuman', 'ImageEdit', 'AudioEdit'].includes(activeTool) && (
+               {activeTool === 'ServerSim' && (
+                 <div className="flex-1 w-full h-full bg-[#0a0a0a] p-6 relative overflow-y-auto">
+                    <div className="flex items-center justify-between border-b border-[#333] pb-4 mb-6">
+                       <div>
+                         <h2 className="text-2xl font-bold text-[#fff] flex items-center gap-2"><Server className="text-[#3fb950]"/> Multiplayer Server Simulation & Cloud Backend</h2>
+                         <p className="text-[#888] text-sm mt-1">Configure and simulate match-making, dedicated servers, physics replication, databases, and online economy.</p>
+                       </div>
+                       <button 
+                         onClick={() => {
+                            setIsServerRunning(!isServerRunning);
+                            if (!isServerRunning) {
+                               const time = new Date().toLocaleTimeString();
+                               setServerLogs(prev => [...prev, {time, msg: 'Server instance initialized on port 7777 (UDP/TCP)', type: 'info'}]);
+                               setTimeout(() => setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: 'Matchmaking service online. Region: US-East', type: 'success'}]), 1000);
+                               setTimeout(() => setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: 'Database connection established.', type: 'success'}]), 2000);
+                               setTimeout(() => setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: '[AI_WATCHDOG] Observing server runtime for zero-day exploits...', type: 'info'}]), 2500);
+                            } else {
+                               setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: 'Server instance stopped by user.', type: 'warn'}]);
+                            }
+                         }}
+                         className={`px-4 py-2 font-bold rounded flex items-center gap-2 ${isServerRunning ? 'bg-[#f85149] text-white hover:bg-[#ff7b72] shadow-[0_0_15px_rgba(248,81,73,0.4)]' : 'bg-[#3fb950] text-[#0a0a0a] hover:bg-[#2ea043] shadow-[0_0_15px_rgba(63,185,80,0.4)]'}`}
+                       >
+                          {isServerRunning ? <Square size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}
+                          {isServerRunning ? 'STOP LOCAL SERVER' : 'START LOCAL SERVER'}
+                       </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                       {/* Left Column - Configuration */}
+                       <div className="xl:col-span-4 flex flex-col gap-6">
+                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5">
+                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-4 flex items-center gap-2"><Blocks size={14} className="text-[#58a6ff]"/> Dedicated Server Engine</h3>
+                              <div className="space-y-4">
+                                 <div>
+                                    <div className="flex justify-between items-center text-sm mb-1"><span className="text-[#888]">Architecture</span></div>
+                                    <select className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded w-full py-1.5 focus:border-[#58a6ff] outline-none px-2 text-xs">
+                                       <option>Server-Authoritative (FPS/Action - Hardcore)</option>
+                                       <option>Client-Predicted, Server-Verifies (RTS/MMO)</option>
+                                       <option>Peer-to-Peer Relay w/ Host Migration (Co-op)</option>
+                                       <option>Distributed State Machine (Cluster Multi-Node)</option>
+                                    </select>
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1 text-sm">
+                                       <span className="text-[#888]">Tick Rate (Hz)</span>
+                                       <input type="number" defaultValue={64} className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded px-2 py-1 focus:border-[#58a6ff] outline-none"/>
+                                    </div>
+                                    <div className="flex flex-col gap-1 text-sm">
+                                       <span className="text-[#888]">Max CCU / Shard</span>
+                                       <input type="number" defaultValue={1000} className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded px-2 py-1 focus:border-[#58a6ff] outline-none"/>
+                                    </div>
+                                 </div>
+                                 <div className="flex justify-between items-center text-sm pt-2">
+                                    <span className="text-[#888]">Kernel Anti-Cheat</span>
+                                    <input type="checkbox" defaultChecked className="accent-[#58a6ff]"/>
+                                 </div>
+                                 <div className="flex justify-between items-center text-sm">
+                                    <span className="text-[#888]">Delta Compression</span>
+                                    <input type="checkbox" defaultChecked className="accent-[#58a6ff]"/>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5">
+                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-4 flex items-center gap-2"><Database size={14} className="text-[#e3b341]"/> Database & Persistence</h3>
+                              <div className="space-y-4">
+                                 <div>
+                                    <div className="flex justify-between items-center text-sm mb-1"><span className="text-[#888]">Database Engine Type</span></div>
+                                    <select className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded w-full py-1.5 focus:border-[#e3b341] outline-none px-2 text-xs">
+                                       <option>Distributed SQL (Cockroach/Spanner) - ACID</option>
+                                       <option>NoSQL Document (Mongo/Dynamo) - Scalable</option>
+                                       <option>In-Memory Key/Value (Redis) - Blazing Fast</option>
+                                    </select>
+                                 </div>
+                                 <div className="space-y-2">
+                                    <div className="flex justify-between items-center text-sm">
+                                       <span className="text-[#888]">Auto-Scaling Shards</span>
+                                       <input type="checkbox" defaultChecked className="accent-[#e3b341]"/>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                       <span className="text-[#888]">Analytics Data Pipeline</span>
+                                       <input type="checkbox" className="accent-[#e3b341]"/>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                       <span className="text-[#888]">Daily Backups (Cold)</span>
+                                       <input type="checkbox" defaultChecked className="accent-[#e3b341]"/>
+                                    </div>
+                                 </div>
+                                 <button className="w-full mt-2 bg-[#222] hover:bg-[#333] text-white py-1.5 rounded text-xs font-bold transition">VIEW DATABASE SCHEMA</button>
+                              </div>
+                           </div>
+                           
+                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5">
+                              <h4 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-3 flex items-center gap-2"><Globe size={14} className="text-[#bc8cff]"/> Network Throttling Test</h4>
+                              <div className="space-y-4">
+                                <div className="flex flex-col gap-1 text-sm">
+                                   <div className="flex justify-between">
+                                      <span className="text-[#888]">Added Latency (Ping)</span>
+                                      <span className="text-[#bc8cff] font-mono">45ms</span>
+                                   </div>
+                                   <input type="range" min="0" max="500" defaultValue="45" className="w-full accent-[#bc8cff]"/>
+                                </div>
+                                <div className="flex flex-col gap-1 text-sm">
+                                   <div className="flex justify-between">
+                                      <span className="text-[#888]">Packet Loss</span>
+                                      <span className="text-[#bc8cff] font-mono">2.0%</span>
+                                   </div>
+                                   <input type="range" min="0" max="50" defaultValue="2" className="w-full accent-[#bc8cff]"/>
+                                </div>
+                                <div className="flex flex-col gap-1 text-sm">
+                                   <div className="flex justify-between">
+                                      <span className="text-[#888]">Jitter</span>
+                                      <span className="text-[#bc8cff] font-mono">15ms</span>
+                                   </div>
+                                   <input type="range" min="0" max="100" defaultValue="15" className="w-full accent-[#bc8cff]"/>
+                                </div>
+                              </div>
+                           </div>
+                       </div>
+                       
+                       {/* Middle Column - Console & Footprint */}
+                       <div className="xl:col-span-5 flex flex-col gap-6">
+                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5 h-[300px] flex flex-col">
+                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-3 flex items-center gap-2"><Terminal size={14} /> Live Server Console</h3>
+                              <div className="flex-1 bg-[#050505] rounded border border-[#333] p-3 flex flex-col font-mono text-[11px] overflow-y-auto w-full leading-5">
+                                  {serverLogs.length === 0 ? <span className="text-[#888] italic">Engine is cold. Awaiting boot...</span> : null}
+                                  {serverLogs.map((log, i) => (
+                                     <div key={i} className="mb-1">
+                                        <span className="text-[#888] mr-2">[{log.time}]</span> 
+                                        <span className={`${log.type==='error'?'text-[#f85149]':log.type==='warn'?'text-[#e3b341]':log.type==='success'?'text-[#3fb950]':'text-[#58a6ff]'}`}>{log.msg}</span>
+                                     </div>
+                                  ))}
+                              </div>
+                              <div className="mt-3 flex gap-2">
+                                 <input type="text" placeholder="/command" className="flex-1 bg-[#050505] border border-[#333] rounded px-3 py-1 font-mono text-xs text-white outline-none focus:border-[#58a6ff]" />
+                                 <button className="bg-[#222] hover:bg-[#333] text-white px-3 py-1 rounded text-xs transition">SEND</button>
+                              </div>
+                           </div>
+                           
+                           <div className="flex-1 bg-[#161616] border border-[#222] rounded-lg p-5">
+                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-4 flex items-center gap-2"><Activity size={14} className="text-[#f85149]"/> Infrastructure Telemetry</h3>
+                              <div className="grid grid-cols-2 gap-4">
+                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
+                                     <div className="absolute inset-0 bg-[#58a6ff]/5 translate-y-[60%] group-hover:translate-y-[50%] transition-transform"></div>
+                                     <Cpu size={24} className="text-[#58a6ff] mb-2"/>
+                                     <span className="text-[#fff] font-bold text-lg">1.2%</span>
+                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">Avg CPU/Conn</span>
+                                 </div>
+                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
+                                     <div className="absolute inset-0 bg-[#bc8cff]/5 translate-y-[80%] group-hover:translate-y-[70%] transition-transform"></div>
+                                     <MonitorPlay size={24} className="text-[#bc8cff] mb-2"/>
+                                     <span className="text-[#fff] font-bold text-lg">24MB</span>
+                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">RAM Footprint</span>
+                                 </div>
+                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
+                                     <div className="absolute inset-0 bg-[#3fb950]/5 translate-y-[40%] group-hover:translate-y-[30%] transition-transform"></div>
+                                     <Activity size={24} className="text-[#3fb950] mb-2"/>
+                                     <span className="text-[#fff] font-bold text-lg">14.2 KB/s</span>
+                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">Bandwidth in/out</span>
+                                 </div>
+                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
+                                     <div className="absolute inset-0 bg-[#e3b341]/5 translate-y-[90%] group-hover:translate-y-[85%] transition-transform"></div>
+                                     <Database size={24} className="text-[#e3b341] mb-2"/>
+                                     <span className="text-[#fff] font-bold text-lg">20.4ms</span>
+                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">DB Read Latency</span>
+                                 </div>
+                              </div>
+                           </div>
+                       </div>
+
+                       {/* Right Column - AI Sentinel & Tools */}
+                       <div className="xl:col-span-3 flex flex-col gap-6">
+                          <div className="bg-[#161616] border border-[#f85149]/30 rounded-lg p-5 h-full flex flex-col relative overflow-hidden">
+                             <div className="absolute top-0 right-0 p-3"><Activity size={60} className="text-[#f85149]/5" /></div>
+                             <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-3 flex items-center gap-2"><Bot size={14} className="text-[#f85149]"/> AI Security Watchdog</h3>
+                             <p className="text-[11px] text-[#888] mb-4">
+                               Offline NPU Guardian monitoring server state, database queries, and payload patterns for zero-day vulnerabilities.
+                             </p>
+                             
+                             <div className="flex-1 space-y-3">
+                                {/* Simulated AI Alert */}
+                                <div className="bg-[#f85149]/10 border border-[#f85149]/20 p-3 rounded">
+                                   <div className="flex items-center gap-2 text-[#f85149] font-bold text-[10px] uppercase tracking-wide mb-1">
+                                      <ShieldCheck size={12}/> Info Leak Detected
+                                   </div>
+                                   <p className="text-[#ccc] text-[11px] leading-relaxed">
+                                      The payload for <span className="text-white font-mono bg-[#f85149]/20 px-1 rounded">player/inventory/get</span> returning unnecessary PII fields (email). 
+                                   </p>
+                                   <button className="mt-2 text-[#58a6ff] hover:underline text-[10px] font-bold">Auto-mitigate (Patch Endpoint)</button>
+                                </div>
+                                
+                                <div className="bg-[#e3b341]/10 border border-[#e3b341]/20 p-3 rounded">
+                                   <div className="flex items-center gap-2 text-[#e3b341] font-bold text-[10px] uppercase tracking-wide mb-1">
+                                      <Activity size={12}/> Unbounded Array
+                                   </div>
+                                   <p className="text-[#ccc] text-[11px] leading-relaxed">
+                                      Route <span className="text-white font-mono bg-[#e3b341]/20 px-1 rounded">chat/history</span> missing strict pagination bounds. Potential DoS vector.
+                                   </p>
+                                   <button className="mt-2 text-[#58a6ff] hover:underline text-[10px] font-bold">Enforce limits (Size &lt;= 50)</button>
+                                </div>
+                             </div>
+                             
+                             <div className="mt-4 pt-4 border-t border-[#333]">
+                                <button className="w-full bg-[#f85149] hover:bg-[#ff7b72] text-[#fff] py-2 rounded font-bold text-xs shadow-[0_0_10px_rgba(248,81,73,0.3)] transition">EXECUTE RED TEAM AUDIT</button>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+               )}
+               {['Modeling', 'Landscape', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'MapEdit', 'PhysicsEngine', 'GameSystems', 'EngineCore', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'Niagara', 'ControlRig', 'Sequencer', 'MetaSound', 'PCG', 'MetaHuman', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'UIUXEdit'].includes(activeTool) && (
                  <ModulePanel moduleType={activeTool} />
                )}
-               {!['Select', 'Material', 'Pipeline', 'Blueprint', 'Modeling', 'Landscape', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'MapEdit', 'PhysicsEngine', 'GameSystems', 'EngineCore', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'Niagara', 'ControlRig', 'Sequencer', 'MetaSound', 'PCG', 'MetaHuman', 'ImageEdit', 'AudioEdit'].includes(activeTool) && (
+               {!['Select', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'Modeling', 'Landscape', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'MapEdit', 'PhysicsEngine', 'GameSystems', 'EngineCore', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'Niagara', 'ControlRig', 'Sequencer', 'MetaSound', 'PCG', 'MetaHuman', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'UIUXEdit'].includes(activeTool) && (
                  <Viewport3D activeTool={activeTool} activeFile={activeFile} />
                )}
 
                {/* Global Offline AI Command Bar for Active Editor */}
-               {activeTool !== 'Material' && activeTool !== 'Pipeline' && activeTool !== 'Blueprint' && (
+               {activeTool !== 'Material' && activeTool !== 'Pipeline' && activeTool !== 'Blueprint' && activeTool !== 'ServerSim' && (
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[80%] max-w-[800px] z-[60] pointer-events-auto">
                      <div className="bg-[#161b22]/95 backdrop-blur-xl border border-[#bc8cff]/30 rounded-2xl shadow-[0_10px_40px_-10px_rgba(188,140,255,0.2)] p-3 flex flex-col gap-3">
                         <div className="flex items-center justify-between px-2">

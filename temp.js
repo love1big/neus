@@ -1,0 +1,1 @@
+const fs = require('fs'); let f = fs.readFileSync('src/components/ModulePanel.tsx', 'utf8'); fs.writeFileSync('src/components/ModulePanel.tsx', f.replace(/<span>Target Faces:<\/span>.*?case 'ImageEdit':/s, "case 'ImageEdit':"));
