@@ -2,22 +2,75 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CodeEditor from './components/CodeEditor';
 import AIChat from './components/AIChat';
 import Viewport3D from './components/Viewport3D';
 import GitPanel from './components/GitPanel';
-import { Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame } from 'lucide-react';
+import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords } from 'lucide-react';
+import { useLanguage } from './contexts/LanguageContext';
 import MaterialEditor from './components/MaterialEditor';
+import CutsceneEditor from './components/CutsceneEditor';
 import SettingsModal from './components/SettingsModal';
+import TaskPanel from './components/TaskPanel';
 import PipelineEditor from './components/PipelineEditor';
 import GamePreview from './components/GamePreview';
-import ModulePanel from './components/ModulePanel';
+import ModulePanel, { PhysicsCollisionMatrix } from './components/ModulePanel';
+import PCGEditor from './components/PCGEditor';
+import NiagaraEditor from './components/NiagaraEditor';
+import MetaHumanEditor from './components/MetaHumanEditor';
+import LogicVisualEditor from './components/LogicVisualEditor';
+import UIUXEditor from './components/UIUXEditor';
+import LocalAIStudio from './components/LocalAIStudio';
+import SkillForgeEditor from './components/SkillForgeEditor';
+
+import WorldBuilderEditor from './components/WorldBuilderEditor';
+import SentientAIEditor from './components/SentientAIEditor';
+import ProceduralAssetStudio from './components/ProceduralAssetStudio';
+import ArchitectureDevOpsEditor from './components/ArchitectureDevOpsEditor';
+import VehicleDynamicsEditor from './components/VehicleDynamicsEditor';
+import VRXREngineEditor from './components/VRXREngineEditor';
+import MLAgentsEditor from './components/MLAgentsEditor';
+import CinematicSequencerEditor from './components/CinematicSequencerEditor';
+import VFXHitboxStudio from './components/VFXHitboxStudio';
+
+
+import LiveOpsDashboard from './components/LiveOpsDashboard';
+import PerformanceProfiler from './components/PerformanceProfiler';
+import AnimGraphEditor from './components/AnimGraphEditor';
+import CharacterAnimator from './components/CharacterAnimator';
+import LandscapeEditor from './components/LandscapeEditor';
+import MapEditor from './components/MapEditor';
+import NetcodeEditor from './components/NetcodeEditor';
+import EngineCoreEditor from './components/EngineCoreEditor';
+import LevelDesignEditor from './components/LevelDesignEditor';
+import QuestDirectorEditor from './components/QuestDirectorEditor';
+import AICommandCenter from './components/AICommandCenter';
+import HardwareProfilerOverlay from './components/HardwareProfilerOverlay';
 import BlueprintEditor from './components/BlueprintEditor';
 import ContentBrowser from './components/ContentBrowser';
+import DataTableEditor from './components/DataTableEditor';
+import AssetStore from './components/AssetStore';
+import StoryGraphEditor from './components/StoryGraphEditor';
+import BehaviorTreeEditor from './components/BehaviorTreeEditor';
+import BatchAIImporter from './components/BatchAIImporter';
+import ProjectSettingsEditor from './components/ProjectSettingsEditor';
+import WorldLoreEditor from './components/WorldLoreEditor';
+import BuildPublishEditor from './components/BuildPublishEditor';
+import GameSystemsEditor from './components/GameSystemsEditor';
+import AudioEditor from './components/AudioEditor';
+import ImageEditor from './components/ImageEditor';
+import ModelingEditor from './components/ModelingEditor';
+import NPCEditor from './components/NPCEditor';
+import ScriptEditor from './components/ScriptEditor';
+import GraphicsRenderEditor from './components/GraphicsRenderEditor';
+import NetworkSim from './components/NetworkSim';
 import { IDEFile, TEMPLATES, DEFAULT_FOLDERS } from './lib/project';
-import { Settings } from 'lucide-react';
+import { Settings, TerminalSquare, Globe2, History } from 'lucide-react';
 
+import GlobalSearchPanel from './components/GlobalSearchPanel';
+
+import { Message as ChatMessage } from './components/AIChat';
 // -----------------------------------------------------------------------------
 // Component: App
 // -----------------------------------------------------------------------------
@@ -25,8 +78,16 @@ import { Settings } from 'lucide-react';
  * Main Application layout for OmniCode Pro.
  * Responsive design with a robust mobile-first experience and desktop multi-panel view.
  */
+import ChronoDebugger from './components/ChronoDebugger';
+import NodeGraphMockup from './components/NodeGraphMockup';
+
 export default function App() {
+  const { t } = useLanguage();
   // --- State Management ---
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    { role: 'model', content: "Hello! I am your Offline Local AI Assistant. 100% On-Device Neural Engine Initialized. I am equipped with Deep Offline Learning capabilities allowing me to ingest knowledge from Search Engines and Video Platforms. My context memory has been upgraded to INFINITE capacity, meaning I will remember every single line of our chat forever. You can also search through our chat history using the search bar above. How can I help you today?" }
+  ]);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([
     { type: 'sys', text: 'Virtual Environment Activated: (nexus-env) python 3.10.12' },
@@ -54,19 +115,21 @@ export default function App() {
       folder: 'Scripts', 
       content: `// ----------------------------------------\n// NexusEngine - Simple Physics Demo\n// ----------------------------------------\nwindow.onload = () => {\n  console.log('NexusEngine Runtime Initialized...');\n  const canvas = document.getElementById('gameCanvas');\n  if(!canvas) return console.error('Canvas not found');\n  const ctx = canvas.getContext('2d');\n  \n  let x = 400, y = 300, vx = 8, vy = 6;\n  \n  function loop() {\n    // Clear trail\n    ctx.fillStyle = 'rgba(13, 17, 23, 0.3)';\n    ctx.fillRect(0, 0, 800, 600);\n    \n    // Update\n    x += vx;\n    y += vy;\n    \n    if(x < 20 || x > 780) vx *= -1;\n    if(y < 20 || y > 580) vy *= -1;\n    \n    // Draw glowing particle\n    ctx.beginPath();\n    ctx.arc(x, y, 20, 0, Math.PI*2);\n    ctx.fillStyle = '#58a6ff';\n    ctx.fill();\n    ctx.shadowBlur = 30;\n    ctx.shadowColor = '#58a6ff';\n    \n    requestAnimationFrame(loop);\n  }\n  \n  console.log('Starting Engine Loop');\n  loop();\n};\n` 
     },
-    { id: '3', name: 'README.md', language: 'markdown', folder: '', content: '# Project Docs\n\n- Powered by local AI Cluster.' }
+    { id: '3', name: 'README.md', language: 'markdown', folder: '', content: '# Project Docs\n\n- Powered by local AI Cluster.' },
+    { id: '4', name: 'AI_Agent.h', language: 'cpp', folder: 'Source/Public', content: '#pragma once\n\n#include "CoreMinimal.h"\n#include "GameFramework/Pawn.h"\n#include "AI_Agent.generated.h"\n\nUCLASS(Blueprintable)\nclass AIA_API AAI_Agent : public APawn\n{\n    GENERATED_BODY()\n\npublic:\n    AAI_Agent();\n\nprotected:\n    virtual void BeginPlay() override;\n\npublic:\n    virtual void Tick(float DeltaTime) override;\n    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;\n};\n' },
+    { id: '5', name: 'AI_Agent.cpp', language: 'cpp', folder: 'Source/Private', content: '#include "AI_Agent.h"\n\nAAI_Agent::AAI_Agent()\n{\n    PrimaryActorTick.bCanEverTick = true;\n}\n\nvoid AAI_Agent::BeginPlay()\n{\n    Super::BeginPlay();\n}\n\nvoid AAI_Agent::Tick(float DeltaTime)\n{\n    Super::Tick(DeltaTime);\n}\n\nvoid AAI_Agent::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)\n{\n    Super::SetupPlayerInputComponent(PlayerInputComponent);\n}\n' }
   ]);
   const [activeFileId, setActiveFileId] = useState('1');
   const [mobileView, setMobileView] = useState<'explorer' | 'editor' | 'chat'>('editor');
   const [activeTool, setActiveTool] = useState('Select');
   const [showEditorViewport, setShowEditorViewport] = useState(true);
-  const [aiAgentMode, setAiAgentMode] = useState('copilot');
-  const [leftPanel, setLeftPanel] = useState<'explorer' | 'git' | 'outliner' | 'debug' | 'extensions' | 'test'>('explorer');
+  const [aiAgentMode, setAiAgentMode] = useState('developer');
+  const [leftPanel, setLeftPanel] = useState<'explorer' | 'git' | 'outliner' | 'debug' | 'extensions' | 'test' | 'tasks'>('explorer');
   const [isSimulating, setIsSimulating] = useState(false);
   const [showConsole, setShowConsole] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWindowMenu, setShowWindowMenu] = useState(false);
-  const [bottomTab, setBottomTab] = useState<'log' | 'messages' | 'cmd' | 'content' | 'terminal' | 'problems' | 'output' | 'debugConsole'>('log');
+  const [bottomTab, setBottomTab] = useState<'log' | 'messages' | 'cmd' | 'content' | 'terminal' | 'problems' | 'output' | 'debugConsole' | 'chrono'>('log');
 
   React.useEffect(() => {
     setFiles(currentFiles => {
@@ -83,7 +146,20 @@ export default function App() {
     });
   }, []);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowGlobalSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, []);
+
   const AGENTS = {
+    developer: { name: 'Developer Assistant', icon: '🤖', color: 'bg-[#58a6ff]', context: '32K CONTEXT', model: 'OmniCode Expert' },
     copilot: { name: 'Code Copilot', icon: '💻', color: 'bg-[#3fb950]', context: '16K CONTEXT', model: 'NexusCode Core' },
     commander: { name: 'Swarm Overlord', icon: '👑', color: 'bg-[#f85149]', context: 'PIPELINE', model: 'Nexus Prime' },
     game: { name: 'Game Director', icon: '🎮', color: 'bg-[#58a6ff]', context: 'SYSTEMS', model: 'GameDir Engine' },
@@ -179,7 +255,7 @@ export default function App() {
     <nav className="h-[44px] bg-[#111] border-b border-[#000] flex items-center px-4 justify-between shrink-0 select-none text-[#ccc]">
       <div className="flex gap-4 items-center flex-1">
         <span className="font-bold text-[#fff] flex items-center gap-2 text-[13px] tracking-wide">
-          <Box size={16} className="text-[#a476ed] animate-pulse"/> NEXUS <span className="font-medium opacity-80 text-[#a476ed]">ENGINE 100</span>
+          <Box size={16} className="text-[#a476ed] animate-pulse"/> {t('app.title')} <span className="font-medium opacity-80 text-[#a476ed]"></span>
         </span>
         <div className="w-[1px] h-[16px] bg-[#333] mx-2 hidden md:block"></div>
         <div className="hidden md:flex gap-1 text-[11px] text-[#ccc] font-medium cursor-pointer ml-2 items-center">
@@ -262,12 +338,16 @@ export default function App() {
       { id: 'EngineCore', title: 'Game Engine Architecture (GameObject, Core)', icon: <Cpu size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'GraphicsRender', title: 'Graphics & Rendering Tech (Nanite, Lumen, DLSS)', icon: <MonitorPlay size={20} />, activeColor: 'text-[#ff7b72]' },
       { id: 'PhysicsEngine', title: 'Universal Physics Dynamics', icon: <Orbit size={20} />, activeColor: 'text-[#f85149]' },
+      { id: 'InputMapping', title: 'Input & Controller Mapping', icon: <Gamepad2 size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'AnimationAudio', title: 'Skeletal Anim, MoCap & Audio', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'BackendCloud', title: 'Server, Cloud, Sync & Economy', icon: <Cloud size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'ServerSim', title: 'Multiplayer Backend & Server Simulation', icon: <Server size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'AITestingQA', title: 'AI Offline QA, Perf Metric & Debug', icon: <ShieldCheck size={20} />, activeColor: 'text-[#2ea043]' },
       { id: 'WorldBible', title: 'World Bible (Lore & Setup)', icon: <BookOpen size={20} />, activeColor: 'text-[#d2a8ff]' },
       { id: 'GameSystems', title: 'AAA Game Systems Architecture', icon: <Blocks size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'ScriptEditor', title: 'IDE & Script Editor', icon: <TerminalSquare size={20} />, activeColor: 'text-[#ff7b72]' },
+      { id: 'AssetPipeline', title: 'Asset Pipeline & Source Control', icon: <FolderTree size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'BuildPublish', title: 'One-Click Build & Pipeline', icon: <Globe2 size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'MapEdit', title: 'Apex Map Builder', icon: <Map size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'NPCEdit', title: 'Deep NPC Builder', icon: <Users size={20} />, activeColor: 'text-[#ff7b72]' },
       { id: 'MonsterEdit', title: 'Monster & Entities Builder', icon: <Ghost size={20} />, activeColor: 'text-[#e3b341]' },
@@ -278,13 +358,44 @@ export default function App() {
       { id: 'Sequencer', title: 'Apex Timeline Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'MetaHuman', title: 'MetaHuman System', icon: <UserSquare size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'Blueprint', title: 'Visual Scripting (Kismet)', icon: <Waypoints size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'BlueprintGen', title: 'Blueprint AI Generator', icon: <Network size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'LogicVisual', title: 'Event Sheet Logic (GDevelop/Code.org)', icon: <Puzzle size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'BehaviorTree', title: 'AI Behavior Tree Editor', icon: <Network size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'DataTable', title: 'Data Table & Spreadsheets', icon: <Database size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'AssetStore', title: 'Marketplace & Asset Store', icon: <ShoppingCart size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'StoryGraph', title: 'Story & Narrative Graph', icon: <MessageSquare size={20} />, activeColor: 'text-[#ff7b72]' },
       { id: 'Material', title: 'Node Material Editor', icon: <Palette size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'Niagara', title: 'Niagara Particle FX', icon: <Sparkles size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'MetaSound', title: 'Audio Mixer', icon: <Music size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'ImageEdit', title: 'Image & Texture Editor', icon: <Image size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'AudioEdit', title: 'Audio Studio & SFX', icon: <AudioWaveform size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'EffectEdit', title: 'VFX & Particle Studio', icon: <Flame size={20} />, activeColor: 'text-[#ff7b72]' },
+      { id: 'EffectEdit', title: 'VFX & Hitbox Studio', icon: <Flame size={20} />, activeColor: 'text-[#ff7b72]' },
       { id: 'UIUXEdit', title: 'Apex UI/UX Builder', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'SkillForge', title: 'Ultimate Skill Forge', icon: <Swords size={20} />, activeColor: 'text-[#ff7b72]' },
+      
+      { id: 'LocalAI', title: 'Local AI Compute Studio', icon: <BrainCircuit size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'WorldBuilder', title: '🌍 Nano-to-Macro World Builder', icon: <Globe size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'SentientAI', title: '🧠 Sentient AI & NPCDirector', icon: <Brain size={20} />, activeColor: 'text-[#f85149]' },
+      { id: 'ProceduralAsset', title: '🎬 Procedural Asset Studio', icon: <FlaskConical size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'DevOpsManager', title: '🛡️ System Architecture & DevOps Manager', icon: <Server size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'LevelDesign', title: 'Level Assembly (Blockout & ProBuilder)', icon: <Mountain size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'DialogueQuest', title: 'RPG Maker Quest & Dialogue Systems', icon: <BookOpen size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'PerformanceProfile', title: 'AAA Perf Profiler & Deep Bug Hunter', icon: <Bug size={20} />, activeColor: 'text-[#f85149]' },
+      { id: 'AnimGraph', title: 'Cascadeur Animation & Deep IK', icon: <PersonStanding size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'CharacterAnimator', title: 'AI Character Animator', icon: <PersonStanding size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'ProceduralGen', title: 'Houdini-Style PCG World Gen', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'Netcode', title: 'Rollback Multiplayer & Servers', icon: <Globe size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'LiveOps', title: 'LiveOps, Analytics & Economy', icon: <TrendingUp size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'CinematicSequencer', title: 'Timeline & Cinematic Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'AdvancedNavMesh', title: 'NavMesh & Crowd AI', icon: <Users size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'HD2DHybridEditor', title: '2.5D / HD-2D Hybrid Engine', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'VoxelEngine', title: 'Voxel & Destruction Engine', icon: <Box size={20} />, activeColor: 'text-[#f85149]' },
+      { id: 'VehiclePhysics', title: 'Vehicle Dynamics Configurator', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'MLAgents', title: 'Machine Learning Training Room', icon: <BrainCircuit size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'VRXREngine', title: 'OpenXR VR/MR Development Hub', icon: <Glasses size={20} />, activeColor: 'text-[#bc8cff]' },
+      { id: 'BatchAI', title: 'Batch AI Asset Generator', icon: <Cloud size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'DevOpsBuilder', title: 'Cross-Platform Matrix & DevOps Config', icon: <Terminal size={20} />, activeColor: 'text-[#58a6ff]' },
+      { id: 'ASTNodeWeaver', title: 'AST Logic Weaver (Nodes)', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]' },
     ];
 
     return (
@@ -326,7 +437,7 @@ export default function App() {
               onClick={() => setLeftPanel('explorer')}
               className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
             >
-              <FolderTree size={14} /> EXPLORER
+              <FolderTree size={14} /> {t('sidebar.explorer')}
             </button>
             <button 
               onClick={() => setLeftPanel('debug')}
@@ -351,6 +462,12 @@ export default function App() {
               className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'extensions' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
             >
               <Puzzle size={14} /> EXTENSIONS
+            </button>
+            <button 
+              onClick={() => setLeftPanel('tasks')}
+              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'tasks' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+            >
+              <CheckCircle size={14} /> TASKS
             </button>
           </div>
         ) : (
@@ -645,6 +762,8 @@ export default function App() {
               </div>
             </div>
           </div>
+        ) : leftPanel === 'tasks' ? (
+          <TaskPanel />
         ) : (
           <div className="flex-1 min-h-0 overflow-hidden">
              <GitPanel files={files} />
@@ -660,9 +779,9 @@ export default function App() {
         {files.map(f => (
           <div 
             key={f.id}
-            onClick={() => setActiveFileId(f.id)}
+            onClick={() => { setActiveFileId(f.id); setActiveTool('Select'); }}
             className={`px-5 flex items-center text-[13px] md:text-[12px] border-r border-[#30363d] cursor-pointer whitespace-nowrap transition-colors select-none ${
-              f.id === activeFileId
+              f.id === activeFileId && activeTool === 'Select'
                 ? 'bg-[#0d1117] text-[#c9d1d9] font-medium border-t-[2px] border-t-[#58a6ff]'
                 : 'text-[#8b949e] hover:bg-[#21262d] border-t-[2px] border-t-transparent'
             }`}
@@ -670,6 +789,16 @@ export default function App() {
             {f.name}
           </div>
         ))}
+        <div 
+          onClick={() => setActiveTool('AssetStore')}
+          className={`px-5 flex items-center gap-1.5 text-[13px] md:text-[12px] border-r border-[#30363d] cursor-pointer whitespace-nowrap transition-colors select-none ${
+            activeTool === 'AssetStore'
+              ? 'bg-[#0d1117] text-[#bc8cff] font-medium border-t-[2px] border-t-[#bc8cff]'
+              : 'text-[#8b949e] hover:bg-[#21262d] border-t-[2px] border-t-transparent'
+          }`}
+        >
+          <ShoppingCart size={14} /> Asset Store
+        </div>
       </div>
       {activeTool === 'Select' && (
         <div className="flex items-center px-3 border-l border-[#30363d] shrink-0 bg-[#161b22]">
@@ -731,6 +860,8 @@ export default function App() {
             files={files}
             onWriteFiles={handleWriteFiles}
             agentMode={aiAgentMode}
+            messages={chatMessages}
+            setMessages={setChatMessages}
           />
       </div>
     </aside>
@@ -739,17 +870,18 @@ export default function App() {
   const renderStatusBar = () => (
     <footer className="h-[28px] bg-[#58a6ff] text-black items-center px-3 text-[11px] font-semibold tracking-wide shrink-0 justify-between hidden md:flex">
       <div className="flex items-center gap-4">
-        <span className="flex items-center gap-1"><Sparkles size={12}/> READY</span>
-        <span className="font-mono">LN 1, COL 1</span>
-        <span className="uppercase tracking-widest">{activeFile?.language || 'PLAINTEXT'}</span>
-        <span>OFFLINE MODE (100% SECURE)</span>
-        <span className="font-mono">UTF-8</span>
-        <span className="bg-[#0d1117] text-[#58a6ff] px-2 py-0.5 rounded-sm hidden lg:flex items-center shadow-inner">
-          🚀 Turbo Mode (CUDA/Metal) Active
+        <span className="flex items-center gap-1"><Sparkles size={12}/> ENGINE READY</span>
+        <span className="font-mono hidden xl:block">LN 1, COL 1</span>
+        <span className="uppercase tracking-widest hidden xl:block">{activeFile?.language || 'CORE'}</span>
+        <span className="bg-[#0d1117] text-[#58a6ff] px-2 py-0.5 rounded-sm flex items-center shadow-inner gap-1">
+          <MonitorPlay size={10}/> NEXT-GEN TARGET: <span className="text-[#3fb950] font-bold">144FPS / LOW SPEC</span>
+        </span>
+        <span className="bg-[#000] text-[#e3b341] px-2 py-0.5 rounded-sm flex items-center shadow-inner gap-1">
+          <Zap size={10}/> AI AUTO-OPTIMIZATION: <span className="font-bold text-white">ACTIVE</span>
         </span>
       </div>
-      <div className="tracking-wider">
-        OMNICODE v2.5.0
+      <div className="flex items-center gap-4 cursor-pointer hover:underline">
+        <span className="flex items-center gap-1 font-bold text-black"><Play size={12} fill="currentColor"/> 1-CLICK RAPID BUILD (WINDOWS / MOBILE)</span>
       </div>
     </footer>
   );
@@ -806,6 +938,20 @@ export default function App() {
            <div className="flex flex-col gap-3">
              <div className="text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Context Inspector</div>
              <div className="flex justify-between items-center"><span className="text-[#888]">Target:</span> <span className="text-[#3fb950] font-mono uppercase bg-[#3fb950]/10 px-1 py-0.5 rounded border border-[#3fb950]/20 text-[10px] truncate max-w-[120px] text-right">{activeTool}</span></div>
+             
+             <div className="mt-2 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1 text-[#bc8cff] flex items-center gap-1"><Sparkles size={12}/> AI Copilot Actions</div>
+             <div className="flex flex-col gap-1.5">
+               <button className="bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 py-1.5 rounded transition-colors text-[10px] font-bold tracking-wide uppercase flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(188,140,255,0.1)]">Auto-Optimize Scene</button>
+               <button className="bg-[#58a6ff]/10 hover:bg-[#58a6ff]/20 text-[#58a6ff] border border-[#58a6ff]/30 py-1.5 rounded transition-colors text-[10px] font-bold tracking-wide uppercase flex items-center justify-center gap-2">Generate Blueprints</button>
+               <button className="bg-[#e3b341]/10 hover:bg-[#e3b341]/20 text-[#e3b341] border border-[#e3b341]/30 py-1.5 rounded transition-colors text-[10px] font-bold tracking-wide uppercase flex items-center justify-center gap-2">Audit Performance</button>
+             </div>
+
+             <div className="mt-2 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Global Rendering</div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Target FPS:</span> <select className="bg-[#111] border border-[#333] rounded px-1 text-right text-[#ccc] outline-none focus:border-[#58a6ff] text-[10px]"><option>60 FPS</option><option selected>144 FPS</option></select></div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Nanite Instancing:</span> <span className="text-[#3fb950] font-bold text-[10px]">Active</span></div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">Virtual Shadow Maps:</span> <span className="text-[#3fb950] font-bold text-[10px]">Active</span></div>
+             <div className="flex justify-between items-center"><span className="text-[#888]">DLSS / FSR:</span> <span className="text-[#3fb950] font-bold text-[10px]">FSR 3.0</span></div>
+
              <div className="mt-2 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Transform</div>
              <div className="flex justify-between items-center"><span className="text-[#888]">Pos X:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#f85149] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
              <div className="flex justify-between items-center"><span className="text-[#888]">Pos Y:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#3fb950] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
@@ -825,6 +971,11 @@ export default function App() {
                 <div className="w-6 h-6 bg-[#111] rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,1)] border border-[#333] shrink-0 pointer-events-none"></div>
                 <button className="flex-1 bg-[#111] p-1.5 rounded-sm text-left border border-[#333] group-hover:border-[#58a6ff] transition-colors truncate text-[11px] text-[#ccc]">M_BaseDefault</button>
              </div>
+
+             <div className="mt-4 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-2">
+                 Physics Collision Matrix
+             </div>
+             <PhysicsCollisionMatrix />
            </div>
          )}
       </div>
@@ -840,8 +991,9 @@ export default function App() {
             <>
               <button onClick={() => setBottomTab('problems')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'problems' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Bug size={12}/> Problems <span className="bg-[#161b22] px-1 rounded-full text-[9px] text-[#f85149]">3</span></button>
               <button onClick={() => setBottomTab('output')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'output' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Activity size={12}/> Output</button>
+              <button onClick={() => setBottomTab('chrono')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'chrono' ? 'border-[#a371f7] text-[#fff]' : 'border-transparent hover:text-[#a371f7]'}`}><History size={12}/> Chrono-State Debugger</button>
               <button onClick={() => setBottomTab('debugConsole')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'debugConsole' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Server size={12}/> Debug Console</button>
-              <button onClick={() => setBottomTab('terminal')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'terminal' || !['problems', 'output', 'debugConsole'].includes(bottomTab) ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Terminal</button>
+              <button onClick={() => setBottomTab('terminal')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'terminal' || !['problems', 'output', 'debugConsole', 'chrono'].includes(bottomTab) ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Terminal</button>
             </>
           ) : (
             <>
@@ -857,7 +1009,7 @@ export default function App() {
             <ContentBrowser onOpenBlueprint={() => setActiveTool('Blueprint')} />
           ) : isCodeIDE ? (
             <div className="flex-1 p-4 flex flex-col gap-1 text-[#ccc] font-mono text-[12px]">
-              {bottomTab === 'terminal' || !['problems', 'output', 'debugConsole'].includes(bottomTab) ? (
+              {bottomTab === 'terminal' || !['problems', 'output', 'debugConsole', 'chrono'].includes(bottomTab) ? (
                 <>
                   {terminalHistory.map((item, index) => (
                     <div key={index} className={
@@ -938,6 +1090,10 @@ export default function App() {
                        <span className="text-[#58a6ff] hover:underline hover:text-white mt-1 cursor-pointer w-max">Apply AI Correction</span>
                      </div>
                   </div>
+                </div>
+              ) : bottomTab === 'chrono' ? (
+                <div className="flex-1 w-full h-full relative p-0 overflow-hidden">
+                  <ChronoDebugger isSimulating={isSimulating} setIsSimulating={setIsSimulating} />
                 </div>
               ) : bottomTab === 'output' ? (
                  <div className="flex flex-col gap-1">
@@ -1052,6 +1208,9 @@ export default function App() {
                    )}
                  </div>
                )}
+               {activeTool === 'ASTNodeWeaver' && (
+                 <NodeGraphMockup onClose={() => setActiveTool('Select')} />
+               )}
                {activeTool === 'Material' && (
                  <MaterialEditor />
                )}
@@ -1074,259 +1233,77 @@ export default function App() {
                  />
                )}
                {activeTool === 'ServerSim' && (
-                 <div className="flex-1 w-full h-full bg-[#0a0a0a] p-6 relative overflow-y-auto">
-                    <div className="flex items-center justify-between border-b border-[#333] pb-4 mb-6">
-                       <div>
-                         <h2 className="text-2xl font-bold text-[#fff] flex items-center gap-2"><Server className="text-[#3fb950]"/> Multiplayer Server Simulation & Cloud Backend</h2>
-                         <p className="text-[#888] text-sm mt-1">Configure and simulate match-making, dedicated servers, physics replication, databases, and online economy.</p>
-                       </div>
-                       <button 
-                         onClick={() => {
-                            setIsServerRunning(!isServerRunning);
-                            if (!isServerRunning) {
-                               const time = new Date().toLocaleTimeString();
-                               setServerLogs(prev => [...prev, {time, msg: 'Server instance initialized on port 7777 (UDP/TCP)', type: 'info'}]);
-                               setTimeout(() => setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: 'Matchmaking service online. Region: US-East', type: 'success'}]), 1000);
-                               setTimeout(() => setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: 'Database connection established.', type: 'success'}]), 2000);
-                               setTimeout(() => setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: '[AI_WATCHDOG] Observing server runtime for zero-day exploits...', type: 'info'}]), 2500);
-                            } else {
-                               setServerLogs(prev => [...prev, {time: new Date().toLocaleTimeString(), msg: 'Server instance stopped by user.', type: 'warn'}]);
-                            }
-                         }}
-                         className={`px-4 py-2 font-bold rounded flex items-center gap-2 ${isServerRunning ? 'bg-[#f85149] text-white hover:bg-[#ff7b72] shadow-[0_0_15px_rgba(248,81,73,0.4)]' : 'bg-[#3fb950] text-[#0a0a0a] hover:bg-[#2ea043] shadow-[0_0_15px_rgba(63,185,80,0.4)]'}`}
-                       >
-                          {isServerRunning ? <Square size={16} fill="currentColor"/> : <Play size={16} fill="currentColor"/>}
-                          {isServerRunning ? 'STOP LOCAL SERVER' : 'START LOCAL SERVER'}
-                       </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                       {/* Left Column - Configuration */}
-                       <div className="xl:col-span-4 flex flex-col gap-6">
-                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5">
-                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-4 flex items-center gap-2"><Blocks size={14} className="text-[#58a6ff]"/> Dedicated Server Engine</h3>
-                              <div className="space-y-4">
-                                 <div>
-                                    <div className="flex justify-between items-center text-sm mb-1"><span className="text-[#888]">Architecture</span></div>
-                                    <select className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded w-full py-1.5 focus:border-[#58a6ff] outline-none px-2 text-xs">
-                                       <option>Server-Authoritative (FPS/Action - Hardcore)</option>
-                                       <option>Client-Predicted, Server-Verifies (RTS/MMO)</option>
-                                       <option>Peer-to-Peer Relay w/ Host Migration (Co-op)</option>
-                                       <option>Distributed State Machine (Cluster Multi-Node)</option>
-                                    </select>
-                                 </div>
-                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-1 text-sm">
-                                       <span className="text-[#888]">Tick Rate (Hz)</span>
-                                       <input type="number" defaultValue={64} className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded px-2 py-1 focus:border-[#58a6ff] outline-none"/>
-                                    </div>
-                                    <div className="flex flex-col gap-1 text-sm">
-                                       <span className="text-[#888]">Max CCU / Shard</span>
-                                       <input type="number" defaultValue={1000} className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded px-2 py-1 focus:border-[#58a6ff] outline-none"/>
-                                    </div>
-                                 </div>
-                                 <div className="flex justify-between items-center text-sm pt-2">
-                                    <span className="text-[#888]">Kernel Anti-Cheat</span>
-                                    <input type="checkbox" defaultChecked className="accent-[#58a6ff]"/>
-                                 </div>
-                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-[#888]">Delta Compression</span>
-                                    <input type="checkbox" defaultChecked className="accent-[#58a6ff]"/>
-                                 </div>
-                              </div>
-                           </div>
-
-                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5">
-                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-4 flex items-center gap-2"><Database size={14} className="text-[#e3b341]"/> Database & Persistence</h3>
-                              <div className="space-y-4">
-                                 <div>
-                                    <div className="flex justify-between items-center text-sm mb-1"><span className="text-[#888]">Database Engine Type</span></div>
-                                    <select className="bg-[#0a0a0a] border border-[#333] text-[#ccc] rounded w-full py-1.5 focus:border-[#e3b341] outline-none px-2 text-xs">
-                                       <option>Distributed SQL (Cockroach/Spanner) - ACID</option>
-                                       <option>NoSQL Document (Mongo/Dynamo) - Scalable</option>
-                                       <option>In-Memory Key/Value (Redis) - Blazing Fast</option>
-                                    </select>
-                                 </div>
-                                 <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-sm">
-                                       <span className="text-[#888]">Auto-Scaling Shards</span>
-                                       <input type="checkbox" defaultChecked className="accent-[#e3b341]"/>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                       <span className="text-[#888]">Analytics Data Pipeline</span>
-                                       <input type="checkbox" className="accent-[#e3b341]"/>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                       <span className="text-[#888]">Daily Backups (Cold)</span>
-                                       <input type="checkbox" defaultChecked className="accent-[#e3b341]"/>
-                                    </div>
-                                 </div>
-                                 <button className="w-full mt-2 bg-[#222] hover:bg-[#333] text-white py-1.5 rounded text-xs font-bold transition">VIEW DATABASE SCHEMA</button>
-                              </div>
-                           </div>
-                           
-                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5">
-                              <h4 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-3 flex items-center gap-2"><Globe size={14} className="text-[#bc8cff]"/> Network Throttling Test</h4>
-                              <div className="space-y-4">
-                                <div className="flex flex-col gap-1 text-sm">
-                                   <div className="flex justify-between">
-                                      <span className="text-[#888]">Added Latency (Ping)</span>
-                                      <span className="text-[#bc8cff] font-mono">45ms</span>
-                                   </div>
-                                   <input type="range" min="0" max="500" defaultValue="45" className="w-full accent-[#bc8cff]"/>
-                                </div>
-                                <div className="flex flex-col gap-1 text-sm">
-                                   <div className="flex justify-between">
-                                      <span className="text-[#888]">Packet Loss</span>
-                                      <span className="text-[#bc8cff] font-mono">2.0%</span>
-                                   </div>
-                                   <input type="range" min="0" max="50" defaultValue="2" className="w-full accent-[#bc8cff]"/>
-                                </div>
-                                <div className="flex flex-col gap-1 text-sm">
-                                   <div className="flex justify-between">
-                                      <span className="text-[#888]">Jitter</span>
-                                      <span className="text-[#bc8cff] font-mono">15ms</span>
-                                   </div>
-                                   <input type="range" min="0" max="100" defaultValue="15" className="w-full accent-[#bc8cff]"/>
-                                </div>
-                              </div>
-                           </div>
-                       </div>
-                       
-                       {/* Middle Column - Console & Footprint */}
-                       <div className="xl:col-span-5 flex flex-col gap-6">
-                           <div className="bg-[#161616] border border-[#222] rounded-lg p-5 h-[300px] flex flex-col">
-                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-3 flex items-center gap-2"><Terminal size={14} /> Live Server Console</h3>
-                              <div className="flex-1 bg-[#050505] rounded border border-[#333] p-3 flex flex-col font-mono text-[11px] overflow-y-auto w-full leading-5">
-                                  {serverLogs.length === 0 ? <span className="text-[#888] italic">Engine is cold. Awaiting boot...</span> : null}
-                                  {serverLogs.map((log, i) => (
-                                     <div key={i} className="mb-1">
-                                        <span className="text-[#888] mr-2">[{log.time}]</span> 
-                                        <span className={`${log.type==='error'?'text-[#f85149]':log.type==='warn'?'text-[#e3b341]':log.type==='success'?'text-[#3fb950]':'text-[#58a6ff]'}`}>{log.msg}</span>
-                                     </div>
-                                  ))}
-                              </div>
-                              <div className="mt-3 flex gap-2">
-                                 <input type="text" placeholder="/command" className="flex-1 bg-[#050505] border border-[#333] rounded px-3 py-1 font-mono text-xs text-white outline-none focus:border-[#58a6ff]" />
-                                 <button className="bg-[#222] hover:bg-[#333] text-white px-3 py-1 rounded text-xs transition">SEND</button>
-                              </div>
-                           </div>
-                           
-                           <div className="flex-1 bg-[#161616] border border-[#222] rounded-lg p-5">
-                              <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-4 flex items-center gap-2"><Activity size={14} className="text-[#f85149]"/> Infrastructure Telemetry</h3>
-                              <div className="grid grid-cols-2 gap-4">
-                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
-                                     <div className="absolute inset-0 bg-[#58a6ff]/5 translate-y-[60%] group-hover:translate-y-[50%] transition-transform"></div>
-                                     <Cpu size={24} className="text-[#58a6ff] mb-2"/>
-                                     <span className="text-[#fff] font-bold text-lg">1.2%</span>
-                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">Avg CPU/Conn</span>
-                                 </div>
-                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
-                                     <div className="absolute inset-0 bg-[#bc8cff]/5 translate-y-[80%] group-hover:translate-y-[70%] transition-transform"></div>
-                                     <MonitorPlay size={24} className="text-[#bc8cff] mb-2"/>
-                                     <span className="text-[#fff] font-bold text-lg">24MB</span>
-                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">RAM Footprint</span>
-                                 </div>
-                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
-                                     <div className="absolute inset-0 bg-[#3fb950]/5 translate-y-[40%] group-hover:translate-y-[30%] transition-transform"></div>
-                                     <Activity size={24} className="text-[#3fb950] mb-2"/>
-                                     <span className="text-[#fff] font-bold text-lg">14.2 KB/s</span>
-                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">Bandwidth in/out</span>
-                                 </div>
-                                 <div className="bg-[#0a0a0a] border border-[#333] p-3 rounded flex flex-col items-center justify-center relative overflow-hidden group">
-                                     <div className="absolute inset-0 bg-[#e3b341]/5 translate-y-[90%] group-hover:translate-y-[85%] transition-transform"></div>
-                                     <Database size={24} className="text-[#e3b341] mb-2"/>
-                                     <span className="text-[#fff] font-bold text-lg">20.4ms</span>
-                                     <span className="text-[#888] text-[10px] uppercase tracking-wide">DB Read Latency</span>
-                                 </div>
-                              </div>
-                           </div>
-                       </div>
-
-                       {/* Right Column - AI Sentinel & Tools */}
-                       <div className="xl:col-span-3 flex flex-col gap-6">
-                          <div className="bg-[#161616] border border-[#f85149]/30 rounded-lg p-5 h-full flex flex-col relative overflow-hidden">
-                             <div className="absolute top-0 right-0 p-3"><Activity size={60} className="text-[#f85149]/5" /></div>
-                             <h3 className="text-[#fff] font-bold tracking-wide uppercase text-xs mb-3 flex items-center gap-2"><Bot size={14} className="text-[#f85149]"/> AI Security Watchdog</h3>
-                             <p className="text-[11px] text-[#888] mb-4">
-                               Offline NPU Guardian monitoring server state, database queries, and payload patterns for zero-day vulnerabilities.
-                             </p>
-                             
-                             <div className="flex-1 space-y-3">
-                                {/* Simulated AI Alert */}
-                                <div className="bg-[#f85149]/10 border border-[#f85149]/20 p-3 rounded">
-                                   <div className="flex items-center gap-2 text-[#f85149] font-bold text-[10px] uppercase tracking-wide mb-1">
-                                      <ShieldCheck size={12}/> Info Leak Detected
-                                   </div>
-                                   <p className="text-[#ccc] text-[11px] leading-relaxed">
-                                      The payload for <span className="text-white font-mono bg-[#f85149]/20 px-1 rounded">player/inventory/get</span> returning unnecessary PII fields (email). 
-                                   </p>
-                                   <button className="mt-2 text-[#58a6ff] hover:underline text-[10px] font-bold">Auto-mitigate (Patch Endpoint)</button>
-                                </div>
-                                
-                                <div className="bg-[#e3b341]/10 border border-[#e3b341]/20 p-3 rounded">
-                                   <div className="flex items-center gap-2 text-[#e3b341] font-bold text-[10px] uppercase tracking-wide mb-1">
-                                      <Activity size={12}/> Unbounded Array
-                                   </div>
-                                   <p className="text-[#ccc] text-[11px] leading-relaxed">
-                                      Route <span className="text-white font-mono bg-[#e3b341]/20 px-1 rounded">chat/history</span> missing strict pagination bounds. Potential DoS vector.
-                                   </p>
-                                   <button className="mt-2 text-[#58a6ff] hover:underline text-[10px] font-bold">Enforce limits (Size &lt;= 50)</button>
-                                </div>
-                             </div>
-                             
-                             <div className="mt-4 pt-4 border-t border-[#333]">
-                                <button className="w-full bg-[#f85149] hover:bg-[#ff7b72] text-[#fff] py-2 rounded font-bold text-xs shadow-[0_0_10px_rgba(248,81,73,0.3)] transition">EXECUTE RED TEAM AUDIT</button>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+                 <NetworkSim />
                )}
-               {['Modeling', 'Landscape', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'MapEdit', 'PhysicsEngine', 'GameSystems', 'EngineCore', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'Niagara', 'ControlRig', 'Sequencer', 'MetaSound', 'PCG', 'MetaHuman', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'UIUXEdit'].includes(activeTool) && (
+               {['AITestingQA', 'ControlRig', 'ProceduralGen'].includes(activeTool) && (
                  <ModulePanel moduleType={activeTool} />
                )}
-               {!['Select', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'Modeling', 'Landscape', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'MapEdit', 'PhysicsEngine', 'GameSystems', 'EngineCore', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'Niagara', 'ControlRig', 'Sequencer', 'MetaSound', 'PCG', 'MetaHuman', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'UIUXEdit'].includes(activeTool) && (
+               {['GameSystems', 'AdvancedNavMesh', 'VoxelEngine'].includes(activeTool) && (
+                 <GameSystemsEditor />
+               )}
+               {activeTool === 'VehiclePhysics' && <VehicleDynamicsEditor />}
+               {activeTool === 'MLAgents' && <MLAgentsEditor />}
+               {activeTool === 'VRXREngine' && <VRXREngineEditor />}
+               {activeTool === 'CinematicSequencer' && <CinematicSequencerEditor />}
+               {['WorldBible', 'DialogueQuest'].includes(activeTool) && (
+                 <WorldLoreEditor />
+               )}
+               {['BuildPublish', 'AssetPipeline', 'BackendCloud', 'DevOpsBuilder'].includes(activeTool) && (
+                 <BuildPublishEditor />
+               )}
+               {['PhysicsEngine', 'InputMapping'].includes(activeTool) && (
+                 <ProjectSettingsEditor />
+               )}
+               {activeTool === 'GraphicsRender' &&  (
+                 <GraphicsRenderEditor />
+               )}
+               {['MetaSound', 'AudioEdit', 'AnimationAudio'].includes(activeTool) && (
+                 <AudioEditor />
+               )}
+               {activeTool === 'ImageEdit' && <ImageEditor setActiveTool={setActiveTool} />}
+               {activeTool === 'EffectEdit' && <VFXHitboxStudio setActiveTool={setActiveTool} />}
+               {['NPCEdit', 'MonsterEdit'].includes(activeTool) && <NPCEditor initialTab={activeTool === 'MonsterEdit' ? 'Monsters' : 'NPCs'} />}
+               {['ControlRig', 'Modeling'].includes(activeTool) && <ModelingEditor />}
+               {activeTool === 'ScriptEditor' && <ScriptEditor />}
+               {['AITestingQA', 'PerformanceProfile'].includes(activeTool) && <PerformanceProfiler />}
+               {['Sequencer', 'CinematicSequencer'].includes(activeTool) && (
+                 <CutsceneEditor />
+               )}
+               {activeTool === 'DataTable' && <DataTableEditor />}
+               {activeTool === 'AssetStore' && <AssetStore />}
+               {activeTool === 'StoryGraph' && <StoryGraphEditor />}
+               {activeTool === 'BehaviorTree' && <BehaviorTreeEditor />}
+               {activeTool === 'LogicVisual' && <LogicVisualEditor />}
+               {activeTool === 'MetaHuman' && <MetaHumanEditor />}
+               {activeTool === 'Niagara' && <NiagaraEditor />}
+               {['PCG', 'ProceduralGen'].includes(activeTool) && <PCGEditor />}
+               {activeTool === 'UIUXEdit' && <UIUXEditor />}
+               {activeTool === 'SkillForge' && <SkillForgeEditor setActiveTool={setActiveTool} />}
+               {activeTool === 'LocalAI' && <LocalAIStudio setActiveTool={setActiveTool} />}
+               {activeTool === 'WorldBuilder' && <WorldBuilderEditor />}
+               {activeTool === 'SentientAI' && <SentientAIEditor />}
+               {activeTool === 'ProceduralAsset' && <ProceduralAssetStudio />}
+               {activeTool === 'DevOpsManager' && <ArchitectureDevOpsEditor />}
+               {activeTool === 'LiveOps' && <LiveOpsDashboard />}
+               {activeTool === 'AnimGraph' && <AnimGraphEditor />}
+               {activeTool === 'CharacterAnimator' && <CharacterAnimator />}
+               {activeTool === 'Landscape' && <LandscapeEditor />}
+               {activeTool === 'MapEdit' && <MapEditor setActiveTool={setActiveTool} />}
+               {activeTool === 'Netcode' && <NetcodeEditor />}
+               {activeTool === 'EngineCore' && <EngineCoreEditor />}
+               {activeTool === 'LevelDesign' && <LevelDesignEditor />}
+               {activeTool === 'QuestDirector' && <QuestDirectorEditor />}
+               {activeTool === 'BatchAI' && <BatchAIImporter onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />}
+               {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'SkillForge', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping'].includes(activeTool) && (
                  <Viewport3D activeTool={activeTool} activeFile={activeFile} />
                )}
 
                {/* Global Offline AI Command Bar for Active Editor */}
-               {activeTool !== 'Material' && activeTool !== 'Pipeline' && activeTool !== 'Blueprint' && activeTool !== 'ServerSim' && (
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[80%] max-w-[800px] z-[60] pointer-events-auto">
-                     <div className="bg-[#161b22]/95 backdrop-blur-xl border border-[#bc8cff]/30 rounded-2xl shadow-[0_10px_40px_-10px_rgba(188,140,255,0.2)] p-3 flex flex-col gap-3">
-                        <div className="flex items-center justify-between px-2">
-                           <div className="flex items-center gap-2 text-[#bc8cff]">
-                              <Bot size={16} />
-                              <span className="text-[12px] font-bold tracking-wide">AUTONOMOUS ENGINE AI</span>
-                              <span className="bg-[#bc8cff]/20 text-[#bc8cff] text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">Offline Mode / Local TPU</span>
-                           </div>
-                           <span className="text-[11px] text-[#8b949e]">Accessing Blender, Maya, Substance, Unity, Unreal toolsets.</span>
-                        </div>
-                        <div className="flex gap-2">
-                           <input 
-                              type="text" 
-                              placeholder={`Tell me what to make in [${activeTool}]... e.g. "Generate a complete SpeedTree forest template"`}
-                              className="flex-1 bg-[#0d1117] border border-[#30363d] rounded-xl text-[14px] text-white px-4 py-3 outline-none focus:border-[#bc8cff] transition-colors shadow-inner"
-                              onKeyDown={(e) => {
-                                 if (e.key === 'Enter') {
-                                    e.currentTarget.value = '';
-                                    alert('AI Copilot is processing your offline request using Local Cluster...');
-                                 }
-                              }}
-                           />
-                           <button className="bg-gradient-to-r from-[#bc8cff] to-[#58a6ff] hover:opacity-90 text-white rounded-xl p-3 transition-opacity flex items-center justify-center font-bold px-6 shadow-lg gap-2">
-                              <Sparkles size={18} fill="white" /> Execute Node
-                           </button>
-                        </div>
-                        <div className="flex gap-2 px-1 justify-center flex-wrap">
-                           <button className="text-[11px] bg-[#21262d] hover:bg-[#30363d] hover:text-white text-[#c9d1d9] px-3 py-1.5 rounded-full transition-colors border border-[#30363d] font-semibold">🏔️ Generate Gaea Landscape</button>
-                           <button className="text-[11px] bg-[#21262d] hover:bg-[#30363d] hover:text-white text-[#c9d1d9] px-3 py-1.5 rounded-full transition-colors border border-[#30363d] font-semibold">💀 Rig with Mixamo IK</button>
-                           <button className="text-[11px] bg-[#21262d] hover:bg-[#30363d] hover:text-white text-[#c9d1d9] px-3 py-1.5 rounded-full transition-colors border border-[#30363d] font-semibold">🎨 Unwrap & Apply Substance Material</button>
-                           <button className="text-[11px] bg-[#21262d] hover:bg-[#30363d] hover:text-white text-[#c9d1d9] px-3 py-1.5 rounded-full transition-colors border border-[#30363d] font-semibold">📐 Sculpt Mode (ZBrush Style)</button>
-                        </div>
-                     </div>
-                  </div>
+               {activeTool !== 'Material' && activeTool !== 'BatchAI' && activeTool !== 'Pipeline' && activeTool !== 'Blueprint' && activeTool !== 'ServerSim' && (
+                  <AICommandCenter activeTool={activeTool} onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />
                )}
+
+               <HardwareProfilerOverlay />
             </div>
             {renderBottomPanel()}
           </div>
@@ -1338,6 +1315,30 @@ export default function App() {
 
       {renderStatusBar()}
       {renderMobileNavigation()}
+      <GlobalSearchPanel 
+        files={files} 
+        messages={chatMessages}
+        graphNodes={[
+            { id: 'n1', label: 'Event Tick', category: 'Events', file: 'SystemGraph' },
+            { id: 'n2', label: 'Spawn Actor From Class', category: 'Gameplay', file: 'LevelBP' },
+            { id: 'n3', label: 'Apply Damage', category: 'Combat', file: 'CharacterBP' },
+            { id: 'n4', label: 'Play Anim Montage', category: 'Animation', file: 'AnimGraph' },
+            { id: 'n5', label: 'Branch', category: 'Logic', file: 'MathBP' },
+        ]}
+        isOpen={showGlobalSearch} 
+        onClose={() => setShowGlobalSearch(false)} 
+        onSelectFile={(fileId) => {
+          setActiveFileId(fileId);
+          setActiveTool('Select'); // Ensure we are on code editor
+        }} 
+        onSelectNode={(nodeId) => {
+          setActiveTool('Blueprint');
+          // would navigate tracking ID here
+        }}
+        onSelectMessage={(index) => {
+          setMobileView('chat');
+        }}
+      />
       <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
     </div>
   );

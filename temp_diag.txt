@@ -1,0 +1,82 @@
+src/components/ModulePanel.tsx:459:                            <div className="text-[9px] text-[#8b949e]">Extract phonemes from dialogue and auto-key blendshapes.</div>
+src/components/ModulePanel.tsx:842:                                <span className="text-[11px] font-bold text-[#c9d1d9]">A1: Dialogue_Audio</span>
+src/components/ModulePanel.tsx:928:                                     <span className="relative z-10 text-[9px] text-[#3fb950] px-1 font-bold mix-blend-screen shadow-black drop-shadow-md">Dialogue_04_FINAL_mix.wav</span>
+src/components/ModulePanel.tsx:1291:                 <p className="text-[12px] text-[#8b949e] z-10">Narrative graph parsed successfully. All quests, branching dialogues, and NPC schedules are consistent with the current world state.</p>
+src/components/ModulePanel.tsx:4351:                         {['Master', 'SFX', 'BGM', 'Voice/Dialogue'].map((bus, i) => (
+src/components/ModulePanel.tsx:4624:      // Dialogue & Quests (RPG Maker/Disco Elysium deep logic)
+src/components/ModulePanel.tsx:4626:      case 'DialogueQuest':
+src/components/ModulePanel.tsx:4629:             {renderHeader('Narrative & Quest Logic', 'Deep dialogue trees, branching quests, stats checks (RPG Maker style).', <BookOpen size={28} />)}
+src/components/ModulePanel.tsx:4649:                    <p className="text-[10px] text-[#8b949e] mb-3">Offline AI can write branching dialogue with correct game logic flags & stat checks attached automatically.</p>
+src/components/ModulePanel.tsx:4650:                    <textarea className="w-full bg-[#0a0a0a] border border-[#30363d] rounded p-2 text-[#c9d1d9] text-[11px] h-24 outline-none resize-none mb-2" placeholder="e.g. Generate dialogue for a sarcastic guard. He stops the player. If player 'Charisma' > 5, he lets them pass. Otherwise fight."></textarea>
+src/components/ModulePanel.tsx:4657:               {/* Central Visual Node Editor for Dialogue */}
+src/components/WorldLoreEditor.tsx:19:         <button onClick={() => setActiveTab('dialogue')} className={`flex items-center gap-2 px-3 py-2 rounded text-[11px] font-semibold transition-colors ${activeTab === 'dialogue' ? 'bg-[#21262d] text-[#58a6ff]' : 'text-[#c9d1d9] hover:bg-[#21262d]'}`}>
+src/components/WorldLoreEditor.tsx:20:            <MessageSquare size={16}/> Dialogue Trees
+src/components/WorldLoreEditor.tsx:80:         {activeTab === 'dialogue' && (
+src/components/WorldLoreEditor.tsx:83:                <p className="text-[12px] uppercase tracking-wide">Select a dialogue graph to edit</p>
+src/components/QuestDirectorEditor.tsx:35:           <button onClick={() => setActiveTab('Dialogue')} className={`text-left px-3 py-2 rounded text-[11px] font-bold flex items-center gap-2 ${activeTab === 'Dialogue' ? 'bg-[#21262d] text-white' : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d]/50'}`}>
+src/components/QuestDirectorEditor.tsx:36:              <MessageSquare size={14}/> LLM Dialogue Prompts
+src/components/QuestDirectorEditor.tsx:131:                          The AI Director tracks player inputs, locations visited, dialogue choices, and kill/death ratios to assign a continuous playstyle vector. It then dynamically routes localized radiant quests and spawns loot tuned to these profiles.
+src/components/StoryGraphEditor.tsx:14:              <h2 className="text-sm font-bold uppercase tracking-wider text-white">Story & Dialogue Graph</h2>
+src/components/StoryGraphEditor.tsx:15:              <p className="text-[10px] text-[#8b949e]">Interactive Narrative, Quests, and Non-Linear Dialogue Trees</p>
+src/components/StoryGraphEditor.tsx:28:           <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[#0d1117] text-[#8b949e] hover:text-[#58a6ff] transition-colors" title="Dialogue Node"><MessageSquare size={18}/></button>
+src/components/StoryGraphEditor.tsx:106:                 <label className="text-[10px] font-bold text-[#8b949e]">Dialogue Text</label>
+src/components/AudioEditor.tsx:333:            <textarea className="w-full h-20 bg-[#000] border border-[#bc8cff]/30 rounded text-[#c9d1d9] text-[11px] p-2 resize-none outline-none focus:border-[#bc8cff]/70" placeholder="[Lyrics / Dialogue here...]"></textarea>
+src/components/CutsceneEditor.tsx:18:    { id: 4, name: 'Dialogue', type: 'audio', color: 'bg-yellow-500' },
+src/components/NPCEditor.tsx:6:type NPC = { id: string; name: string; title: string; category: string; description: string; stats: Stat; skills: string[]; questIds: string[]; behavior: string; aiType?: string; patrolPath?: string; aggroRange?: number; attackPattern?: string; skillFrequency?: number; reactProximity?: boolean; critiqueSystem?: string; combatWatchDistance?: number; voiceProfile?: string; psychologicalTraits?: string; hiddenAgenda?: string; alignment?: string; conversationStyle?: string; memoryRetention?: string; adultContentOverride?: boolean; nonAiVoiceLines?: string; emotionMatrix?: string; lootTableId?: string; factionId?: string; dialogueId?: string; isMonster?: boolean; spawnConditions?: string; phaseTransitions?: string; };
+src/components/NPCEditor.tsx:11:type DialogueNode = { id: string; text: string; responses: { text: string; nextNodeId: string | null; action?: string; }[]; aiPrompt?: string; };
+src/components/NPCEditor.tsx:12:type DialogueTree = { id: string; name: string; rootNodeId: string | null; nodes: DialogueNode[]; npcId: string; };
+src/components/NPCEditor.tsx:14:export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab?: 'NPCs' | 'Monsters' | 'Skills' | 'Quests' | 'Factions' | 'Loot' | 'Dialogue' }) {
+src/components/NPCEditor.tsx:15:  const [activeTab, setActiveTab] = useState<'NPCs' | 'Monsters' | 'Skills' | 'Quests' | 'Factions' | 'Loot' | 'Dialogue'>(initialTab);
+src/components/NPCEditor.tsx:47:  const [dialogueTrees, setDialogueTrees] = useState<DialogueTree[]>([
+src/components/NPCEditor.tsx:50:  const [selectedDialogueTreeId, setSelectedDialogueTreeId] = useState<string | null>('501');
+src/components/NPCEditor.tsx:118:  const handleAddDialogueTree = () => {
+src/components/NPCEditor.tsx:119:    const newDt: DialogueTree = { id: uuidv4(), name: 'New Dialogue Tree', npcId: '', rootNodeId: null, nodes: [] };
+src/components/NPCEditor.tsx:120:    setDialogueTrees([...dialogueTrees, newDt]);
+src/components/NPCEditor.tsx:121:    setSelectedDialogueTreeId(newDt.id);
+src/components/NPCEditor.tsx:154:  const deleteDialogueTree = (id: string) => { 
+src/components/NPCEditor.tsx:155:    if(confirm('Are you sure you want to permanently delete this dialogue tree?')) {
+src/components/NPCEditor.tsx:156:      setDialogueTrees(dialogueTrees.filter(d => d.id !== id)); 
+src/components/NPCEditor.tsx:157:      if (selectedDialogueTreeId === id) setSelectedDialogueTreeId(null); 
+src/components/NPCEditor.tsx:217:  const updateDialogueTree = (id: string, field: keyof DialogueTree, value: any) => {
+src/components/NPCEditor.tsx:218:    setDialogueTrees(dialogueTrees.map(d => d.id === id ? { ...d, [field]: value } : d));
+src/components/NPCEditor.tsx:220:  const addDialogueNode = (treeId: string) => {
+src/components/NPCEditor.tsx:221:    setDialogueTrees(dialogueTrees.map(d => {
+src/components/NPCEditor.tsx:223:      const newNode: DialogueNode = { id: `node_${uuidv4().substring(0,6)}`, text: 'New Line', responses: [], aiPrompt: '' };
+src/components/NPCEditor.tsx:227:  const removeDialogueNode = (treeId: string, nodeId: string) => {
+src/components/NPCEditor.tsx:228:    setDialogueTrees(dialogueTrees.map(d => {
+src/components/NPCEditor.tsx:233:  const updateDialogueNode = (treeId: string, nodeId: string, field: string, value: any) => {
+src/components/NPCEditor.tsx:234:    setDialogueTrees(dialogueTrees.map(d => {
+src/components/NPCEditor.tsx:239:  const addDialogueResponse = (treeId: string, nodeId: string) => {
+src/components/NPCEditor.tsx:240:    setDialogueTrees(dialogueTrees.map(d => {
+src/components/NPCEditor.tsx:245:  const removeDialogueResponse = (treeId: string, nodeId: string, index: number) => {
+src/components/NPCEditor.tsx:246:    setDialogueTrees(dialogueTrees.map(d => {
+src/components/NPCEditor.tsx:257:  const updateDialogueResponse = (treeId: string, nodeId: string, index: number, field: string, value: any) => {
+src/components/NPCEditor.tsx:258:    setDialogueTrees(dialogueTrees.map(d => {
+src/components/NPCEditor.tsx:293:            <button onClick={() => setActiveTab('Dialogue')} className={`flex-1 min-w-[30%] py-1.5 rounded text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors ${activeTab === 'Dialogue' ? 'bg-[#bc8cff]/10 text-[#bc8cff] border border-[#bc8cff]/20' : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'}`}><MessageSquare size={12}/> Dialogue</button>
+src/components/NPCEditor.tsx:309:                 if(activeTab === 'Dialogue') handleAddDialogueTree();
+src/components/NPCEditor.tsx:350:            {activeTab === 'Dialogue' && dialogueTrees.map(dt => (
+src/components/NPCEditor.tsx:351:              <div key={dt.id} onClick={() => setSelectedDialogueTreeId(dt.id)} className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors border ${selectedDialogueTreeId === dt.id ? 'bg-[#bc8cff]/10 border-[#bc8cff]/30' : 'bg-[#21262d] border-transparent hover:border-[#30363d]'}`}>
+src/components/NPCEditor.tsx:353:                  <span className={`text-[12px] font-bold truncate ${selectedDialogueTreeId === dt.id ? 'text-[#bc8cff]' : 'text-[#c9d1d9]'}`}>{dt.name}</span>
+src/components/NPCEditor.tsx:356:                <button onClick={(e) => { e.stopPropagation(); deleteDialogueTree(dt.id); }} className="text-[#8b949e] hover:text-[#f85149] p-1"><Trash2 size={12}/></button>
+src/components/NPCEditor.tsx:532:                             <span className="text-[#8b949e] text-[10px] mt-1 max-w-lg">Unlocks bypassed AI safety constraints for this entity to generate mature dialogue, extreme gore/violence responses, deep romance, and unfiltered actions. Applies to text, voice script, and dynamic animation hooks.</span>
+src/components/NPCEditor.tsx:594:                        <h3 className="text-[#c9d1d9] font-bold mb-4 flex items-center gap-2 border-b border-[#30363d] pb-2"><MessageSquare size={16} className="text-[#bc8cff]"/> Bound Dialogue Tree</h3>
+src/components/NPCEditor.tsx:595:                        <select className="bg-[#0d1117] border border-[#30363d] p-2 rounded text-[#c9d1d9] text-[11px] w-full outline-none mb-3" value={npc.dialogueId || ''} onChange={(e) => updateNpc(npc.id, 'dialogueId', e.target.value)}>
+src/components/NPCEditor.tsx:596:                          <option value="">-- No Dialogue Tree --</option>
+src/components/NPCEditor.tsx:597:                          {dialogueTrees.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+src/components/NPCEditor.tsx:856:        {activeTab === 'Dialogue' && selectedDialogueTreeId && (
+src/components/NPCEditor.tsx:859:               const dt = dialogueTrees.find(d => d.id === selectedDialogueTreeId)!;
+src/components/NPCEditor.tsx:868:                       <p className="text-[#8b949e] text-xs">Dialogue Tree ID: {dt.id}</p>
+src/components/NPCEditor.tsx:874:                         <InputField label="Tree Name" value={dt.name} onChange={(v: string) => updateDialogueTree(dt.id, 'name', v)} mb="0" />
+src/components/NPCEditor.tsx:877:                            <select value={dt.rootNodeId || ''} onChange={(e) => updateDialogueTree(dt.id, 'rootNodeId', e.target.value)} className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-[#c9d1d9] text-[12px] outline-none">
+src/components/NPCEditor.tsx:888:                        <button onClick={() => addDialogueNode(dt.id)} className="text-[11px] font-bold bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/40 px-2 py-1 rounded hover:bg-[#bc8cff]/30 transition-colors flex items-center gap-1"><Plus size={12}/> Create Node</button>
+src/components/NPCEditor.tsx:899:                                 <button onClick={() => removeDialogueNode(dt.id, node.id)} className="text-[#f85149] hover:text-white"><Trash2 size={12}/></button>
+src/components/NPCEditor.tsx:902:                              <TextAreaField label="NPC Spoken Text" value={node.text} onChange={(v: string) => updateDialogueNode(dt.id, node.id, 'text', v)} mb="0" />
+src/components/NPCEditor.tsx:903:                              <InputField label="Dynamic AI Prompt (Optional override)" value={node.aiPrompt || ''} onChange={(v: string) => updateDialogueNode(dt.id, node.id, 'aiPrompt', v)} mb="0" />
+src/components/NPCEditor.tsx:908:                                    <button onClick={() => addDialogueResponse(dt.id, node.id)} className="text-[#3fb950] bg-[#3fb950]/10 hover:bg-[#3fb950]/20 px-2 py-0.5 rounded text-[10px] font-bold border border-[#3fb950]/30">+ Response</button>
+src/components/NPCEditor.tsx:911:                                    {node.responses.length === 0 && <span className="text-[#8b949e] text-[10px]">No responses (End of dialogue).</span>}
+src/components/NPCEditor.tsx:915:                                             <input type="text" value={resp.text} onChange={e => updateDialogueResponse(dt.id, node.id, respIdx, 'text', e.target.value)} className="bg-[#0d1117] border border-[#30363d] rounded p-1.5 text-[#c9d1d9] text-[11px] w-full mt-1 outline-none" placeholder="Response text..." />
+src/components/NPCEditor.tsx:918:                                             <select value={resp.nextNodeId || ''} onChange={(e) => updateDialogueResponse(dt.id, node.id, respIdx, 'nextNodeId', e.target.value)} className="bg-[#0d1117] border border-[#30363d] rounded p-1.5 text-[#c9d1d9] text-[11px] w-full mt-1 outline-none">
+src/components/NPCEditor.tsx:923:                                          <button onClick={() => removeDialogueResponse(dt.id, node.id, respIdx)} className="text-[#f85149] p-1 mt-1"><X size={12}/></button>
+src/components/SentientAIEditor.tsx:74:            <p className="text-[#8b949e] text-[11px] mb-4">Instead of dialogue trees, define the psychological traits. The LLM will strictly adhere to this personality matrix.</p>
+src/components/AICommandCenter.tsx:101:           "Synthesizing 200 branching dialogue choices...",
+src/components/SettingsModal.tsx:39:  { id: 'npcbrain', name: 'NPC-Brain LLM', description: 'Specialized LLM for deep immersive NPC dialogue and persistent personalities.', size: '8.2 GB', status: 'not_downloaded' },

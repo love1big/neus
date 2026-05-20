@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import dagre from 'dagre';
+import { useUndoRedoFlow } from '../hooks/useUndoRedoFlow';
 import {
   ReactFlow,
   MiniMap,
@@ -21,7 +22,7 @@ import {
   type EdgeProps
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Play, StepForward, StopCircle, TerminalSquare, AlertCircle, Variable, Search, UserSquare, Waypoints, Plus, FileCode2, Clock, GitCommit, Settings2, BoxSelect, Cpu, Layers, Bot, Sparkles, Keyboard, Grid3X3, Activity, Copy, Image, Network, Wand2, Zap, Gauge } from 'lucide-react';
+import { Play, StepForward, StopCircle, TerminalSquare, AlertCircle, Variable, Search, UserSquare, Waypoints, Plus, FileCode2, Clock, GitCommit, Settings2, BoxSelect, Cpu, Layers, Bot, Sparkles, Keyboard, Grid3X3, Activity, Copy, Image, Network, Wand2, Zap, Gauge, Code2, Maximize2, Minimize2, Globe, Database, BookOpen, Undo, Redo } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Custom Nodes for Blueprint ---
@@ -81,6 +82,53 @@ const EventBeginPlayNode = ({ data }: { data: any }) => (
     </div>
   </div>
 );
+
+// 1.5 Custom Event
+const CustomEventNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#f85149'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#f85149]/30 to-[#f85149]/5 border-b border-[#f85149]/40 rounded-t-lg text-[13px] font-bold text-[#f85149] uppercase tracking-wider flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Zap size={14}/> Custom Event</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2">
+      <input 
+        type="text" 
+        value={data.eventName || 'MyCustomEvent'} 
+        onChange={(e) => updateNodeData(id, { eventName: e.target.value })} 
+        className="bg-[#0d1117] border border-[#30363d] rounded text-[10px] w-full px-1 outline-none h-6 text-white mb-2"
+        placeholder="Event Name"
+      />
+      <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+    </div>
+  </div>
+);
+};
+
+// 1.6 Call Custom Event
+const CallCustomEventNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#58a6ff'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#58a6ff]/20 to-[#58a6ff]/5 border-b border-[#58a6ff]/30 rounded-t-lg text-[13px] font-bold text-white flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Zap size={14} className="text-[#58a6ff]"/> Call Custom Event</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full mb-2">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <input 
+        type="text" 
+        value={data.eventName || 'MyCustomEvent'} 
+        onChange={(e) => updateNodeData(id, { eventName: e.target.value })} 
+        className="bg-[#0d1117] border border-[#30363d] rounded text-[10px] w-full px-1 outline-none h-6 text-white"
+        placeholder="Event Name"
+      />
+    </div>
+  </div>
+);
+};
 
 // 2. Event Tick
 const EventTickNode = ({ data }: { data: any }) => (
@@ -150,6 +198,38 @@ const GetPlayerNode = ({ id, data }: { id: string, data: any }) => {
 );
 };
 
+// 5.5 Get Actor Location
+const GetActorLocationNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '200px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#3fb950]/20 to-[#3fb950]/0 border-b border-[#3fb950]/30 rounded-t-lg text-[12px] font-bold text-[#3fb950] flex items-center gap-2">
+      <Waypoints size={14}/> Get Actor Location
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <DataHandle id="target" type="target" position={Position.Left} top="50%" label="Target Actor" color="#58a6ff" />
+      <DataHandle id="location" type="source" position={Position.Right} top="50%" label="Return Value" color="#e3b341" />
+    </div>
+  </div>
+);
+};
+
+// 5.6 Get Actor Rotation
+const GetActorRotationNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#8b949e', minWidth: '200px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#8b949e]/20 to-[#8b949e]/0 border-b border-[#8b949e]/30 rounded-t-lg text-[12px] font-bold text-[#8b949e] flex items-center gap-2">
+      <Waypoints size={14}/> Get Actor Rotation
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <DataHandle id="target" type="target" position={Position.Left} top="50%" label="Target Actor" color="#58a6ff" />
+      <DataHandle id="rotation" type="source" position={Position.Right} top="50%" label="Return Value" color="#8b949e" />
+    </div>
+  </div>
+);
+};
+
 // 6. Set Actor Location
 const SetActorLocationNode = ({ data }: { data: any }) => (
   <div style={{...nodeStyle, borderColor: '#58a6ff'}}>
@@ -212,6 +292,60 @@ const MathMultiplyNode = ({ id, data }: { id: string, data: any }) => {
   <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '180px'}}>
     <div className="px-3 py-1 bg-[#0d1117] border-b border-[#30363d] rounded-t-lg text-[12px] font-bold text-[#c9d1d9] flex items-center gap-2">
       <span className="text-[#3fb950] font-bold">×</span> Multiply
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <DataHandle id="a" type="target" position={Position.Left} top="50%" label="A" color="#3fb950" inputType="number" value={data.a} onChange={(e: any) => updateNodeData(id, { a: e.target.value })} />
+      <div className="flex justify-between items-center w-full">
+        <DataHandle id="b" type="target" position={Position.Left} top="50%" label="B" color="#3fb950" inputType="number" value={data.b} onChange={(e: any) => updateNodeData(id, { b: e.target.value })} />
+        <DataHandle id="out" type="source" position={Position.Right} top="50%" label="" color="#3fb950" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+const MathAddNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '180px'}}>
+    <div className="px-3 py-1 bg-[#0d1117] border-b border-[#30363d] rounded-t-lg text-[12px] font-bold text-[#c9d1d9] flex items-center gap-2">
+      <span className="text-[#3fb950] font-bold">+</span> Add
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <DataHandle id="a" type="target" position={Position.Left} top="50%" label="A" color="#3fb950" inputType="number" value={data.a} onChange={(e: any) => updateNodeData(id, { a: e.target.value })} />
+      <div className="flex justify-between items-center w-full">
+        <DataHandle id="b" type="target" position={Position.Left} top="50%" label="B" color="#3fb950" inputType="number" value={data.b} onChange={(e: any) => updateNodeData(id, { b: e.target.value })} />
+        <DataHandle id="out" type="source" position={Position.Right} top="50%" label="" color="#3fb950" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+const MathSubNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '180px'}}>
+    <div className="px-3 py-1 bg-[#0d1117] border-b border-[#30363d] rounded-t-lg text-[12px] font-bold text-[#c9d1d9] flex items-center gap-2">
+      <span className="text-[#3fb950] font-bold">-</span> Subtract
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <DataHandle id="a" type="target" position={Position.Left} top="50%" label="A" color="#3fb950" inputType="number" value={data.a} onChange={(e: any) => updateNodeData(id, { a: e.target.value })} />
+      <div className="flex justify-between items-center w-full">
+        <DataHandle id="b" type="target" position={Position.Left} top="50%" label="B" color="#3fb950" inputType="number" value={data.b} onChange={(e: any) => updateNodeData(id, { b: e.target.value })} />
+        <DataHandle id="out" type="source" position={Position.Right} top="50%" label="" color="#3fb950" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+const MathDivideNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '180px'}}>
+    <div className="px-3 py-1 bg-[#0d1117] border-b border-[#30363d] rounded-t-lg text-[12px] font-bold text-[#c9d1d9] flex items-center gap-2">
+      <span className="text-[#3fb950] font-bold">/</span> Divide
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <DataHandle id="a" type="target" position={Position.Left} top="50%" label="A" color="#3fb950" inputType="number" value={data.a} onChange={(e: any) => updateNodeData(id, { a: e.target.value })} />
@@ -551,6 +685,47 @@ const SpawnActorNode = ({ data }: { data: any }) => (
   </div>
 );
 
+const SpawnPrefabNode = ({ data }: { data: any }) => (
+  <div style={{...nodeStyle, borderColor: '#bc8cff'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-white flex items-center gap-2">
+      <BoxSelect size={14} className="text-[#bc8cff]"/> SpawnActor from Prefab
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <DataHandle id="prefab" type="target" position={Position.Left} top="50%" label="Prefab Asset" color="#bc8cff" />
+      <DataHandle id="transform" type="target" position={Position.Left} top="50%" label="Spawn Transform" color="#e3b341" />
+      <DataHandle id="collision" type="target" position={Position.Left} top="50%" label="Collision Handling" color="#8b949e" />
+      <DataHandle id="return" type="source" position={Position.Right} top="50%" label="Return Value" color="#58a6ff" />
+    </div>
+  </div>
+);
+
+// 13.5 Input Axis Event
+const InputAxisNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#f85149'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#f85149]/30 to-[#f85149]/5 border-b border-[#f85149]/40 rounded-t-lg text-[13px] font-bold text-[#f85149] uppercase tracking-wider flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Keyboard size={14}/> Input Axis</div>
+      <input 
+        type="text" 
+        value={data.axisName || 'MoveForward'} 
+        onChange={(e) => updateNodeData(id, { axisName: e.target.value })} 
+        className="bg-[#0d1117] border border-[#30363d] rounded text-[10px] w-28 px-1 outline-none h-5 text-white"
+        placeholder="Axis Name"
+      />
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Exec" />
+      <DataHandle id="axisValue" type="source" position={Position.Right} top="50%" label="Axis Value" color="#3fb950" />
+    </div>
+  </div>
+);
+};
+
 // 13. Input Key Event
 const InputKeyNode = ({ id, data }: { id: string, data: any }) => {
   const { updateNodeData } = useReactFlow();
@@ -558,11 +733,18 @@ const InputKeyNode = ({ id, data }: { id: string, data: any }) => {
   <div style={{...nodeStyle, borderColor: '#f85149'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#f85149]/30 to-[#f85149]/5 border-b border-[#f85149]/40 rounded-t-lg text-[13px] font-bold text-[#f85149] uppercase tracking-wider flex items-center justify-between gap-2">
       <div className="flex items-center gap-2"><Keyboard size={14}/> Input Action</div>
-      <select value={data.key || 'Spacebar'} onChange={(e) => updateNodeData(id, { key: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase"><option>Spacebar</option><option>Enter</option><option>W</option><option>A</option><option>S</option><option>D</option></select>
+      <input 
+        type="text" 
+        value={data.key || 'Spacebar'} 
+        onChange={(e) => updateNodeData(id, { key: e.target.value })} 
+        className="bg-[#0d1117] border border-[#30363d] rounded text-[10px] w-20 px-1 outline-none h-5 text-white"
+        placeholder="Key/Action"
+      />
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <ExecHandle id="execPressed" type="source" position={Position.Right} top="50%" label="Pressed" />
       <ExecHandle id="execReleased" type="source" position={Position.Right} top="50%" label="Released" />
+      <DataHandle id="keyData" type="source" position={Position.Right} top="50%" label="Key" color="#8b949e" />
     </div>
   </div>
 );
@@ -601,7 +783,7 @@ const AIGenMovementNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Sparkles size={14}/> AI Gen: Movement</div>
+      <div className="flex items-center gap-2"><Sparkles size={14}/> Offline AI Gen: Movement</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -629,7 +811,7 @@ const AIGenMovementNode = ({ id, data }: { id: string, data: any }) => {
 const AIGenCombatNode = ({ data }: { data: any }) => (
   <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Bot size={14}/> AI Gen: Combat BT</div>
+      <div className="flex items-center gap-2"><Bot size={14}/> Offline AI Gen: Combat BT</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -649,7 +831,7 @@ const AIGenBehaviorLogicNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#ff7b72', minWidth: '260px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#ff7b72]/30 to-[#ff7b72]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#ff7b72] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Sparkles size={14}/> AI Gen: Behavior Logic</div>
+      <div className="flex items-center gap-2"><Sparkles size={14}/> Offline AI Gen: Behavior Logic</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -669,7 +851,7 @@ const AIGenActorNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#333] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Sparkles size={14}/> AI Gen: Actor</div>
+      <div className="flex items-center gap-2"><Sparkles size={14}/> Offline AI Gen: Actor</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -688,9 +870,9 @@ const AIGenActorNode = ({ id, data }: { id: string, data: any }) => {
 const HardwareOptimizerNode = ({ id, data }: { id: string, data: any }) => {
   const { updateNodeData } = useReactFlow();
   return (
-  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '260px'}}>
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '320px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#3fb950]/30 to-[#3fb950]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#3fb950] tracking-wider flex items-center gap-2">
-      <Cpu size={14}/> Hardware Optimizer
+      <Cpu size={14}/> Hardware Optimizer (Legacy Supported)
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -698,20 +880,28 @@ const HardwareOptimizerNode = ({ id, data }: { id: string, data: any }) => {
         <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
       </div>
       <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
-         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Cpu size={10} className="text-[#3fb950]"/> CPU</span>
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Cpu size={10} className="text-[#3fb950]"/> Architecture</span>
+         <select value={data.archType || 'Modern'} onChange={(e) => updateNodeData(id, { archType: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-[#e3b341] uppercase ml-2"><option>Modern</option><option>Legacy (15+ Years Old)</option><option>Any / Universal</option></select>
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Cpu size={10} className="text-[#3fb950]"/> CPU Queue</span>
          <select value={data.cpuLimit || 'Low'} onChange={(e) => updateNodeData(id, { cpuLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase ml-2"><option>Low</option><option>Medium</option><option>High</option><option>Max</option></select>
       </div>
       <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
-         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Grid3X3 size={10} className="text-[#3fb950]"/> GPU</span>
-         <select value={data.gpuLimit || 'Low'} onChange={(e) => updateNodeData(id, { gpuLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase ml-2"><option>Low</option><option>Medium</option><option>High</option><option>Max</option></select>
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Grid3X3 size={10} className="text-[#3fb950]"/> VRAM Target</span>
+         <select value={data.gpuLimit || 'Low'} onChange={(e) => updateNodeData(id, { gpuLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-[#bc8cff] uppercase ml-2"><option>1-2 GB (Ultra Low)</option><option>4 GB</option><option>8 GB+</option></select>
       </div>
       <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
-         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Layers size={10} className="text-[#3fb950]"/> RAM/VRAM</span>
-         <select value={data.ramLimit || 'Aggressive'} onChange={(e) => updateNodeData(id, { ramLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase ml-2"><option>Aggressive</option><option>Balanced</option><option>Lazy</option></select>
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Layers size={10} className="text-[#3fb950]"/> RAM Limit</span>
+         <select value={data.ramLimit || 'Aggressive'} onChange={(e) => updateNodeData(id, { ramLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-[#ff7b72] uppercase ml-2"><option>4 GB (Strict Constraint)</option><option>8 GB</option><option>16 GB+</option></select>
       </div>
       <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
-         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Zap size={10} className="text-[#3fb950]"/> NPU / AI Core</span>
-         <select value={data.npuLimit || 'Low'} onChange={(e) => updateNodeData(id, { npuLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase ml-2"><option>Off</option><option>Low</option><option>Ultra</option></select>
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1"><Zap size={10} className="text-[#3fb950]"/> Pipeline Strategy</span>
+         <select value={data.pipelineMode || 'Auto-Detect (Adaptive)'} onChange={(e) => updateNodeData(id, { pipelineMode: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-[#3fb950] uppercase ml-2">
+            <option>Auto-Detect (Adaptive)</option>
+            <option>Parallel (Modern)</option>
+            <option>CPU {'>'} RAM {'>'} NPU {'>'} GPU (Staged)</option>
+         </select>
       </div>
     </div>
   </div>
@@ -741,6 +931,36 @@ const OfflineAIAcceleratorNode = ({ id, data }: { id: string, data: any }) => {
         <input type="number" min="1" max="64" value={data.threads || 8} onChange={(e: any) => updateNodeData(id, { threads: e.target.value })} className="w-12 bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white text-right px-1 ml-2" />
       </div>
       <DataHandle id="isStable" type="source" position={Position.Right} top="50%" label="Is Stable" color="#f85149" />
+    </div>
+  </div>
+);
+};
+
+// Extreme Detail Scene/Level Script Node
+const LevelScriptNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '280px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center gap-2">
+      <FileCode2 size={14}/> Level Descriptor Script
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Run Script" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <div className="mt-1 flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1">Max Shadow Casters</span>
+         <input type="number" value={data.shadowCasters || 12} onChange={(e) => updateNodeData(id, { shadowCasters: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[10px] outline-none h-5 text-[#c9d1d9] px-2 w-full" />
+      </div>
+      <div className="mt-1 flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1">Global Alarm / Entity Limit</span>
+         <input type="number" value={data.entityLimit || 50} onChange={(e) => updateNodeData(id, { entityLimit: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[10px] outline-none h-5 text-[#c9d1d9] px-2 w-full" />
+      </div>
+      <div className="mt-1 flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1">Light Bounce Quality</span>
+         <select value={data.lightQual || 'Low (0 Bounces)'} onChange={(e) => updateNodeData(id, { lightQual: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-5 text-[#e3b341] w-full"><option>Low (0 Bounces)</option><option>Medium (1 Bounce)</option><option>High (3+ Bounces)</option></select>
+      </div>
     </div>
   </div>
 );
@@ -878,7 +1098,7 @@ const AIGenTransformNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Sparkles size={14}/> AI Gen: Transform</div>
+      <div className="flex items-center gap-2"><Sparkles size={14}/> Offline AI Gen: Transform</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -1034,7 +1254,7 @@ const AIGenProximityNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#ff7b72', minWidth: '260px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#ff7b72]/30 to-[#ff7b72]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#ff7b72] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Bot size={14}/> AI Proximity Behavior</div>
+      <div className="flex items-center gap-2"><Bot size={14}/> Offline AI Proximity Behavior</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -1065,7 +1285,7 @@ const AIGenTextureNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Image size={14}/> AI Gen: Texture</div>
+      <div className="flex items-center gap-2"><Image size={14}/> Offline AI Gen: Texture</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -1095,7 +1315,7 @@ const AIGenMechanicNode = ({ id, data }: { id: string, data: any }) => {
   return (
   <div style={{...nodeStyle, borderColor: '#ff7b72', minWidth: '260px'}}>
     <div className="px-3 py-1.5 bg-gradient-to-r from-[#ff7b72]/30 to-[#ff7b72]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#ff7b72] tracking-wider flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2"><Sparkles size={14}/> AI Gen: Mechanic</div>
+      <div className="flex items-center gap-2"><Sparkles size={14}/> Offline AI Gen: Mechanic</div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -1519,16 +1739,36 @@ const PlaySoundNode = ({ data }: { data: any }) => (
 // 30. Get Variable
 const GetVariableNode = ({ id, data }: { id: string, data: any }) => {
   const { updateNodeData } = useReactFlow();
+
+  const typeColors: Record<string, string> = {
+    Boolean: '#f85149',
+    Float: '#3fb950',
+    String: '#bc8cff',
+    Vector: '#e3b341',
+    Object: '#58a6ff'
+  };
+
+  const selectedType = data.varType || 'Float';
+  const nodeColor = typeColors[selectedType] || '#3fb950';
+
   return (
-  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '160px'}}>
+  <div style={{...nodeStyle, borderColor: nodeColor, minWidth: '160px'}}>
     <div className="px-3 py-1.5 bg-[#0d1117] border-b border-[#30363d] rounded-t-lg text-[12px] font-bold text-[#c9d1d9] flex justify-between items-center gap-2">
-      <Variable size={12}/> Get Variable
+      <div className="flex items-center gap-2"><Variable size={12}/> Get Variable</div>
+      <div className="w-2 h-2 rounded-full" style={{backgroundColor: nodeColor}}></div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <input type="text" value={data.varName || 'MyVar'} onChange={(e: any) => updateNodeData(id, { varName: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] px-1 text-white rounded text-[10px] outline-none h-5" placeholder="Variable Name" />
+      <select value={selectedType} onChange={(e: any) => updateNodeData(id, { varType: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] px-1 text-white rounded text-[10px] outline-none h-5">
+        <option value="Boolean">Boolean</option>
+        <option value="Float">Float</option>
+        <option value="String">String</option>
+        <option value="Vector">Vector</option>
+        <option value="Object">Object</option>
+      </select>
       <div className="flex justify-between items-center w-full">
         <div/>
-        <DataHandle id="val" type="source" position={Position.Right} top="50%" label={data.varName || 'MyVar'} color="#3fb950" />
+        <DataHandle id="val" type="source" position={Position.Right} top="50%" label={data.varName || 'MyVar'} color={nodeColor} />
       </div>
     </div>
   </div>
@@ -1538,10 +1778,23 @@ const GetVariableNode = ({ id, data }: { id: string, data: any }) => {
 // 31. Set Variable
 const SetVariableNode = ({ id, data }: { id: string, data: any }) => {
   const { updateNodeData } = useReactFlow();
+
+  const typeColors: Record<string, string> = {
+    Boolean: '#f85149',
+    Float: '#3fb950',
+    String: '#bc8cff',
+    Vector: '#e3b341',
+    Object: '#58a6ff'
+  };
+
+  const selectedType = data.varType || 'Float';
+  const nodeColor = typeColors[selectedType] || '#3fb950';
+
   return (
-  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '180px'}}>
+  <div style={{...nodeStyle, borderColor: nodeColor, minWidth: '180px'}}>
     <div className="px-3 py-1.5 bg-[#0d1117] border-b border-[#30363d] rounded-t-lg text-[12px] font-bold text-[#c9d1d9] flex justify-between items-center gap-2">
-      <Variable size={12}/> Set Variable
+      <div className="flex items-center gap-2"><Variable size={12}/> Set Variable</div>
+      <div className="w-2 h-2 rounded-full" style={{backgroundColor: nodeColor}}></div>
     </div>
     <div className="p-2 py-3 flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
@@ -1549,9 +1802,16 @@ const SetVariableNode = ({ id, data }: { id: string, data: any }) => {
         <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
       </div>
       <input type="text" value={data.varName || 'MyVar'} onChange={(e: any) => updateNodeData(id, { varName: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] px-1 text-white rounded text-[10px] outline-none h-5" placeholder="Variable Name" />
-      <div className="flex justify-between items-center w-full">
-        <DataHandle id="inVal" type="target" position={Position.Left} top="50%" label={data.varName || 'MyVar'} color="#3fb950" />
-        <DataHandle id="outVal" type="source" position={Position.Right} top="50%" label="" color="#3fb950" />
+      <select value={selectedType} onChange={(e: any) => updateNodeData(id, { varType: e.target.value })} className="w-full bg-[#161b22] border border-[#30363d] px-1 text-white rounded text-[10px] outline-none h-5">
+        <option value="Boolean">Boolean</option>
+        <option value="Float">Float</option>
+        <option value="String">String</option>
+        <option value="Vector">Vector</option>
+        <option value="Object">Object</option>
+      </select>
+      <div className="flex justify-between items-center w-full mt-1">
+        <DataHandle id="inVal" type="target" position={Position.Left} top="50%" label={data.varName || 'MyVar'} color={nodeColor} />
+        <DataHandle id="outVal" type="source" position={Position.Right} top="50%" label="" color={nodeColor} />
       </div>
     </div>
   </div>
@@ -1612,19 +1872,13 @@ const ConditionEdge = ({
     targetPosition,
   });
 
-  const onLabelClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEdges((edges) => edges.map((e) => {
-      if (e.id === id) {
-        let condition = e.data?.condition || '';
-        if (condition === '') condition = 'ใช่'; // Yes
-        else if (condition === 'ใช่') condition = 'ไม่'; // No
-        else if (condition === 'ไม่') condition = 'และ'; // AND
-        else if (condition === 'และ') condition = 'หรือ'; // OR
-        else condition = '';
-        return { ...e, data: { ...e.data, condition } };
+  const onConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEdges((edges) => edges.map((edge) => {
+      if (edge.id === id) {
+        return { ...edge, data: { ...edge.data, condition: value } };
       }
-      return e;
+      return edge;
     }));
   };
 
@@ -1642,32 +1896,675 @@ const ConditionEdge = ({
           }}
           className="nodrag nopan"
         >
-          <button
-            onClick={onLabelClick}
-            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${label ? 'bg-[#161b22] border-[#30363d] text-white' : 'bg-transparent border-transparent text-transparent hover:bg-[#161b22] hover:border-[#30363d] hover:text-[#8b949e]'}`}
-          >
-            {label as string || '+'}
-          </button>
+          <div className="bg-[#161b22] border border-[#30363d] rounded flex items-center px-1 shadow-lg shadow-black/50 overflow-hidden min-w-[60px]">
+             <input 
+                type="text"
+                className="bg-transparent text-[10px] text-[#58a6ff] outline-none text-center font-mono w-full px-1 py-0.5"
+                placeholder="Condition..."
+                value={label}
+                onChange={onConditionChange}
+             />
+          </div>
         </div>
       </EdgeLabelRenderer>
     </>
   );
 };
 
+// AI Scene Generator
+const AISceneGenNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '300px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center gap-2">
+      <Sparkles size={14}/> AI Gen Scene Elements
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Generate" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Ready" />
+      </div>
+      <DataHandle id="prompt" type="target" position={Position.Left} top="50%" label="Prompt" color="#1f6feb" inputType="text" value={data.prompt} onChange={(e: any) => updateNodeData(id, { prompt: e.target.value })} />
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Include Base Meshes</label>
+        <input type="checkbox" checked={data.baseMeshes !== false} onChange={(e) => updateNodeData(id, { baseMeshes: e.target.checked })} className="accent-[#bc8cff]" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Include Lighting</label>
+        <input type="checkbox" checked={data.lighting !== false} onChange={(e) => updateNodeData(id, { lighting: e.target.checked })} className="accent-[#bc8cff]" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Include Skybox</label>
+        <input type="checkbox" checked={data.skybox !== false} onChange={(e) => updateNodeData(id, { skybox: e.target.checked })} className="accent-[#bc8cff]" />
+      </div>
+      <DataHandle id="sceneGroup" type="source" position={Position.Right} top="50%" label="Scene Group" color="#58a6ff" />
+    </div>
+  </div>
+);
+};
+
+// AI Auto-Rigger
+const AIAutoRiggerNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#ff7b72', minWidth: '300px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#ff7b72]/30 to-[#ff7b72]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#ff7b72] tracking-wider flex items-center gap-2">
+      <UserSquare size={14}/> Offline AI Auto-Rigger & IK Setup
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Rig Model" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Ready" />
+      </div>
+      <DataHandle id="mesh" type="target" position={Position.Left} top="50%" label="Static Mesh" color="#58a6ff" />
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1">Morphology</span>
+         <select value={data.morphology || 'Biped'} onChange={(e) => updateNodeData(id, { morphology: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase ml-2"><option>Biped</option><option>Quadruped</option><option>Arachnid</option><option>Avian</option></select>
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Generate FK/IK Controls</label>
+        <input type="checkbox" checked={data.fkik !== false} onChange={(e) => updateNodeData(id, { fkik: e.target.checked })} className="accent-[#ff7b72]" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Enable Map Retargeting</label>
+        <input type="checkbox" checked={data.retarget !== false} onChange={(e) => updateNodeData(id, { retarget: e.target.checked })} className="accent-[#ff7b72]" />
+      </div>
+      <DataHandle id="skeletalMesh" type="source" position={Position.Right} top="50%" label="Skeletal Mesh" color="#58a6ff" />
+    </div>
+  </div>
+);
+};
+
+// AI Material Gen
+const AIMaterialGenNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#e3b341', minWidth: '300px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#e3b341]/30 to-[#e3b341]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#e3b341] tracking-wider flex items-center gap-2">
+      <Image size={14}/> Offline AI PBR Material Gen
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Generate" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Ready" />
+      </div>
+      <DataHandle id="prompt" type="target" position={Position.Left} top="50%" label="Prompt" color="#1f6feb" inputType="text" value={data.prompt} onChange={(e: any) => updateNodeData(id, { prompt: e.target.value })} />
+      <DataHandle id="refImage" type="target" position={Position.Left} top="50%" label="Ref Texture (Opt)" color="#58a6ff" />
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Diffuse Map</label>
+        <input type="checkbox" checked={data.diffuse !== false} onChange={(e) => updateNodeData(id, { diffuse: e.target.checked })} className="accent-[#e3b341]" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Normal Map</label>
+        <input type="checkbox" checked={data.normal !== false} onChange={(e) => updateNodeData(id, { normal: e.target.checked })} className="accent-[#e3b341]" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Roughness Map</label>
+        <input type="checkbox" checked={data.roughness !== false} onChange={(e) => updateNodeData(id, { roughness: e.target.checked })} className="accent-[#e3b341]" />
+      </div>
+      <DataHandle id="material" type="source" position={Position.Right} top="50%" label="PBR Material" color="#e3b341" />
+    </div>
+  </div>
+);
+};
+
+// AI Mesh Optimizer
+const AIMeshOptNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#58a6ff', minWidth: '300px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#58a6ff]/30 to-[#58a6ff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#58a6ff] tracking-wider flex items-center gap-2">
+      <Grid3X3 size={14}/> Offline AI Mesh Optimizer & Retopo
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Process" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Done" />
+      </div>
+      <DataHandle id="mesh" type="target" position={Position.Left} top="50%" label="Input Mesh(es)" color="#58a6ff" />
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Quad-Retopology</label>
+        <input type="checkbox" checked={data.retopo !== false} onChange={(e) => updateNodeData(id, { retopo: e.target.checked })} className="accent-[#58a6ff]" />
+      </div>
+      <div className="flex justify-between w-full">
+        <span className="text-[#8b949e] text-[9px]">Target Polycount</span>
+        <input type="number" value={data.polycount || 5000} onChange={(e: any) => updateNodeData(id, { polycount: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded px-1 text-[9px] w-16 text-white outline-none" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Smart UV Unwrap</label>
+        <input type="checkbox" checked={data.uvunwrap !== false} onChange={(e) => updateNodeData(id, { uvunwrap: e.target.checked })} className="accent-[#58a6ff]" />
+      </div>
+      <DataHandle id="optMesh" type="source" position={Position.Right} top="50%" label="Optimized Mesh" color="#58a6ff" />
+    </div>
+  </div>
+);
+};
+
+// AI VFX Generator
+const AIVFXGenNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '300px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/30 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center gap-2">
+      <Zap size={14}/> Offline AI Niagara VFX Gen
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Generate" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Ready" />
+      </div>
+      <DataHandle id="prompt" type="target" position={Position.Left} top="50%" label="Prompt" color="#1f6feb" inputType="text" value={data.prompt} onChange={(e: any) => updateNodeData(id, { prompt: e.target.value })} />
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative">
+         <span className="text-[10px] uppercase text-[#8b949e] font-bold tracking-wider flex items-center gap-1">VFX Type Hint</span>
+         <select value={data.vfxType || 'Fire'} onChange={(e) => updateNodeData(id, { vfxType: e.target.value })} className="bg-[#0d1117] border border-[#30363d] rounded text-[9px] outline-none h-4 text-white uppercase ml-2"><option>Fire / Smoke</option><option>Lightning</option><option>Magic Aura</option><option>Fluid System</option></select>
+      </div>
+      <DataHandle id="vfxAsset" type="source" position={Position.Right} top="50%" label="Niagara System" color="#bc8cff" />
+    </div>
+  </div>
+);
+};
+
+// Adult Content Restriction (Unrestricted Mode)
+const UnrestrictedContentNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#f85149', minWidth: '300px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#f85149]/30 to-[#f85149]/5 border-b border-[#f85149]/40 rounded-t-lg text-[13px] font-bold text-[#f85149] tracking-wider flex items-center gap-2">
+      <AlertCircle size={14}/> AI Content Filter (18+/20+)
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Set Filter" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#1f0d0d] border border-[#f85149]/50 p-1.5 rounded relative mb-2">
+         <span className="text-[10px] uppercase text-[#f85149] font-bold tracking-wider flex items-center gap-1">Rating Target</span>
+         <select value={data.rating || 'Unrestricted (20+)'} onChange={(e) => updateNodeData(id, { rating: e.target.value })} className="bg-[#0d1117] border border-[#f85149] rounded text-[9px] outline-none h-4 text-[#f85149] uppercase ml-2"><option>E (Everyone)</option><option>M (Mature 17+)</option><option>AO (Adults Only 18+)</option><option>Unrestricted (20+)</option></select>
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Allow Gore/Violence</label>
+        <input type="checkbox" checked={data.gore !== false} onChange={(e) => updateNodeData(id, { gore: e.target.checked })} className="accent-[#f85149]" />
+      </div>
+      <div className="mt-1 flex items-center justify-between bg-[#161b22] border border-[#30363d] p-1.5 rounded relative mb-2">
+        <label className="text-[10px] text-[#8b949e] font-semibold flex items-center gap-1">Allow NSFW/Nudity (18+)</label>
+        <input type="checkbox" checked={data.nsfw !== false} onChange={(e) => updateNodeData(id, { nsfw: e.target.checked })} className="accent-[#f85149]" />
+      </div>
+      <div className="text-[9px] text-[#8b949e] italic leading-tight pl-1 border-l-2 border-[#f85149]">
+        Warning: Bypassing safety filters allows AI to produce extreme violence, adult themes, and unfiltered text/meshes.
+      </div>
+    </div>
+  </div>
+);
+};
+
 const edgeTypes = {
   condition: ConditionEdge,
 };
 
+
+// AI Node: Create Movement Component
+const AICreateMovementNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center gap-2">
+      <Bot size={14}/> AI Generate Movement
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <div className="text-[10px] text-[#8b949e]">Prompt:</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-12 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. Make the player character move like a tank" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <DataHandle id="movementComp" type="source" position={Position.Right} top="50%" label="Movement Comp" color="#58a6ff" />
+      <button className="mt-1 w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 rounded py-1 text-[10px]"> Generate Node Logic</button>
+    </div>
+  </div>
+);
+};
+
+// AI Node: Spawn Actor
+const AISpawnActorNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center gap-2">
+      <Bot size={14}/> AI Spawn Actor
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <div className="text-[10px] text-[#8b949e]">Prompt:</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-12 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. Spawn a rusty barrel at the player's location" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <DataHandle id="actorOut" type="source" position={Position.Right} top="50%" label="Spawned Actor" color="#58a6ff" />
+      <button className="mt-1 w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 rounded py-1 text-[10px]"> Generate Actor Template</button>
+    </div>
+  </div>
+);
+};
+
+// AI Node: Configure Physics
+const AIConfigurePhysicsNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center gap-2">
+      <Bot size={14}/> AI Configure Physics
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <DataHandle id="actorTarget" type="target" position={Position.Left} top="50%" label="Target Actor" color="#58a6ff" />
+      <div className="text-[10px] text-[#8b949e]">Prompt:</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-12 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. Set properties for slippery ice movement" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <button className="mt-1 w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 rounded py-1 text-[10px]"> Apply Physics Profile</button>
+    </div>
+  </div>
+);
+};
+
+// AI Node: Generate NPC Behaviors / Behavior Logic
+const AIGenerateNPCBehaviorNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center gap-2">
+      <Bot size={14}/> AI Gen NPC Behavior Logic
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <DataHandle id="contextData" type="target" position={Position.Left} top="50%" label="Context Data Array" color="#3fb950" />
+      <div className="text-[10px] text-[#8b949e]">Prompt:</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-16 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. Create an AI behavior for a stealthy assassin that attacks when player detected" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <DataHandle id="logicOut" type="source" position={Position.Right} top="50%" label="Generated Logic Tree" color="#e3b341" />
+      <button className="mt-1 w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 rounded py-1 text-[10px]"> Compile AI Brain</button>
+    </div>
+  </div>
+);
+};
+
+// AI Node: Generate Actor Full Setup
+const AIGenerateActorNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '240px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center gap-2">
+      <Bot size={14}/> AI Generate Full Actor
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <div className="text-[10px] text-[#8b949e]">Prompt (Stats, Type, Behavior):</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-16 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. Generate a fast scout enemy with low HP, high evasion, and erratic movement" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <DataHandle id="actorOut" type="source" position={Position.Right} top="50%" label="Actor Class Definition" color="#58a6ff" />
+      <button className="mt-1 w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 rounded py-1 text-[10px]"> Generate Actor Class</button>
+    </div>
+  </div>
+);
+};
+
+// AI Node: Generate Scene/Environment
+const AIGenerateEnvironmentNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '260px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center gap-2">
+      <Bot size={14}/> AI Gen Environment/Scene
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <div className="text-[10px] text-[#8b949e]">Environment Prompt:</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-16 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. Create a dense fantasy forest with ancient ruins and a mystical river" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <DataHandle id="sceneOut" type="source" position={Position.Right} top="50%" label="Scene Setup Data" color="#f8a" />
+      <button className="mt-1 w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 rounded py-1 text-[10px]"> Generate Meshes & Lighting</button>
+    </div>
+  </div>
+);
+};
+
+// Custom TypeScript Logic Node
+const CustomTypeScriptNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  // We'll use a local state to toggle full IDE view
+  const [isEditing, setIsEditing] = React.useState(false);
+  const code = data.code || '// Add custom conditions and logic here\nexport function execute(context) {\n  return true;\n}';
+
+  return (
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '320px', zIndex: isEditing ? 1000 : 1}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#3fb950]/30 to-[#3fb950]/5 border-b border-[#3fb950]/40 rounded-t-lg text-[13px] font-bold text-[#3fb950] tracking-wider flex items-center gap-2 justify-between">
+      <div className="flex items-center gap-2"><Code2 size={14}/> Custom Logic & Conditions</div>
+      <button onClick={() => setIsEditing(!isEditing)} className="text-[#8b949e] hover:text-white"><Maximize2 size={12}/></button>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="In" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Out" />
+      </div>
+      <div className="flex justify-between w-full mt-2">
+         <DataHandle id="dataIn" type="target" position={Position.Left} top="50%" label="Data In" color="#58a6ff" />
+         <DataHandle id="dataOut" type="source" position={Position.Right} top="50%" label="Data Out" color="#58a6ff" />
+      </div>
+      
+      {isEditing ? (
+         <div className="mt-2 flex flex-col gap-1 relative">
+            <div className="text-[10px] text-[#8b949e] flex justify-between"><span>Edit Code (IDE Mode)</span><button onClick={() => setIsEditing(false)}><Minimize2 size={10}/></button></div>
+            <textarea 
+               className="bg-[#0a0a0a] border border-[#30363d] rounded p-2 text-[11px] font-mono text-[#c9d1d9] w-[400px] h-[300px] outline-none custom-scrollbar" 
+               value={code} 
+               onChange={(e) => updateNodeData(id, { code: e.target.value })}
+               onKeyDown={(e) => e.stopPropagation()}
+            />
+         </div>
+      ) : (
+         <div className="mt-2 flex flex-col gap-1 cursor-text" onClick={() => setIsEditing(true)}>
+            <div className="text-[10px] text-[#8b949e]">Logic Summary:</div>
+            <div className="bg-[#0a0a0a] border border-[#30363d] rounded p-2 text-[9px] font-mono text-[#8b949e] opacity-70 line-clamp-3">
+               {code}
+            </div>
+         </div>
+      )}
+      <div className="text-[9px] text-[#8b949e] italic mt-1">Allows unlimited capabilities via direct code execution.</div>
+    </div>
+  </div>
+);
+};
+
+// Offline AI: Novel Character Generator
+const AINovelCharacterGenNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '320px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Bot size={14}/> Offline AI Novel Character Details</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="In" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Out" />
+      </div>
+      <div className="text-[10px] text-[#8b949e] leading-tight">Micro-Level Description (mm/cm bounds):<br/><span className="text-[9px] opacity-70">Physical dimensions, facial marks, clothing tears, proportions</span></div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-[10px] text-[#58a6ff] w-full h-32 outline-none resize-none custom-scrollbar" value={data.prompt || ''} placeholder="e.g. Height: 180cm, Width: 45cm. Face: Pimple at X:12mm Y:5mm size 2mm. Clothes: Ripped shirt 5mm tear at chest..." onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      
+      <div className="flex justify-between items-center w-full mt-1">
+        <DataHandle id="dataOut" type="source" position={Position.Right} top="50%" label="Detailed Model Data" color="#bc8cff" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+// Offline AI: Novel Environment Generator
+const AINovelEnvironmentGenNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '320px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Layers size={14}/> Offline AI Novel Environment</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="In" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Out" />
+      </div>
+      <div className="text-[10px] text-[#8b949e]">Scene Micro-Mapping (mm bounds):</div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-[10px] text-[#58a6ff] w-full h-24 outline-none resize-none custom-scrollbar" value={data.prompt || ''} placeholder="e.g. Interior castle hall. Door height 250cm. Wall cracks exact mm position..." onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <div className="flex justify-between items-center w-full mt-1">
+        <DataHandle id="dataOut" type="source" position={Position.Right} top="50%" label="Environment Metrics" color="#bc8cff" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+// Offline AI: Novel World Generator
+const AINovelWorldGenNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '340px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Globe size={14}/> Offline AI World Builder</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="In" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Out" />
+      </div>
+      <div className="text-[10px] text-[#8b949e] leading-tight">Master World Lore & Topography (Extreme Detail):<br/><span className="text-[9px] opacity-70">Continents, Kingdoms, Biomes, Politics, History, Maps</span></div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-[10px] text-[#58a6ff] w-full h-32 outline-none resize-none custom-scrollbar" value={data.prompt || ''} placeholder="e.g. A fully realized planet 'Eos' with 7 continents. Kingdom of Aethelgard has 4 provinces, specific exact mm map scales, history of 4000 years, ecosystem details..." onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      
+      <div className="bg-[#161b22] border border-[#30363d] rounded p-2 flex flex-col gap-1 mt-1">
+         <div className="text-[10px] font-bold text-[#c9d1d9]">Generation Targets:</div>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.genMaps !== false} onChange={(e) => updateNodeData(id, { genMaps: e.target.checked })} className="accent-[#bc8cff]" />
+            Generate Geological Maps (Scale, Topography)
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.genNations !== false} onChange={(e) => updateNodeData(id, { genNations: e.target.checked })} className="accent-[#bc8cff]" />
+            Generate Nations (Politics, Economy, Culture)
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.genMonsters !== false} onChange={(e) => updateNodeData(id, { genMonsters: e.target.checked })} className="accent-[#bc8cff]" />
+            Generate Deep Monster Ecology & Behaviors
+         </label>
+      </div>
+
+      <div className="flex justify-between items-center w-full mt-1">
+        <DataHandle id="worldData" type="source" position={Position.Right} top="50%" label="World Database Master" color="#bc8cff" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+// Offline AI: Lore System (Permanent Consistency DB)
+const AINovelLoreSystemNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '360px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#bc8cff]/30 rounded-t-lg text-[13px] font-bold text-[#bc8cff] flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Database size={14}/> Offline AI Lore System DB</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Sync Lore" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Synced" />
+      </div>
+      
+      <div className="flex justify-between items-center w-full mt-1">
+        <DataHandle id="worldIn" type="target" position={Position.Left} top="50%" label="World Database Master" color="#bc8cff" />
+        <DataHandle id="charIn" type="target" position={Position.Left} top="50%" label="Character Prototypes" color="#bc8cff" />
+      </div>
+
+      <div className="bg-[#161b22] border border-[#30363d] rounded p-2 flex flex-col gap-1 mt-2">
+         <div className="text-[10px] font-bold text-[#c9d1d9] flex justify-between"><span>Permanent Lore Constraints:</span><BookOpen size={12} className="text-[#8b949e]" /></div>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.keepManual !== false} onChange={(e) => updateNodeData(id, { keepManual: e.target.checked })} className="accent-[#bc8cff]" />
+            Strict World Manual Conformance (Laws of Physics & Magic)
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.keepProfiles !== false} onChange={(e) => updateNodeData(id, { keepProfiles: e.target.checked })} className="accent-[#bc8cff]" />
+            Strict Character Profile Match (Growth, Personality, Stats)
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.keepPlots !== false} onChange={(e) => updateNodeData(id, { keepPlots: e.target.checked })} className="accent-[#bc8cff]" />
+            Plot Structure & Timeline Continuity Preservation
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.keepDetails !== false} onChange={(e) => updateNodeData(id, { keepDetails: e.target.checked })} className="accent-[#bc8cff]" />
+            Micro-Detail Memory (mm/cm scales, Scars, Items)
+         </label>
+      </div>
+
+      <div className="text-[10px] text-[#8b949e] leading-tight mt-1">Master DB Context String:<br/><span className="text-[9px] opacity-70">Define any unwritten overarching laws of the universe.</span></div>
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-[10px] text-[#58a6ff] w-full h-16 outline-none resize-none custom-scrollbar" value={data.prompt || ''} placeholder="e.g. 'Mana flow cannot exceed 4000 units/second in any entity. Magic requires line of sight...'" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      
+      <div className="flex justify-between items-center w-full mt-2">
+        <DataHandle id="loreContextOut" type="source" position={Position.Right} top="50%" label="Lore Constraint Context (For Chapter Gen)" color="#bc8cff" />
+      </div>
+    </div>
+  </div>
+);
+};
+
+// Offline AI: Verifier Node
+const AIModelVerifierNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#ff7b72', minWidth: '320px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#ff7b72]/20 to-[#ff7b72]/5 border-b border-[#ff7b72]/30 rounded-t-lg text-[13px] font-bold text-[#ff7b72] flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><BoxSelect size={14}/> Offline AI Verifier System</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Verify Start" />
+        <ExecHandle id="execTrue" type="source" position={Position.Right} top="50%" label="Verified (Pass)" color="#3fb950"/>
+      </div>
+       <div className="flex justify-end w-full">
+        <ExecHandle id="execFalse" type="source" position={Position.Right} top="50%" label="Failed (Reject)" color="#f85149" />
+      </div>
+      
+      <div className="flex justify-between items-center w-full mt-1">
+        <DataHandle id="modelIn" type="target" position={Position.Left} top="50%" label="Input Mesh" color="#58a6ff" />
+        <DataHandle id="descIn" type="target" position={Position.Left} top="50%" label="Text Prompt rules" color="#bc8cff" />
+      </div>
+      
+      <div className="bg-[#161b22] border border-[#30363d] rounded p-2 flex flex-col gap-1 mt-2">
+         <div className="text-[10px] font-bold text-[#c9d1d9]">Strict Verification Thresholds:</div>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.checkChar !== false} onChange={(e) => updateNodeData(id, { checkChar: e.target.checked })} className="accent-[#ff7b72]" />
+            Require Character Match &gt;= 97%
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.checkEnv !== false} onChange={(e) => updateNodeData(id, { checkEnv: e.target.checked })} className="accent-[#ff7b72]" />
+            Require Environment Match &gt;= 95%
+         </label>
+         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]">
+            <input type="checkbox" checked={data.checkProp !== false} onChange={(e) => updateNodeData(id, { checkProp: e.target.checked })} className="accent-[#ff7b72]" />
+            Proportion Logic (Door vs Model Height)
+         </label>
+      </div>
+    </div>
+  </div>
+);
+};
+
+// XX. PCG World Generation
+const PCGWorldGenNode = ({ id, data }: { id: string, data: any }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#3fb950', minWidth: '260px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#3fb950]/30 to-[#3fb950]/5 border-b border-[#333] rounded-t-lg text-[13px] font-bold text-[#3fb950] tracking-wider flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Globe size={14}/> PCG: World Gen</div>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Execute" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Complete" />
+      </div>
+      <DataHandle id="seed" type="target" position={Position.Left} top="50%" label="Seed" color="#3fb950" inputType="number" value={data.seed || 12345} onChange={(e: any) => updateNodeData(id, { seed: e.target.value })} />
+      <DataHandle id="biome" type="target" position={Position.Left} top="50%" label="Biome Config" color="#e3b341" />
+      <DataHandle id="bounds" type="target" position={Position.Left} top="50%" label="Bounds Box" color="#e3b341" />
+      <DataHandle id="output" type="source" position={Position.Right} top="50%" label="Generated World" color="#bc8cff" />
+    </div>
+  </div>
+);
+};
+
+const AddSkeletalMeshComponentNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#58a6ff', minWidth: '220px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#58a6ff]/20 to-[#58a6ff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#58a6ff] tracking-wider flex items-center gap-2">
+      <UserSquare size={14}/> Add Skeletal Mesh Component
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="" />
+      </div>
+      <DataHandle id="target" type="target" position={Position.Left} top="50%" label="Target" color="#58a6ff" />
+      <DataHandle id="mesh" type="target" position={Position.Left} top="50%" label="Skeletal Mesh" color="#bc8cff" />
+      <DataHandle id="animClass" type="target" position={Position.Left} top="50%" label="Anim Class" color="#bc8cff" />
+      <DataHandle id="returnVal" type="source" position={Position.Right} top="50%" label="Return Value" color="#58a6ff" />
+    </div>
+  </div>
+);
+};
+
+const IKSolverNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#58a6ff', minWidth: '240px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#58a6ff]/20 to-[#58a6ff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#58a6ff] tracking-wider flex items-center gap-2">
+      <Network size={14}/> Two-Bone IK Solver
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Component Pose" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Output Pose" />
+      </div>
+      <div className="font-mono text-[10px] text-[#8b949e] px-1 py-1">IK Bone: {data.ikBone || 'hand_r'}</div>
+      <DataHandle id="effectorLoc" type="target" position={Position.Left} top="50%" label="Effector Location" color="#e3b341" />
+      <DataHandle id="jointTarget" type="target" position={Position.Left} top="50%" label="Joint Target" color="#e3b341" />
+      <DataHandle id="alpha" type="target" position={Position.Left} top="50%" label="Alpha" color="#3fb950" inputType="number" value={data.alpha !== undefined ? data.alpha : 1.0} onChange={(e: any) => updateNodeData(id, { alpha: e.target.value })} />
+    </div>
+  </div>
+);
+};
+
+const AIAnimationGenNode = ({ data, id }: { data: any, id: string }) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: '#bc8cff', minWidth: '280px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#bc8cff]/20 to-[#bc8cff]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-[#bc8cff] tracking-wider flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Bot size={14}/> AI Anim Generation</div>
+      <Sparkles size={12} className="text-[#bc8cff]" />
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="Execute" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="On Generated" />
+      </div>
+      <DataHandle id="skeleton" type="target" position={Position.Left} top="50%" label="Target Skeleton" color="#58a6ff" />
+      <textarea className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-[10px] text-white w-full h-12 outline-none resize-none" defaultValue={data.prompt} placeholder="e.g. A heavy limping walk cycle with a greatsword" onChange={(e) => updateNodeData(id, { prompt: e.target.value })}/>
+      <DataHandle id="animSeq" type="source" position={Position.Right} top="50%" label="AnimSequence (Asset)" color="#bc8cff" />
+    </div>
+  </div>
+);
+};
+
 const nodeTypes = {
+  customEvent: CustomEventNode,
+  callCustomEvent: CallCustomEventNode,
+  customLogic: CustomTypeScriptNode,
+  pcgWorldGen: PCGWorldGenNode,
   beginPlay: EventBeginPlayNode,
   tick: EventTickNode,
   print: PrintStringNode,
   branch: BranchNode,
   getPlayer: GetPlayerNode,
+  getLoc: GetActorLocationNode,
+  getRot: GetActorRotationNode,
   setLoc: SetActorLocationNode,
   sequence: SequenceNode,
   delay: DelayNode,
   mathMul: MathMultiplyNode,
+  mathAdd: MathAddNode,
+  mathSub: MathSubNode,
+  mathDivide: MathDivideNode,
   mathAddV: MathAddVectorNode,
   mathSubV: MathSubVectorNode,
   mathDotProduct: MathDotProductNode,
@@ -1687,7 +2584,9 @@ const nodeTypes = {
   constructVector: ConstructVectorNode,
   cast: CastNode,
   spawn: SpawnActorNode,
+  spawnPrefab: SpawnPrefabNode,
   inputKey: InputKeyNode,
+  inputAxis: InputAxisNode,
   array2D: Array2DNode,
   forLoop: ForLoopNode,
   whileLoop: WhileLoopNode,
@@ -1709,6 +2608,7 @@ const nodeTypes = {
   aiActor: AIGenActorNode,
   hardwareOptimizer: HardwareOptimizerNode,
   offlineAIAccelerator: OfflineAIAcceleratorNode,
+  levelScript: LevelScriptNode,
   importExternalAssets: ImportExternalAssetsNode,
   offlineAI3DModelGen: OfflineAI3DModelGenNode,
   offlineAI3DMapGen: OfflineAI3DMapGenNode,
@@ -1730,29 +2630,65 @@ const nodeTypes = {
   sphereTrace: SphereTraceNode,
   getMousePos: GetMousePositionNode,
   mathRandomFloat: MathRandomFloatNode,
-  drawDebugLine: DrawDebugLineNode
+  drawDebugLine: DrawDebugLineNode,
+  aiSceneGen: AISceneGenNode,
+  aiAutoRigger: AIAutoRiggerNode,
+  aiMaterialGen: AIMaterialGenNode,
+  aiMeshOpt: AIMeshOptNode,
+  aiVfxGen: AIVFXGenNode,
+  adultContent: UnrestrictedContentNode,
+  aiCreateMovement: AICreateMovementNode,
+  aiSpawnActor: AISpawnActorNode,
+  aiConfigPhysics: AIConfigurePhysicsNode,
+  aiGenNPCBehavior: AIGenerateNPCBehaviorNode,
+  aiGenActor: AIGenerateActorNode,
+  aiGenEnvironment: AIGenerateEnvironmentNode,
+  aiNovelChar: AINovelCharacterGenNode,
+  aiNovelEnv: AINovelEnvironmentGenNode,
+  aiNovelWorld: AINovelWorldGenNode,
+  aiLoreSystem: AINovelLoreSystemNode,
+  aiVerifier: AIModelVerifierNode,
+  addSkeletalMesh: AddSkeletalMeshComponentNode,
+  ikSolver: IKSolverNode,
+  aiAnimationGen: AIAnimationGenNode,
 };
 
 const initialNodes: Node[] = [
   { id: 'bp_input', type: 'inputKey', position: { x: -200, y: 500 }, data: {} },
   { id: 'bp_smart_door', type: 'smartDoor', position: { x: 100, y: 500 }, data: {} },
   { id: 'bp_reflection', type: 'reflectionProbe', position: { x: 500, y: 500 }, data: {} },
+  { id: 'bp_input_space', type: 'inputKey', position: { x: -250, y: -200 }, data: { key: 'Spacebar' } },
+  { id: 'bp_call_custom', type: 'callCustomEvent', position: { x: 50, y: -200 }, data: { eventName: 'MyCustomEvent' } },
+  { id: 'bp_custom_evt', type: 'customEvent', position: { x: -250, y: 50 }, data: { eventName: 'MyCustomEvent' } },
   { id: 'bp1', type: 'beginPlay', position: { x: -200, y: 220 }, data: {} },
   { id: 'bp_ai_actor', type: 'aiActor', position: { x: 50, y: 150 }, data: { prompt: "Cyberpunk Mercenary" } },
-  { id: 'bp_ai_move', type: 'aiMovement', position: { x: 450, y: 220 }, data: { useAIPathfinding: true, moveSpeed: 600 } },
+  { id: 'bp_ai_anim', type: 'aiAnimationGen', position: { x: 50, y: 350 }, data: { prompt: "Aggressive strafing animation while aiming rifle" } },
+  { id: 'bp_skel_mesh', type: 'addSkeletalMesh', position: { x: 450, y: 150 }, data: {} },
+  { id: 'bp_ik_solver', type: 'ikSolver', position: { x: 800, y: 150 }, data: { ikBone: 'hand_l' } },
+  { id: 'bp_ai_move', type: 'aiMovement', position: { x: 450, y: 350 }, data: { useAIPathfinding: true, moveSpeed: 600 } },
   { id: 'bp_ai_com', type: 'aiCombat', position: { x: 1100, y: 220 }, data: {} },
   { id: 'bp_ai_trans', type: 'aiTransform', position: { x: 50, y: 350 }, data: {} },
   { id: 'bp_ai_mech', type: 'aiMechanic', position: { x: 1100, y: 380 }, data: {} },
-  { id: 'bp_seq', type: 'sequence', position: { x: 150, y: -50 }, data: {} },
+  { id: 'bp_seq', type: 'sequence', position: { x: 150, y: 50 }, data: {} },
   { id: 'bp2', type: 'print', position: { x: 400, y: -100 }, data: {} },
   { id: 'bp_delay', type: 'delay', position: { x: 400, y: 50 }, data: {} },
   { id: 'bp_spawn', type: 'spawn', position: { x: 800, y: 220 }, data: {} }
-];
+,
+    { id: '11', type: 'aiSpawnActor', position: { x: 80, y: 350 }, data: { prompt: '' } },
+    { id: '12', type: 'aiConfigPhysics', position: { x: 400, y: 350 }, data: { prompt: '' } },
+    { id: '13', type: 'aiGenNPCBehavior', position: { x: 80, y: 560 }, data: { prompt: '' } },
+    { id: '14', type: 'aiGenEnvironment', position: { x: 400, y: 560 }, data: { prompt: '' } }
+    ];
 
 const initialEdges: Edge[] = [
+  { id: 'e_space_custom', source: 'bp_input_space', target: 'bp_call_custom', sourceHandle: 'execPressed', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
+  { id: 'e_custom_seq', source: 'bp_custom_evt', target: 'bp_seq', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
   { id: 'e_input_door', source: 'bp_input', target: 'bp_smart_door', sourceHandle: 'execPressed', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
   { id: 'e1', source: 'bp1', target: 'bp_ai_actor', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
-  { id: 'e_ai_move_exec', source: 'bp_ai_actor', target: 'bp_ai_move', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
+  { id: 'e_ai_actor_to_skel', source: 'bp_ai_actor', target: 'bp_skel_mesh', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
+  { id: 'e_skel_to_ik', source: 'bp_skel_mesh', target: 'bp_ik_solver', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
+  { id: 'e_ik_to_anim', source: 'bp_ik_solver', target: 'bp_ai_anim', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
+  { id: 'e_ai_move_exec', source: 'bp_ai_anim', target: 'bp_ai_move', sourceHandle: 'execOut', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
   { id: 'e_ai_move_data', source: 'bp_ai_actor', target: 'bp_ai_move', sourceHandle: 'generatedActor', targetHandle: 'target', type: 'condition', data: { condition: '' }, style: { stroke: '#58a6ff', strokeWidth: 2 } },
   { id: 'e2', source: 'bp_seq', target: 'bp2', sourceHandle: 'then0', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
   { id: 'e3', source: 'bp_seq', target: 'bp_delay', sourceHandle: 'then1', targetHandle: 'execIn', type: 'condition', data: { condition: '' }, style: { stroke: 'white', strokeWidth: 2 } },
@@ -1782,6 +2718,68 @@ const DraggableNode = ({ type, label, icon: Icon, colorClass, iconText, shortcut
 };
 
 const ProfilerContext = React.createContext(false);
+const ExecutionContext = React.createContext<{ breakpoints: string[], executingNodeId: string | null }>({ breakpoints: [], executingNodeId: null });
+
+const NODE_CAPABILITIES: Record<string, string> = {
+  customLogic: "Allows unlimited capabilities via direct Typescript code execution.",
+  beginPlay: "Triggered once when the game or level starts. Good for initialization.",
+  tick: "Triggered every frame. Provides DeltaSeconds. Use sparingly for performance.",
+  print: "Prints a string to the development console or screen. Useful for debugging.",
+  branch: "If/Else control flow. Evaluates a boolean condition and executes True or False.",
+  getPlayer: "Gets a reference to the main player character (Player 0).",
+  getLoc: "Gets the location of an actor in world space.",
+  getRot: "Gets the rotation of an actor in world space.",
+  setLoc: "Sets the location of an actor in world space.",
+  sequence: "Executes a series of pins in order (0, then 1, then 2, etc.) synchronously.",
+  delay: "Pauses execution for a specified duration (in seconds), then continues.",
+  mathMul: "Multiplies two numbers (A * B).",
+  mathAddV: "Adds two 3D vectors together (A + B).",
+  mathSubV: "Subtracts Vector B from Vector A (A - B).",
+  mathDotProduct: "Calculates the dot product of two vectors (returns a float).",
+  mathCrossProduct: "Calculates the cross product of two vectors (returns a vector).",
+  mathNormalize: "Normalizes a vector (length of 1.0) while keeping its direction.",
+  mathVectorLength: "Gets the length (magnitude) of a vector.",
+  mathDistance: "Calculates the distance between two vector points.",
+  mathLerp: "Linear interpolation between Vector A and B based on Alpha (0.0 to 1.0).",
+  mathClamp: "Clamps a value between a Minimum and Maximum limit.",
+  mathMapRange: "Maps a value from an In Range to an Out Range.",
+  makeRotator: "Constructs a rotator (Pitch, Yaw, Roll) from float values.",
+  flipFlop: "Toggles execution between A and B each time it is called.",
+  gate: "Allows execution to pass through when Open, blocks when Closed.",
+  boolAnd: "Returns true if BOTH A and B are true.",
+  boolNot: "Reverses the boolean value (True becomes False, False becomes True).",
+  makeArray: "Creates an array from individual elements.",
+  constructVector: "Creates a Vector (X,Y,Z) from individual float components.",
+  cast: "Casts an object to a specific class type. Fails if the object is not of that type.",
+  spawn: "Spawns a new instance of an actor class at the specified transform.",
+  inputKey: "Triggers when a specific keyboard or controller key is pressed/released.",
+  inputAxis: "Triggers based on controller or keyboard axis input (e.g. MoveForward).",
+  array2D: "Generates or processes a 2D grid/array for maps or grids.",
+  forLoop: "Executes the LoopBody for each index from First to Last.",
+  whileLoop: "Executes the LoopBody as long as the Condition remains true.",
+  doOnce: "Executes the output only once until the Reset pin is triggered.",
+  lineTrace: "Casts a ray between Start and End points, checking for collisions.",
+  applyDamage: "Deals damage to a target actor.",
+  applyForce: "Applies physical force to a component.",
+  setPhysicsProps: "Sets physics properties (mass, friction, gravity) on a component.",
+  addInstancedMesh: "Efficiently adds a mesh instance for rendering large numbers of identical objects.",
+  createWidget: "Creates a UI Widget to be displayed on screen.",
+  addToViewport: "Adds a UI Widget to the screen layer.",
+  playSound: "Plays a sound cue or audio file at a location or 2D.",
+  getVar: "Gets the current value of a variable.",
+  setVar: "Sets a new value for a variable.",
+  onHit: "Event triggered when this component physically hits another component.",
+  onActorHit: "Event triggered when this actor hits another actor.",
+  aiMovement: "Generates optimal movement pathing and steering behaviors.",
+  aiCombat: "Generates dynamic combat behaviors and decision making.",
+  aiActor: "Generates an intelligent NPC behavior graph and personality.",
+  hardwareOptimizer: "Automatically optimizes settings based on target hardware profile.",
+  aiNovelChar: "Generates extremely detailed novel character data down to the millimeter scale for modeling.",
+  aiNovelEnv: "Generates extremely detailed scene and environment metrics and proportions.",
+  aiNovelWorld: "Generates a fully-realized realistic world with extremely detailed maps, countries, and monsters.",
+  aiLoreSystem: "Permanently stores world manual, character profiles, and plots for extremely detailed AI consistency.",
+  aiVerifier: "Strictly verifies generated 3D meshes against text prompt rules (97% character, 95% environment match)."
+};
 
 const applyNodeWrapper = (nodeTypesObj: any) => {
   const wrapped: Record<string, any> = {};
@@ -1789,14 +2787,30 @@ const applyNodeWrapper = (nodeTypesObj: any) => {
     const OriginalNode = nodeTypesObj[key];
     wrapped[key] = (props: any) => {
        const isProfiling = React.useContext(ProfilerContext);
+       const { breakpoints, executingNodeId } = React.useContext(ExecutionContext);
        const ms = React.useMemo(() => {
-          const base = (Math.abs(Math.sin((props.id || '').length * 123.45)) * 2) + 0.1;
-          return props.type.includes('ai') ? (base + 12.5 + Math.random() * 5).toFixed(1) : base.toFixed(2);
+           const base = (Math.abs(Math.sin((props.id || '').length * 123.45)) * 2) + 0.1;
+           return props.type.includes('ai') ? (base + 12.5 + Math.random() * 5).toFixed(1) : base.toFixed(2);
        }, [props.id, props.type]);
        const isSlow = props.type.includes('ai') || parseFloat(ms) > 1.5;
 
+       const hasBreakpoint = breakpoints.includes(props.id);
+       const isExecuting = executingNodeId === props.id;
+       const tooltip = NODE_CAPABILITIES[props.type] || "Executes connected logic.";
+
        return (
-          <div className="relative">
+          <div className="relative group">
+             {/* Tooltip on hover */}
+             <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[250px] bg-black border border-[#30363d] text-[#c9d1d9] text-[10px] p-2 rounded shadow-xl shadow-black/80 pointer-events-none z-[200] text-wrap text-center">
+                <span className="text-[#58a6ff] font-bold block mb-1">Capabilities Details</span>
+                {tooltip}
+             </div>
+             {hasBreakpoint && (
+                <div className="absolute -top-[6px] -right-[6px] w-[14px] h-[14px] bg-[#f85149] rounded-full border-2 border-[#161b22] z-[120]" title="Breakpoint (Pause Execution)"></div>
+             )}
+             {isExecuting && (
+                <div className="absolute inset-[-4px] border-[3px] border-[#e3b341] rounded-[10px] pointer-events-none z-[110] shadow-[0_0_15px_rgba(227,179,65,0.8)]"></div>
+             )}
              {isProfiling && (
                 <div className={`absolute -top-[10px] right-2 px-1 rounded text-[9px] font-bold z-[100] ${isSlow ? 'bg-[#f85149] text-white shadow-[#f85149]/50 shadow-sm' : 'bg-[#3fb950] text-[#000]'}`}>
                    {ms}ms {isSlow && '⚠️'}
@@ -1815,10 +2829,135 @@ const applyNodeWrapper = (nodeTypesObj: any) => {
 
 const wrappedNodeTypes = applyNodeWrapper(nodeTypes);
 
+
+const getLayoutedElements = (nodes: any[], edges: any[], direction = 'TB') => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+  const nodeWidth = 250;
+  const nodeHeight = 150;
+
+  dagreGraph.setGraph({ rankdir: 'LR' }); // Left to right
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  const newNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    const newNode = { ...node };
+
+    newNode.targetPosition = Position.Left;
+    newNode.sourcePosition = Position.Right;
+
+    newNode.position = {
+      x: nodeWithPosition.x - nodeWidth / 2,
+      y: nodeWithPosition.y - nodeHeight / 2,
+    };
+
+    return newNode;
+  });
+
+  return { nodes: newNodes, edges };
+};
+
 export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?: (code: string) => void }) {
+  const [breakpoints, setBreakpoints] = useState<string[]>([]);
+  const [executionState, setExecutionState] = useState<'idle' | 'running' | 'paused'>('idle');
+  const [executingNodeId, setExecutingNodeId] = useState<string | null>(null);
+
   const [isProfiling, setIsProfiling] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const { takeSnapshot, undo, redo, canUndo, canRedo } = useUndoRedoFlow(nodes, edges, setNodes, setEdges);
+
+  const handleNodesChange = useCallback((changes: any[]) => {
+    const isSignificantChange = changes.some(c => c.type === 'remove' || c.type === 'add' || (c.type === 'position' && !c.dragging));
+    if (isSignificantChange) takeSnapshot();
+    onNodesChange(changes);
+  }, [onNodesChange, takeSnapshot]);
+
+  const handleEdgesChange = useCallback((changes: any[]) => {
+    const isSignificantChange = changes.some(c => c.type === 'remove' || c.type === 'add');
+    if (isSignificantChange) takeSnapshot();
+    onEdgesChange(changes);
+  }, [onEdgesChange, takeSnapshot]);
+
+  const onNodeDoubleClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setBreakpoints(prev => 
+       prev.includes(node.id) ? prev.filter(id => id !== node.id) : [...prev, node.id]
+    );
+  }, []);
+
+  const getNextNode = useCallback((currentId: string) => {
+    const edge = edges.find(e => e.source === currentId && (e.style?.stroke === 'white' || e.sourceHandle?.startsWith('then') || e.sourceHandle?.startsWith('exec')));
+    if (edge) return edge.target;
+    return null;
+  }, [edges]);
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (executionState === 'running' && executingNodeId) {
+      timer = setTimeout(() => {
+        const nextId = getNextNode(executingNodeId);
+        if (nextId) {
+          setExecutingNodeId(nextId);
+          if (breakpoints.includes(nextId)) {
+            setExecutionState('paused');
+          }
+        } else {
+          setExecutionState('idle');
+          setExecutingNodeId(null);
+        }
+      }, 800);
+    }
+    return () => clearTimeout(timer);
+  }, [executionState, executingNodeId, getNextNode, breakpoints]);
+
+  const startExecution = () => {
+    setExecutionState('running');
+    const startNode = nodes.find(n => n.type === 'beginPlay') || nodes[0];
+    if (startNode) {
+      setExecutingNodeId(startNode.id);
+      if (breakpoints.includes(startNode.id)) {
+        setExecutionState('paused');
+      }
+    }
+  };
+
+  const stopExecution = () => {
+    setExecutionState('idle');
+    setExecutingNodeId(null);
+  };
+
+  const stepForwardExecution = () => {
+    if (!executingNodeId) return;
+    const nextId = getNextNode(executingNodeId);
+    if (nextId) {
+      setExecutingNodeId(nextId);
+      setExecutionState('paused');
+    } else {
+      stopExecution();
+    }
+  };
+
+  const resumeExecution = () => {
+    setExecutionState('running');
+  };
+
+  const onLayout = useCallback(() => {
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
+    setNodes([...layoutedNodes]);
+    setEdges([...layoutedEdges]);
+  }, [nodes, edges]);
+
   
   const [menu, setMenu] = useState<{ x: number, y: number, paneX: number, paneY: number } | null>(null);
   const flowWrapper = useRef<HTMLDivElement>(null);
@@ -1861,39 +3000,6 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
     [setNodes]
   );
 
-  const onLayout = useCallback(() => {
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-    
-    // Config layout direction and spacing
-    dagreGraph.setGraph({ rankdir: 'LR', align: 'UL', ranksep: 200, nodesep: 50 });
-
-    nodes.forEach((node) => {
-      // Estimate dimension
-      dagreGraph.setNode(node.id, { width: 250, height: 150 });
-    });
-
-    edges.forEach((edge) => {
-      dagreGraph.setEdge(edge.source, edge.target);
-    });
-
-    dagre.layout(dagreGraph);
-
-    setNodes((nds) =>
-      nds.map((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        const randOffset = Math.random() / 1000;
-        return {
-          ...node,
-          position: {
-            x: nodeWithPosition.x - 250 / 2 + randOffset,
-            y: nodeWithPosition.y - 150 / 2,
-          },
-        };
-      })
-    );
-  }, [nodes, edges, setNodes]);
-
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if user is typing in an input
@@ -1925,6 +3031,7 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
            case '3': return 'offlineAI3DModelGen';
            case '4': return 'offlineAI3DMapGen';
            case '5': return 'offlineAIWebLearn';
+           case '6': return 'levelScript';
            case 'i': return 'importExternalAssets';
            case 'q': return 'aiProximity';
            case 'v': return 'aiBehaviorLogic';
@@ -1989,6 +3096,9 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
        } else if (n.type === 'inputKey') {
          const key = n.data.key || 'Spacebar';
          code += `  onInput_${key}() {\n    // Input action executed\n  }\n\n`;
+       } else if (n.type === 'inputAxis') {
+         const axis = n.data.axisName || 'MoveForward';
+         code += `  onAxis_${axis}(axisValue) {\n    // Input axis executed with value: axisValue\n  }\n\n`;
        } else if (n.type === 'aiMechanic') {
          const prompt = n.data.prompt || '...';
          code += `  // [AI GENERATED MECHANIC]\n  // Prompt: "${prompt}"\n  async executeAIMechanic() {\n    await NexusAI.invokeMechanic("${prompt}");\n  }\n\n`;
@@ -2021,14 +3131,30 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
        } else if (n.type === 'aiCombat') {
          code += `  // [AI GENERATED COMBAT BT]\n  async constructCombatBT(aiController, baseBT) {\n    return await NexusAI.buildBehaviorTree(aiController, baseBT);\n  }\n\n`;
        } else if (n.type === 'hardwareOptimizer') {
+         const arch = n.data.archType || 'Modern';
          const cpu = n.data.cpuLimit || 'Low';
-         const gpu = n.data.gpuLimit || 'Low';
-         const ram = n.data.ramLimit || 'Aggressive';
-         const npu = n.data.npuLimit || 'Low';
-         code += `  // [HARDWARE OPTIMIZER]\n  optimizeHardware() {\n    System.setLimits({ CPU: "${cpu}", GPU: "${gpu}", RAM: "${ram}", NPU: "${npu}" });\n  }\n\n`;
+         const gpu = n.data.gpuLimit || '1-2 GB (Ultra Low)';
+         const ram = n.data.ramLimit || '4 GB (Strict Constraint)';
+         const pipeline = String(n.data.pipelineMode || 'Auto-Detect (Adaptive)');
+         code += `  // [HARDWARE OPTIMIZER]\n  optimizeHardware() {\n    System.setLimits({ Architecture: "${arch}", CPU: "${cpu}", VRAM: "${gpu}", RAM: "${ram}", Pipeline: "${pipeline}" });\n`;
+         if (pipeline.includes('Auto-Detect')) {
+           code += `    if (System.isHardwareCapable('Parallel_Pipeline')) {\n`;
+           code += `      System.setExecutionPipeline(['Parallel_All']); // Modern Fast Execution\n`;
+           code += `    } else {\n`;
+           code += `      System.setExecutionPipeline(['CPU', 'RAM', 'NPU', 'GPU']); // Strictly sequential processing for legacy hardware.\n`;
+           code += `    }\n`;
+         } else if (pipeline.includes('Staged')) {
+           code += `    System.setExecutionPipeline(['CPU', 'RAM', 'NPU', 'GPU']); // Strictly sequential processing for legacy hardware.\n`;
+         }
+         code += `  }\n\n`;
        } else if (n.type === 'offlineAIAccelerator') {
          const threads = n.data.threads || 8;
          code += `  // [OFFLINE AI ACCELERATOR]\n  initOfflineAI() {\n    NexusAI.initLocalAccelerator({ turbo: ${n.data.turbo !== false}, threads: ${threads} });\n  }\n\n`;
+       } else if (n.type === 'levelScript') {
+         const shadowCasters = n.data.shadowCasters || 12;
+         const entityLimit = n.data.entityLimit || 50;
+         const lightQual = String(n.data.lightQual || 'Low (0 Bounces)');
+         code += `  // [EXTREME DETAIL SCENE SCRIPT]\n  applyServerLevelDescriptors() {\n    SceneScriptEngine.enforceConstraints({ maxShadowCasters: ${shadowCasters}, entityLimit: ${entityLimit}, lightQual: "${lightQual}" });\n  }\n\n`;
        } else if (n.type === 'importExternalAssets') {
          code += `  // [IMPORT EXTERNAL ASSETS (BATCH)]\n  async importExternalAssets() {\n    return await AssetManager.batchImport({ importTextures: ${n.data.importTextures !== false}, importModels: ${n.data.importModels !== false} });\n  }\n\n`;
        } else if (n.type === 'offlineAI3DModelGen') {
@@ -2045,6 +3171,12 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
          const subject = n.data.subject || '';
          const iteration = n.data.iteration || 'Standard';
          code += `  // [OFFLINE AI WEB LEARNING]\n  async learnFromWeb() {\n    return await NexusAI.learnFromWeb("${subject}", { scanWeb: ${n.data.scanWeb !== false}, scanVideo: ${n.data.scanVideo !== false}, scanModels: ${n.data.scanModels !== false}, scanInteractions: ${n.data.scanInteractions !== false}, iteration: "${iteration}" });\n  }\n\n`;
+       } else if (n.type === 'mathClamp') {
+         code += '  // Math: Clamp\n  clampValue(val, min, max) {\n    return Math.max(min, Math.min(max, val));\n  }\n\n';
+       } else if (n.type === 'mathLerp') {
+         code += '  // Math: Vector Lerp\n  lerpVector(v1, v2, alpha) {\n    return { x: v1.x + (v2.x - v1.x) * alpha, y: v1.y + (v2.y - v1.y) * alpha, z: v1.z + (v2.z - v1.z) * alpha };\n  }\n\n';
+       } else if (n.type === 'mathVectorLength') {
+         code += '  // Math: Vector Length\n  vectorLength(v) {\n    return Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);\n  }\n\n';
        }
     });
 
@@ -2052,12 +3184,15 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
     onCodeGenerated(code);
   }, [nodes, edges, onCodeGenerated]);
 
-  const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({
+  const onConnect = useCallback((params: Connection) => {
+    takeSnapshot();
+    setEdges((eds) => addEdge({
       ...params, 
       type: 'condition',
       data: { condition: '' },
       style: { stroke: params.sourceHandle === 'execOut' || params.sourceHandle === 'execTrue' || params.sourceHandle === 'execFalse' ? 'white' : '#58a6ff', strokeWidth: 2 }
-  }, eds)), [setEdges]);
+  }, eds));
+  }, [setEdges, takeSnapshot]);
 
 
   // Handle right click
@@ -2073,6 +3208,7 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
   }, []);
 
   const addNode = (type: string, menuProps: any) => {
+    takeSnapshot();
     const newNode: Node = {
       id: uuidv4(),
       type,
@@ -2092,6 +3228,10 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
             </button>
          </div>
          <div className="flex gap-2">
+            <div className="flex gap-1 border-r border-[#333] pr-2 mr-1">
+              <button onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" className={`p-1.5 rounded transition-colors ${canUndo ? 'text-[#8b949e] hover:bg-[#21262d] hover:text-[#58a6ff]' : 'text-[#30363d] cursor-not-allowed'}`}><Undo size={14} /></button>
+              <button onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" className={`p-1.5 rounded transition-colors ${canRedo ? 'text-[#8b949e] hover:bg-[#21262d] hover:text-[#58a6ff]' : 'text-[#30363d] cursor-not-allowed'}`}><Redo size={14} /></button>
+            </div>
             <button 
               onClick={onLayout}
               className="flex items-center gap-1.5 bg-gradient-to-b from-[#222] to-[#1a1a1a] border border-[#111] hover:from-[#333] hover:to-[#222] text-[#ccc] px-3 py-1 rounded-sm text-[11px] font-bold transition-colors group"
@@ -2120,15 +3260,23 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
            <div className="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-4 text-[11px] text-[#ccc] custom-scrollbar">
              <div>
                 <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2">Game Systems & Events</div>
+                <DraggableNode type="customLogic" label="Custom Code Logic" icon={Code2} colorClass="text-[#3fb950]" shortcut="c" />
                 <DraggableNode type="beginPlay" label="Event BeginPlay" icon={Play} colorClass="text-[#f85149]" shortcut="b" />
                 <DraggableNode type="tick" label="Event Tick" icon={StepForward} colorClass="text-[#f85149]" shortcut="t" />
+                <DraggableNode type="customEvent" label="Custom Event" icon={Zap} colorClass="text-[#f85149]" shortcut="v" />
+                <DraggableNode type="callCustomEvent" label="Call Custom Event" icon={Zap} colorClass="text-[#58a6ff]" />
                 <DraggableNode type="inputKey" label="Input Key Event" icon={Keyboard} colorClass="text-[#f85149]" shortcut="k" />
+                <DraggableNode type="inputAxis" label="Input Axis Event" icon={Keyboard} colorClass="text-[#f85149]" />
                 <DraggableNode type="onHit" label="On Component Hit" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="h" />
                 <DraggableNode type="onActorHit" label="Event On Actor Hit" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="a" />
                 <DraggableNode type="overlapBegin" label="On Overlap Begin" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="o" />
                 <DraggableNode type="overlapEnd" label="On Overlap End" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="e" />
                 <div className="mt-2" />
                 <DraggableNode type="spawn" label="Spawn Actor from Class" icon={BoxSelect} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="getPlayer" label="Get Player Character" icon={UserSquare} colorClass="text-[#3fb950]" />
+                <DraggableNode type="getLoc" label="Get Actor Location" icon={Waypoints} colorClass="text-[#3fb950]" />
+                <DraggableNode type="getRot" label="Get Actor Rotation" icon={Waypoints} colorClass="text-[#8b949e]" />
+                <DraggableNode type="setLoc" label="Set Actor Location" icon={Waypoints} colorClass="text-[#58a6ff]" />
                 <DraggableNode type="smartDoor" label="Smart Door System" icon={BoxSelect} colorClass="text-[#e3b341]" />
                 <DraggableNode type="applyDamage" label="Apply Damage" icon={AlertCircle} colorClass="text-[#f85149]" />
                 <DraggableNode type="applyForce" label="Add Physics Force" icon={Activity} colorClass="text-[#3fb950]" />
@@ -2137,23 +3285,40 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
              </div>
 
              <div>
+                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Procedural Generation</div>
+                <DraggableNode type="pcgWorldGen" label="PCG: World Gen" icon={Globe} colorClass="text-[#3fb950]" shortcut="g" />
+             </div>
+
+             <div>
                 <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">AI, Models & Opt<span className="bg-[#bc8cff]/20 text-[#bc8cff] px-1 rounded text-[8px]">PRO</span></div>
                 <DraggableNode type="addInstancedMesh" label="Add Instance (HISM)" icon={Copy} colorClass="text-[#58a6ff]" />
                 <DraggableNode type="importExternalAssets" label="Batch Import Assets" icon={Copy} colorClass="text-[#58a6ff]" shortcut="i" />
                 <DraggableNode type="hardwareOptimizer" label="Hardware Optimizer" icon={Cpu} colorClass="text-[#3fb950]" shortcut="1" />
+                <DraggableNode type="levelScript" label="Level Script (Extreme Detail)" icon={FileCode2} colorClass="text-[#bc8cff]" shortcut="6" />
                 <DraggableNode type="offlineAIAccelerator" label="Offline AI Accelerator" icon={Gauge} colorClass="text-[#e3b341]" shortcut="2" />
                 <DraggableNode type="offlineAI3DModelGen" label="Offline AI: 3D Model Master" icon={Layers} colorClass="text-[#e3b341]" shortcut="3" />
                 <DraggableNode type="offlineAI3DMapGen" label="Offline AI: 3D Map & Terrain" icon={Grid3X3} colorClass="text-[#e3b341]" shortcut="4" />
                 <DraggableNode type="offlineAIWebLearn" label="Offline AI: Deep Web Learning" icon={Network} colorClass="text-[#e3b341]" shortcut="5" />
+                <DraggableNode type="aiNovelChar" label="Offline AI: Novel Character Details" icon={Bot} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="aiNovelEnv" label="Offline AI: Novel Environment Details" icon={Layers} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="aiNovelWorld" label="Offline AI: World Builder" icon={Globe} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="aiLoreSystem" label="Offline AI: Lore System & DB" icon={Database} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="aiVerifier" label="Offline AI: Mesh Verifier System" icon={BoxSelect} colorClass="text-[#ff7b72]" />
                 <DraggableNode type="enableCulling" label="GPU Culling (Frustum/Occ)" icon={Settings2} colorClass="text-[#3fb950]" />
                 <DraggableNode type="streamLevel" label="Load Level (Async)" icon={Layers} colorClass="text-[#58a6ff]" shortcut="w" />
                 <DraggableNode type="asyncLoadAsset" label="Async Load Asset" icon={Clock} colorClass="text-[#e3b341]" />
-                <DraggableNode type="aiActor" label="AI Gen Actor" icon={Sparkles} colorClass="text-[#bc8cff]" shortcut="a" />
-                <DraggableNode type="aiTexture" label="AI Gen Texture" icon={Image} colorClass="text-[#bc8cff]" shortcut="x" />
-                <DraggableNode type="aiProximity" label="AI Player Proximity Behavior" icon={Bot} colorClass="text-[#ff7b72]" shortcut="q" />
-                <DraggableNode type="aiMovement" label="AI Gen Movement" icon={Sparkles} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiBehaviorLogic" label="AI Gen Behavior Logic" icon={Sparkles} colorClass="text-[#ff7b72]" shortcut="v" />
-                <DraggableNode type="aiMechanic" label="AI Gen Mechanic" icon={Sparkles} colorClass="text-[#ff7b72]" />
+                <DraggableNode type="aiActor" label="Offline AI Gen Actor" icon={Sparkles} colorClass="text-[#bc8cff]" shortcut="a" />
+                <DraggableNode type="aiSceneGen" label="Offline AI Gen Scene Elements" icon={Sparkles} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="aiAutoRigger" label="Offline AI Auto-Rigger & IK Setup" icon={UserSquare} colorClass="text-[#ff7b72]" />
+                <DraggableNode type="aiMaterialGen" label="Offline AI PBR Material Gen" icon={Image} colorClass="text-[#e3b341]" />
+                <DraggableNode type="aiMeshOpt" label="Offline AI Mesh Optimizer & Retopo" icon={Grid3X3} colorClass="text-[#58a6ff]" />
+                <DraggableNode type="aiVfxGen" label="Offline AI Niagara VFX Gen" icon={Zap} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="adultContent" label="Unrestricted Content (18+/20+)" icon={AlertCircle} colorClass="text-[#f85149]" />
+                <DraggableNode type="aiTexture" label="Offline AI Gen Texture" icon={Image} colorClass="text-[#bc8cff]" shortcut="x" />
+                <DraggableNode type="aiProximity" label="Offline AI Player Proximity Behavior" icon={Bot} colorClass="text-[#ff7b72]" shortcut="q" />
+                <DraggableNode type="aiMovement" label="Offline AI Gen Movement" icon={Sparkles} colorClass="text-[#bc8cff]" />
+                <DraggableNode type="aiBehaviorLogic" label="Offline AI Gen Behavior Logic" icon={Sparkles} colorClass="text-[#ff7b72]" shortcut="v" />
+                <DraggableNode type="aiMechanic" label="Offline AI Gen Mechanic" icon={Sparkles} colorClass="text-[#ff7b72]" />
                 <DraggableNode type="reflectionProbe" label="Realtime Mirror" icon={Layers} colorClass="text-[#58a6ff]" />
              </div>
 
@@ -2163,19 +3328,32 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
                 <DraggableNode type="sequence" label="Sequence" icon={GitCommit} colorClass="text-[#c9d1d9]" shortcut="s" />
                 <DraggableNode type="delay" label="Delay" icon={Clock} colorClass="text-[#e3b341]" />
                 <DraggableNode type="forLoop" label="For Loop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                <DraggableNode type="whileLoop" label="While Loop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                <DraggableNode type="doOnce" label="Do Once" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                <DraggableNode type="flipFlop" label="Flip Flop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                <DraggableNode type="gate" label="Gate" icon={GitCommit} colorClass="text-[#c9d1d9]" />
                 <DraggableNode type="boolAnd" label="AND Boolean" iconText="&&" colorClass="text-[#8b0000]" />
                 <DraggableNode type="boolNot" label="NOT Boolean" iconText="!" colorClass="text-[#8b0000]" />
              </div>
 
              <div>
                 <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Math Library</div>
+                <DraggableNode type="mathAdd" label="Add (Float)" iconText="+" colorClass="text-[#3fb950]" />
+                <DraggableNode type="mathSub" label="Subtract (Float)" iconText="-" colorClass="text-[#3fb950]" />
+                <DraggableNode type="mathMul" label="Multiply (Float)" iconText="*" colorClass="text-[#3fb950]" />
+                <DraggableNode type="mathDivide" label="Divide (Float)" iconText="/" colorClass="text-[#3fb950]" />
+                <DraggableNode type="mathAddV" label="Add (Vector)" iconText="+" colorClass="text-[#e3b341]" />
+                <DraggableNode type="mathSubV" label="Subtract (Vector)" iconText="-" colorClass="text-[#e3b341]" />
                 <DraggableNode type="mathClamp" label="Clamp (Float)" iconText="[]" colorClass="text-[#3fb950]" />
                 <DraggableNode type="mathMapRange" label="Map Range Clamped" iconText="()" colorClass="text-[#3fb950]" />
                 <DraggableNode type="mathRandomFloat" label="Random Float In Range" iconText="?" colorClass="text-[#3fb950]" />
                 <DraggableNode type="makeRotator" label="Make Rotator" iconText="R" colorClass="text-[#8b949e]" />
-                <DraggableNode type="mathAddV" label="Add (Vector)" iconText="+" colorClass="text-[#e3b341]" />
                 <DraggableNode type="mathDotProduct" label="Dot Product" iconText="·" colorClass="text-[#e3b341]" />
                 <DraggableNode type="mathCrossProduct" label="Cross Product" iconText="×" colorClass="text-[#e3b341]" />
+                <DraggableNode type="mathNormalize" label="Normalize" iconText="N" colorClass="text-[#e3b341]" />
+                <DraggableNode type="mathLerp" label="Lerp (Vector)" iconText="L" colorClass="text-[#e3b341]" />
+                <DraggableNode type="mathVectorLength" label="Vector Length" iconText="|v|" colorClass="text-[#e3b341]" />
+                <DraggableNode type="mathDistance" label="Vector Distance" iconText="D" colorClass="text-[#e3b341]" />
              </div>
 
              <div>
@@ -2209,13 +3387,42 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
         {/* Center Canvas */}
         <div className="flex-1 flex flex-col relative">
           <div className="flex-1 relative bg-[#0d0f12]">
+            
+            {/* Debugger Toolbar Overlay */}
+            <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-[#161b22] border border-[#30363d] p-1.5 rounded-lg shadow-lg shadow-black/50">
+               <div className="text-[10px] uppercase font-bold text-[#8b949e] px-2 flex items-center gap-1 border-r border-[#30363d] mr-1">
+                  <Waypoints size={10} /> Debugger
+               </div>
+               {executionState === 'idle' ? (
+                  <button onClick={startExecution} className="flex items-center gap-1 text-[11px] font-bold px-3 py-1 bg-[#238636] hover:bg-[#2ea043] text-white rounded transition-colors">
+                     <Play size={12}/> Start
+                  </button>
+               ) : (
+                  <>
+                     <button onClick={stepForwardExecution} disabled={executionState !== 'paused'} className="flex items-center gap-1 text-[11px] font-bold px-3 py-1 bg-[#222] hover:bg-[#333] border border-[#444] disabled:opacity-40 text-white rounded transition-colors group relative">
+                        <StepForward size={12}/> Step
+                        <div className="hidden group-hover:block absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-black text-[#ccc] text-[9px] px-2 py-1 rounded whitespace-nowrap">Step Forward</div>
+                     </button>
+                     <button onClick={resumeExecution} disabled={executionState !== 'paused'} className="flex items-center gap-1 text-[11px] font-bold px-3 py-1 bg-[#2ea043] hover:bg-[#3fb950] border border-[#444] disabled:opacity-40 text-white rounded transition-colors">
+                        <Play size={12}/> Resume
+                     </button>
+                     <button onClick={stopExecution} className="flex items-center gap-1 text-[11px] font-bold px-3 py-1 bg-[#f85149] hover:bg-[#ff7b72] border border-[#444] text-white rounded transition-colors">
+                        <StopCircle size={12}/> Stop
+                     </button>
+                     <span className={`text-[10px] ml-2 font-bold uppercase ${executionState === 'paused' ? 'text-[#f85149] animate-pulse' : 'text-[#3fb950]'} w-12`}>{executionState}</span>
+                  </>
+               )}
+            </div>
+
             <ProfilerContext.Provider value={isProfiling}>
+              <ExecutionContext.Provider value={{ breakpoints, executingNodeId }}>
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
+                onNodesChange={handleNodesChange}
+                onEdgesChange={handleEdgesChange}
                 onConnect={onConnect}
+                onNodeDoubleClick={onNodeDoubleClick}
                 nodeTypes={wrappedNodeTypes}
                 edgeTypes={edgeTypes}
                 onPaneContextMenu={onPaneContextMenu}
@@ -2227,6 +3434,7 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
                 <Background gap={40} color="#222" />
                 <Controls className="bg-[#111] border-[#333] fill-[#ccc]" />
               </ReactFlow>
+              </ExecutionContext.Provider>
             </ProfilerContext.Provider>
 
             {/* Offline AI Command Bar */}
@@ -2321,6 +3529,7 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
           <button onClick={() => addNode('beginPlay', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Play size={10} className="text-[#f85149]"/> Event BeginPlay</button>
           <button onClick={() => addNode('tick', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><StepForward size={10} className="text-[#f85149]"/> Event Tick</button>
           <button onClick={() => addNode('inputKey', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Keyboard size={10} className="text-[#f85149]"/> Input Key Action</button>
+          <button onClick={() => addNode('inputAxis', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Keyboard size={10} className="text-[#f85149]"/> Input Axis Event</button>
           <button onClick={() => addNode('onHit', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><AlertCircle size={10} className="text-[#f85149]"/> On Component Hit</button>
           <button onClick={() => addNode('onActorHit', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><AlertCircle size={10} className="text-[#f85149]"/> Event On Actor Hit</button>
           <button onClick={() => addNode('overlapBegin', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><AlertCircle size={10} className="text-[#f85149]"/> On Overlap Begin</button>
@@ -2338,7 +3547,10 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
           
           <div className="w-full px-3 py-1.5 text-[#8b949e] text-[10px] uppercase tracking-wider font-bold border-t border-[#30363d] mt-1 shrink-0 bg-[#0d1117]">Action & Casting</div>
           <button onClick={() => addNode('spawn', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><BoxSelect size={10} className="text-[#bc8cff]"/> SpawnActor from Class</button>
+          <button onClick={() => addNode('spawnPrefab', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><BoxSelect size={10} className="text-[#bc8cff]"/> SpawnActor from Prefab</button>
           <button onClick={() => addNode('cast', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Cpu size={10} className="text-[#58a6ff]"/> Cast To PlayerCharacter</button>
+          <button onClick={() => addNode('getLoc', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Waypoints size={10} className="text-[#3fb950]"/> Get Actor Location</button>
+          <button onClick={() => addNode('getRot', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#8b949e] hover:text-white transition-colors flex items-center gap-2"><Waypoints size={10} className="text-[#8b949e]"/> Get Actor Rotation</button>
           <button onClick={() => addNode('setLoc', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Waypoints size={10} className="text-[#58a6ff]"/> Set Actor Location</button>
           <button onClick={() => addNode('smartDoor', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><BoxSelect size={10} className="text-[#e3b341]"/> Smart Door System</button>
           <button onClick={() => addNode('lineTrace', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Waypoints size={10} className="text-[#58a6ff]"/> Line Trace By Channel</button>
@@ -2346,10 +3558,13 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
           <button onClick={() => addNode('applyForce', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Activity size={10} className="text-[#3fb950]"/> Add Physics Force</button>
           <button onClick={() => addNode('setPhysicsProps', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Settings2 size={10} className="text-[#3fb950]"/> Set Physics Props</button>
           <button onClick={() => addNode('addInstancedMesh', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Copy size={10} className="text-[#58a6ff]"/> Add Instance (HISM)</button>
+          <button onClick={() => addNode('addSkeletalMesh', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><UserSquare size={10} className="text-[#58a6ff]"/> Add Skeletal Mesh Component</button>
+          <button onClick={() => addNode('ikSolver', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Network size={10} className="text-[#58a6ff]"/> Two-Bone IK Solver</button>
           
           <div className="w-full px-3 py-1.5 text-[#8b949e] text-[10px] uppercase tracking-wider font-bold border-t border-[#30363d] mt-1 shrink-0 bg-[#0d1117]">Optimization & Streaming</div>
           <button onClick={() => addNode('importExternalAssets', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Copy size={10} className="text-[#58a6ff]"/> Batch Import Assets</button>
           <button onClick={() => addNode('hardwareOptimizer', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Cpu size={10} className="text-[#3fb950]"/> Hardware Optimizer</button>
+          <button onClick={() => addNode('levelScript', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#bc8cff] hover:text-white transition-colors flex items-center gap-2"><FileCode2 size={10} className="text-[#bc8cff]"/> Level Script (Extreme Detail)</button>
           <button onClick={() => addNode('offlineAIAccelerator', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Gauge size={10} className="text-[#e3b341]"/> Offline AI Accelerator</button>
           <button onClick={() => addNode('enableCulling', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Settings2 size={10} className="text-[#3fb950]"/> GPU Culling (Frustum/Occ)</button>
           <button onClick={() => addNode('streamLevel', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Layers size={10} className="text-[#58a6ff]"/> Load Level (Async)</button>
@@ -2397,17 +3612,29 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
           <button onClick={() => addNode('mathRandomFloat', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><b className="text-[#3fb950] ml-1 mr-1">?</b> Random Float</button>
 
           <div className="w-full px-3 py-1.5 text-[#8b949e] text-[10px] uppercase tracking-wider font-bold border-t border-[#30363d] mt-1 shrink-0 bg-[#0d1117]">AI Assisted</div>
-          <button onClick={() => addNode('aiMovement', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> AI Gen Movement Component</button>
-          <button onClick={() => addNode('aiCombat', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Bot size={10} className="text-[#bc8cff]"/> AI Gen Combat Behavior Tree</button>
-          <button onClick={() => addNode('aiProximity', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Bot size={10} className="text-[#ff7b72]"/> AI Player Proximity Behavior</button>
-          <button onClick={() => addNode('aiBehaviorLogic', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#ff7b72]"/> AI Gen Behavior Logic</button>
+          <button onClick={() => addNode('aiMovement', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> Offline AI Gen Movement Component</button>
+          <button onClick={() => addNode('aiCombat', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Bot size={10} className="text-[#bc8cff]"/> Offline AI Gen Combat Behavior Tree</button>
+          <button onClick={() => addNode('aiProximity', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Bot size={10} className="text-[#ff7b72]"/> Offline AI Player Proximity Behavior</button>
+          <button onClick={() => addNode('aiBehaviorLogic', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#ff7b72]"/> Offline AI Gen Behavior Logic</button>
           <button onClick={() => addNode('offlineAI3DModelGen', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Layers size={10} className="text-[#e3b341]"/> Offline AI: 3D Model Master</button>
           <button onClick={() => addNode('offlineAI3DMapGen', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Grid3X3 size={10} className="text-[#e3b341]"/> Offline AI: 3D Map & Terrain</button>
           <button onClick={() => addNode('offlineAIWebLearn', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Network size={10} className="text-[#e3b341]"/> Offline AI: Deep Web Learning</button>
-          <button onClick={() => addNode('aiActor', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> AI Gen Actor</button>
-          <button onClick={() => addNode('aiTexture', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Image size={10} className="text-[#bc8cff]"/> AI Gen Texture</button>
-          <button onClick={() => addNode('aiTransform', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> AI Gen Transform</button>
-          <button onClick={() => addNode('aiMechanic', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#ff7b72]"/> AI Gen Mechanic</button>
+          <button onClick={() => addNode('aiNovelChar', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Bot size={10} className="text-[#bc8cff]"/> Offline AI: Novel Character Details</button>
+          <button onClick={() => addNode('aiNovelEnv', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Layers size={10} className="text-[#bc8cff]"/> Offline AI: Novel Environment Details</button>
+          <button onClick={() => addNode('aiNovelWorld', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Globe size={10} className="text-[#bc8cff]"/> Offline AI: World Builder</button>
+          <button onClick={() => addNode('aiLoreSystem', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Database size={10} className="text-[#bc8cff]"/> Offline AI: Lore System & DB</button>
+          <button onClick={() => addNode('aiVerifier', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><BoxSelect size={10} className="text-[#ff7b72]"/> Offline AI: Mesh Verifier System</button>
+          <button onClick={() => addNode('aiActor', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> Offline AI Gen Actor</button>
+          <button onClick={() => addNode('aiSceneGen', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> Offline AI Gen Scene Elements</button>
+          <button onClick={() => addNode('aiAutoRigger', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><UserSquare size={10} className="text-[#ff7b72]"/> Offline AI Auto-Rigger & IK Setup</button>
+          <button onClick={() => addNode('aiMaterialGen', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Image size={10} className="text-[#e3b341]"/> Offline AI PBR Material Gen</button>
+          <button onClick={() => addNode('aiMeshOpt', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Grid3X3 size={10} className="text-[#58a6ff]"/> Offline AI Mesh Optimizer & Retopo</button>
+          <button onClick={() => addNode('aiVfxGen', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Zap size={10} className="text-[#bc8cff]"/> Offline AI Niagara VFX Gen</button>
+          <button onClick={() => addNode('adultContent', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><AlertCircle size={10} className="text-[#f85149]"/> Unrestricted Content (18+/20+)</button>
+          <button onClick={() => addNode('aiTexture', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Image size={10} className="text-[#bc8cff]"/> Offline AI Gen Texture</button>
+          <button onClick={() => addNode('aiAnimationGen', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Bot size={10} className="text-[#bc8cff]"/> Offline AI Gen Animation Cycle</button>
+          <button onClick={() => addNode('aiTransform', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#bc8cff]"/> Offline AI Gen Transform</button>
+          <button onClick={() => addNode('aiMechanic', menu)} className="w-full text-left px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white transition-colors flex items-center gap-2"><Sparkles size={10} className="text-[#ff7b72]"/> Offline AI Gen Mechanic</button>
         </div>
       )}
 

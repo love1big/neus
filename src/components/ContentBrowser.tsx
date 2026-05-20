@@ -30,6 +30,7 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
     { id: 'a2', name: 'M_ChromeBase', type: 'mat', folderId: '4' },
     { id: 'a3', name: 'M_PlasticWhite', type: 'mat', folderId: '4' },
     { id: 'a4', name: 'BP_PlayerCharacter', type: 'bp', folderId: '3' },
+    { id: 'bp_agent', name: 'BP_AI_Agent', type: 'bp', folderId: '3' },
     { id: 'a5', name: 'T_Noise_01', type: 'tex', folderId: '6' },
     { id: 'a6', name: 'SKM_HeroMesh', type: 'skm', folderId: '3' },
     { id: 'a7', name: 'S_Jump_01', type: 'wav', folderId: '1' },

@@ -1,234 +1,278 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown } from 'lucide-react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
+import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save } from 'lucide-react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { TransformControls, OrbitControls, MapControls, OrthographicCamera, PerspectiveCamera, Environment, ContactShadows, Stars, Sparkles } from '@react-three/drei';
+import { Physics, RigidBody, CuboidCollider, BallCollider, interactionGroups } from '@react-three/rapier';
+import { EffectComposer, Bloom, BrightnessContrast, HueSaturation, Vignette, SSAO } from '@react-three/postprocessing';
+import * as THREE from 'three';
+
+import BasicSkeletonModel from './BasicSkeletonModel';
 
 interface Viewport3DProps {
   activeTool: string;
   activeFile: { name: string; content: string } | undefined;
 }
 
+type ToolMode = 'translate' | 'rotate' | 'scale' | 'select' | 'physics' | 'orbit' | 'pan' | 'zoom';
+
+interface TransformProps {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
+}
+
+interface MaterialProps {
+  color: string;
+  roughness: number;
+  metalness: number;
+  emissive: string;
+  emissiveIntensity: number;
+}
+
+interface PhysicsProps {
+  mass: number;
+  restitution: number;
+  friction: number;
+  colliderShape: 'cuboid' | 'ball' | 'hull';
+  type: 'dynamic' | 'fixed' | 'kinematicPosition';
+}
+
+function SceneObject({ mode, transform, material, setTransform, meshType = 'torus', skelAnimState = 'Idle' }: { mode: ToolMode, transform: TransformProps, material: MaterialProps, setTransform: (t: TransformProps) => void, meshType?: 'torus' | 'skeletal' | 'cube', skelAnimState?: any }) {
+  const meshRef = useRef<THREE.Group>(null);
+  const rigidBodyRef = useRef<any>(null);
+  const [hovered, setHover] = useState(false);
+  const [active, setActive] = useState(true);
+  const [meshReady, setMeshReady] = useState(false);
+
+  useEffect(() => {
+    if (meshRef.current) {
+      setMeshReady(true);
+      // Sync initial transform
+      meshRef.current.position.set(...transform.position);
+      meshRef.current.rotation.set(...transform.rotation);
+      meshRef.current.scale.set(...transform.scale);
+    }
+  }, []);
+
+  // Update object when transform props change externally
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.position.set(...transform.position);
+      meshRef.current.rotation.set(...transform.rotation);
+      meshRef.current.scale.set(...transform.scale);
+    }
+  }, [transform]);
+
+  // Reset physics position when entering physics mode
+  useEffect(() => {
+    if (mode === 'physics' && rigidBodyRef.current) {
+       rigidBodyRef.current.setTranslation({ x: 0, y: 5, z: 0 }, true);
+       rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+       rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    }
+  }, [mode]);
+
+  const content = (
+      <group ref={meshRef}>
+        {meshType === 'torus' ? (
+          <mesh
+            onClick={(e) => { e.stopPropagation(); setActive(true); }}
+            onPointerOver={() => setHover(true)}
+            onPointerOut={() => setHover(false)}
+          >
+            <torusKnotGeometry args={[1, 0.3, 128, 16]} />
+            <meshStandardMaterial 
+              color={hovered ? '#bc8cff' : material.color} 
+              wireframe={false} 
+              roughness={material.roughness}
+              metalness={material.metalness}
+              emissive={hovered ? '#bc8cff' : material.emissive}
+              emissiveIntensity={material.emissiveIntensity}
+            />
+          </mesh>
+        ) : meshType === 'skeletal' ? (
+          <group 
+            onClick={(e) => { e.stopPropagation(); setActive(true); }}
+            onPointerOver={() => setHover(true)}
+            onPointerOut={() => setHover(false)}
+            scale={[1, 1, 1]}
+          >
+            <BasicSkeletonModel isSimulating={true} animState={skelAnimState} blendWeight={1.0} position={[0, -1, 0]} />
+          </group>
+        ) : (
+          <mesh
+            onClick={(e) => { e.stopPropagation(); setActive(true); }}
+            onPointerOver={() => setHover(true)}
+            onPointerOut={() => setHover(false)}
+          >
+            <boxGeometry args={[1.5, 1.5, 1.5]} />
+            <meshStandardMaterial 
+              color={hovered ? '#bc8cff' : material.color} 
+              wireframe={false} 
+              roughness={material.roughness}
+              metalness={material.metalness}
+              emissive={hovered ? '#bc8cff' : material.emissive}
+              emissiveIntensity={material.emissiveIntensity}
+            />
+          </mesh>
+        )}
+        
+        {/* Core glow */}
+        <pointLight color={material.emissive === '#000000' ? '#bc8cff' : material.emissive} intensity={5} distance={5} />
+      </group>
+  );
+
+  return (
+    <>
+      {meshReady && meshRef.current && (mode === 'translate' || mode === 'rotate' || mode === 'scale') && (
+        <TransformControls 
+           object={meshRef} 
+           mode={mode} 
+           onMouseUp={() => {
+             if (meshRef.current) {
+               setTransform({
+                 position: [meshRef.current.position.x, meshRef.current.position.y, meshRef.current.position.z],
+                 rotation: [meshRef.current.rotation.x, meshRef.current.rotation.y, meshRef.current.rotation.z],
+                 scale: [meshRef.current.scale.x, meshRef.current.scale.y, meshRef.current.scale.z]
+               });
+             }
+           }}
+        />
+      )}
+      {content}
+    </>
+  );
+}
+
 export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) {
-  
   // Sky Environment
   const [skybox, setSkybox] = useState(() => localStorage.getItem('skybox') || 'Default (Dark)');
-  const [skyboxRotation, setSkyboxRotation] = useState(() => parseInt(localStorage.getItem('skyboxRotation') || '0'));
   const [skyboxIntensity, setSkyboxIntensity] = useState(() => parseFloat(localStorage.getItem('skyboxIntensity') || '1'));
   const [showSkyboxMenu, setShowSkyboxMenu] = useState(false);
-  
-  useEffect(() => {
-    localStorage.setItem('skybox', skybox);
-    localStorage.setItem('skyboxRotation', skyboxRotation.toString());
-    localStorage.setItem('skyboxIntensity', skyboxIntensity.toString());
-  }, [skybox, skyboxRotation, skyboxIntensity]);
-
-  // Target Tool states
-  const [aiTestingMode, setAiTestingMode] = useState(false);
-  const [aiTestLogs, setAiTestLogs] = useState<{action: string, result: string, type: 'info'|'warn'|'error'}[]>([]);
-  const [aiTestingPhase, setAiTestingPhase] = useState('Idle');
 
   // Object and Transform State
-  const [isObjectSelected, setIsObjectSelected] = useState(true);
-  const [activeTransformTool, setActiveTransformTool] = useState<'select' | 'translate' | 'rotate' | 'scale' | 'physics'>('translate');
-  const [objTransform, setObjTransform] = useState({ posX: 0, posY: 0, rotX: 65, rotY: 0, rotZ: 45, scale: 1 });
-  
-  const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, startObj: objTransform, axis: '' });
+  const [activeTransformTool, setActiveTransformTool] = useState<ToolMode>('orbit');
+  const [showInspector, setShowInspector] = useState(true);
 
-  const handlePointerDown = (e: React.PointerEvent, axis: string) => {
-    e.stopPropagation();
-    dragRef.current = {
-      isDragging: true,
-      startX: e.clientX,
-      startY: e.clientY,
-      startObj: { ...objTransform },
-      axis
-    };
-    document.addEventListener('pointermove', handlePointerMove);
-    document.addEventListener('pointerup', handlePointerUp);
-  };
+  const [objTransform, setObjTransform] = useState<TransformProps>({
+    position: [0, 5, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1]
+  });
 
-  const handlePointerMove = (e: PointerEvent) => {
-    if (!dragRef.current.isDragging) return;
-    const { startX, startY, startObj, axis } = dragRef.current;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+  const [objMaterial, setObjMaterial] = useState<MaterialProps>({
+    color: '#58a6ff',
+    roughness: 0.1,
+    metalness: 0.8,
+    emissive: '#000000',
+    emissiveIntensity: 0.2
+  });
 
+  const [objPhysics, setObjPhysics] = useState<PhysicsProps>({
+    mass: 1.0,
+    restitution: 0.8,
+    friction: 0.5,
+    colliderShape: 'cuboid',
+    type: 'dynamic'
+  });
+
+  const [agentPhysics, setAgentPhysics] = useState<PhysicsProps>({
+    mass: 1.0,
+    restitution: 0.2,
+    friction: 0.8,
+    colliderShape: 'cuboid',
+    type: 'dynamic'
+  });
+
+  const [meshType, setMeshType] = useState<'torus' | 'skeletal' | 'cube'>('cube');
+  const [skelAnimState, setSkelAnimState] = useState<'Idle' | 'Walk' | 'Run' | 'Jump' | 'Attack' | 'HitReaction' | 'Death'>('Idle');
+
+  const [collisionEvent, setCollisionEvent] = useState<string | null>(null);
+
+  const [extraBodies, setExtraBodies] = useState<{ id: number, x: number, y: number, z: number, color: string }[]>([]);
+
+  const handleTransformChange = (axis: number, type: keyof TransformProps, value: string) => {
     setObjTransform(prev => {
-      let next = { ...prev };
-      if (activeTransformTool === 'translate') {
-        if (axis === 'x') next.posX = startObj.posX + dx;
-        if (axis === 'y') next.posY = startObj.posY + dy;
-        if (axis === 'z') { next.posX = startObj.posX + dx; next.posY = startObj.posY - dy; }
-      } else if (activeTransformTool === 'rotate') {
-        if (axis === 'x') next.rotX = startObj.rotX - dy;
-        if (axis === 'y') next.rotY = startObj.rotY + dx;
-        if (axis === 'z') next.rotZ = startObj.rotZ + dx;
-      } else if (activeTransformTool === 'scale') {
-        const dScale = (dx - dy) * 0.01;
-        const newScale = Math.max(0.1, startObj.scale + dScale);
-        if (axis === 'all') next.scale = newScale;
-        // Simplified for UI representation
-      }
-      return next;
+      const parsed = parseFloat(value) || 0;
+      const arr = [...prev[type]] as [number, number, number];
+      arr[axis] = parsed;
+      return { ...prev, [type]: arr };
     });
   };
 
-  const handlePointerUp = () => {
-    dragRef.current.isDragging = false;
-    document.removeEventListener('pointermove', handlePointerMove);
-    document.removeEventListener('pointerup', handlePointerUp);
-  };
-
-  // Clean up listeners
-  useEffect(() => {
-    return () => {
-      document.removeEventListener('pointermove', handlePointerMove);
-      document.removeEventListener('pointerup', handlePointerUp);
-    };
-  }, []);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (aiTestingMode) {
-      setAiTestingPhase('Initializing Advanced Threat Simulation...');
-      setAiTestLogs([{ action: 'Boot Agent', result: 'AI Hacking & QA Module Attached to Viewport', type: 'info' }]);
-      
-      let step = 0;
-      interval = setInterval(() => {
-        step++;
-        setObjTransform(prev => ({
-          ...prev,
-          posX: prev.posX + (Math.random() * 40 - 20),
-          posY: prev.posY + (Math.random() * 40 - 20),
-          rotZ: prev.rotZ + (Math.random() * 10 - 5)
-        }));
-
-        if (step === 2) {
-           setAiTestingPhase('Fuzzing Physics Boundaries & OOB');
-           setAiTestLogs(prev => [...prev, { action: 'Bounds Check', result: 'Left wall collision nominal. Velocity within safe limits.', type: 'info' }]);
-        } else if (step === 4) {
-           setAiTestLogs(prev => [...prev, { action: 'NavMesh Exploit', result: 'VULNERABILITY: Map clipping exploit detected at [X: 120, Y: -45].', type: 'error' }]);
-        } else if (step === 6) {
-           setAiTestingPhase('Packet & Memory Injection Simulation');
-           setAiTestLogs(prev => [...prev, { action: 'Memory Inj.', result: 'Attempting to inject rogue packets into replicated state...', type: 'warn' }]);
-        } else if (step === 8) {
-           setAiTestLogs(prev => [...prev, { action: 'Net Exploit', result: 'CRITICAL VULNERABILITY: Server accepts negative values for health state! (Invincibility Exploit)', type: 'error' }]);
-        } else if (step === 10) {
-           setAiTestingPhase('Autonomous Patching Process');
-           setAiTestLogs(prev => [...prev, { action: 'Synthesizing Patch', result: 'Drafting logic to seal network gaps and solidify geometry...', type: 'info' }]);
-        } else if (step === 12) {
-           setAiTestLogs(prev => [...prev, { action: 'Patch Applied', result: 'Physics Update: Continuous Collision Detection (CCD) enabled.', type: 'info' }]);
-        } else if (step === 14) {
-           setAiTestLogs(prev => [...prev, { action: 'Patch Applied', result: 'Netcode Update: Strict schema bound added to `ApplyDamage()` RPC.', type: 'info' }]);
-        } else if (step === 16) {
-           setAiTestingPhase('Verifying Fixes (Regression Test)');
-           setAiTestLogs(prev => [...prev, { action: 'Regression', result: 'Re-running exploitation vectors to confirm closure...', type: 'info' }]);
-        } else if (step === 18) {
-           setAiTestLogs(prev => [...prev, { action: 'Status', result: 'All vulnerabilities mitigated successfully. Network is sealed.', type: 'info' }]);
-           setAiTestingPhase('Audit Complete \u2714\uFE0F');
-        } else if (step > 21) {
-           setAiTestingPhase('Idle');
-           setAiTestingMode(false);
-        }
-      }, 1000);
-    } else {
-       if (aiTestingPhase !== 'Idle') {
-         setAiTestingPhase('Idle');
-       }
-    }
-    return () => clearInterval(interval);
-  }, [aiTestingMode]);
-
-  const getSkyboxStyle = () => {
-    switch(skybox) {
-      case 'Clear Day': return 'linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%)';
-      case 'Sunset': return 'linear-gradient(to bottom, #fa709a 0%, #fee140 100%)';
-      case 'Sci-Fi Nebula': return 'radial-gradient(ellipse at top, #2b1055 0%, #0b0410 80%, #000000 100%)';
-      case 'Studio Light': return 'radial-gradient(circle at center, #666666 0%, #222222 100%)';
-      case 'Default (Dark)':
-      default: return 'linear-gradient(to bottom, #21262d 0%, #0d1117 100%)';
-    }
+  const handleMaterialChange = (key: keyof MaterialProps, value: string | number) => {
+    setObjMaterial(prev => ({ ...prev, [key]: value }));
   };
 
   // Post Processing States
   const [showPP, setShowPP] = useState(false);
+  const [ppSettings, setPPSettings] = useState({
+    bloomIntensity: 1.5,
+    bloomThreshold: 0.1,
+    brightness: 0.0,
+    contrast: 0.1,
+    hue: 0,
+    saturation: 0.1,
+    aoIntensity: 0.5,
+    aoRadius: 0.4,
+    vignetteOffset: 0.5,
+    vignetteDarkness: 0.5
+  });
   
-  const [ppBloom, setPpBloom] = useState(() => JSON.parse(localStorage.getItem('ppBloom') || 'true'));
-  const [bloomIntensity, setBloomIntensity] = useState(() => parseFloat(localStorage.getItem('bloomIntensity') || '1.5'));
+  const [showDebugMenu, setShowDebugMenu] = useState(false);
+  const [showPhysicsDebug, setShowPhysicsDebug] = useState(false);
+  const [simulatePhysics, setSimulatePhysics] = useState(true);
   
-  const [ppColor, setPpColor] = useState(() => JSON.parse(localStorage.getItem('ppColor') || 'true'));
-  const [colorContrast, setColorContrast] = useState(() => parseInt(localStorage.getItem('colorContrast') || '110'));
-  const [colorSaturation, setColorSaturation] = useState(() => parseInt(localStorage.getItem('colorSaturation') || '120'));
-  const [colorHue, setColorHue] = useState(() => parseInt(localStorage.getItem('colorHue') || '0'));
+  // AI Animation State
+  const [isGeneratingAnim, setIsGeneratingAnim] = useState(false);
+  const [animProgress, setAnimProgress] = useState('');
 
-  const [ppDof, setPpDof] = useState(() => JSON.parse(localStorage.getItem('ppDof') || 'false'));
-  const [dofBlur, setDofBlur] = useState(() => parseFloat(localStorage.getItem('dofBlur') || '4'));
+  // Camera Mode State
+  const [cameraMode, setCameraMode] = useState<'Perspective' | 'Orthographic Top'>('Perspective');
+
+  // Instance Edit State
+  const [isInstanceEditMode, setIsInstanceEditMode] = useState(false);
+  const [instanceName, setInstanceName] = useState('');
 
   useEffect(() => {
-    localStorage.setItem('ppBloom', JSON.stringify(ppBloom));
-    localStorage.setItem('bloomIntensity', bloomIntensity.toString());
-    localStorage.setItem('ppColor', JSON.stringify(ppColor));
-    localStorage.setItem('colorContrast', colorContrast.toString());
-    localStorage.setItem('colorSaturation', colorSaturation.toString());
-    localStorage.setItem('colorHue', colorHue.toString());
-    localStorage.setItem('ppDof', JSON.stringify(ppDof));
-    localStorage.setItem('dofBlur', dofBlur.toString());
-  }, [ppBloom, bloomIntensity, ppColor, colorContrast, colorSaturation, colorHue, ppDof, dofBlur]);
+    if (sessionStorage.getItem('editInstanceContext') === 'true') {
+      setIsInstanceEditMode(true);
+      setInstanceName(sessionStorage.getItem('editInstanceName') || 'Instance');
+    }
+  }, [activeTool]);
 
-  // Physics Simulation
-  const velocityRef = useRef({ vx: 0, vy: 0, vz: 0 });
+  const handleReturnToMap = () => {
+    sessionStorage.removeItem('editInstanceContext');
+    sessionStorage.removeItem('editInstanceName');
+    setIsInstanceEditMode(false);
+    // Ideally we would trigger a setActiveTool('MapEdit') here if we had it.
+    // Instead we'll trigger a custom event that App.tsx can listen to if needed,
+    // or just let the user know it's saved.
+    alert(`Instance override saved to map. Please select MapEdit from the side panel to return.`);
+  };
 
-  useEffect(() => {
-    let animationFrameId: number;
-    let lastTime = performance.now();
-
-    const updatePhysics = (time: number) => {
-      const dt = Math.min((time - lastTime) / 1000, 0.1);
-      lastTime = time;
-
-      if (activeTransformTool === 'physics' && !dragRef.current.isDragging && !aiTestingMode) {
-        setObjTransform(prev => {
-          let { posX, posY, rotX, rotY, rotZ, scale } = prev;
-          let { vx, vy, vz } = velocityRef.current;
-
-          // Apply Gravity (downward in our pseudo-3D is positive Y)
-          vy += 980 * dt; // Gravity
-
-          posX += vx * dt;
-          posY += vy * dt;
-
-          // Floor collision (floor is roughly at Y=150)
-          const floorY = 150;
-          if (posY > floorY) {
-            posY = floorY;
-            vy = -vy * 0.6; // Bounce and dampen
-            vx = vx * 0.8;  // Friction
-            
-            // Random spin on bounce
-            if (Math.abs(vy) > 10) {
-                rotX += vx * dt * 10;
-                rotY += vy * dt * 5;
-            }
-          }
-
-          // Ceiling bounds
-          if (posY < -300) {
-              posY = -300;
-              vy = -vy * 0.5;
-          }
-
-          // Horizontal bounds
-          if (posX > 400) { posX = 400; vx = -vx * 0.7; }
-          if (posX < -400) { posX = -400; vx = -vx * 0.7; }
-
-          velocityRef.current = { vx, vy, vz };
-          return { posX, posY, rotX, rotY, rotZ, scale };
-        });
-      }
-      animationFrameId = requestAnimationFrame(updatePhysics);
-    };
+  const handleGenerateAnim = () => {
+    setIsGeneratingAnim(true);
+    setAnimProgress('Inferring Scene Context & Extracting Skeleton...');
     
-    animationFrameId = requestAnimationFrame(updatePhysics);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [activeTransformTool, aiTestingMode]);
+    setTimeout(() => {
+      setAnimProgress('Synthesizing blend spaces: Idle, Walk, Run...');
+    }, 1200);
+    
+    setTimeout(() => {
+      setAnimProgress('Applying Inverse Kinematics & Slerp Interpolation...');
+    }, 2400);
+    
+    setTimeout(() => {
+      setAnimProgress('Generating "CharacterAnimator.ts" Controller...');
+    }, 3600);
+    
+    setTimeout(() => {
+      setIsGeneratingAnim(false);
+      // Let's pretend it forces physics ON or something
+      setSimulatePhysics(true);
+    }, 4800);
+  };
 
   const getToolDisplayName = () => {
     switch (activeTool) {
@@ -245,39 +289,34 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
     }
   };
 
-  // Generate CSS filters for the post processing stack
-  const getSimulatedPostProcessing = () => {
-    let filters = [];
-    
-    if (ppColor) {
-      filters.push(`contrast(${colorContrast}%)`);
-      filters.push(`saturate(${colorSaturation}%)`);
-      if (colorHue !== 0) filters.push(`hue-rotate(${colorHue}deg)`);
-    }
-    
-    if (ppBloom) {
-      // Very basic bloom simulation via brightening
-      filters.push(`drop-shadow(0 0 ${bloomIntensity * 10}px rgba(88,166,255,${minMax(bloomIntensity/5, 0, 1)}))`);
-      filters.push(`brightness(${100 + (bloomIntensity * 15)}%)`);
-    }
-
-    if (ppDof) {
-      filters.push(`blur(${dofBlur}px)`);
-    }
-
-    return filters.join(' ');
-  };
-
-  const minMax = (val: number, min: number, max: number) => Math.min(Math.max(val, min), max);
-
   return (
     <div className="w-full h-full bg-[#1e1e1e] relative overflow-hidden flex flex-col font-['Helvetica_Neue',Arial,sans-serif]">
       {/* Viewport Top Bar */}
-      <div className="h-8 bg-[#161b22] border-b border-[#30363d] flex items-center px-4 justify-between text-[11px] text-[#8b949e] shrink-0 font-medium tracking-wide">
+      <div className="h-8 bg-[#161b22] border-b border-[#30363d] flex items-center px-4 justify-between text-[11px] text-[#8b949e] shrink-0 font-medium tracking-wide z-10">
          <div className="flex items-center gap-4">
-           <span className="hover:text-white cursor-pointer select-none transition-colors">Perspective</span>
+           {/* Camera Mode Selector */}
+           <div className="relative group">
+             <span className="hover:text-white cursor-pointer select-none transition-colors flex items-center gap-1">
+               {cameraMode} <ChevronDown size={10} />
+             </span>
+             <div className="absolute top-full mt-1 left-0 w-40 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl z-50 flex flex-col py-1 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <button onClick={() => setCameraMode('Perspective')} className={`text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors ${cameraMode === 'Perspective' ? 'text-[#58a6ff] bg-[#21262d]/50' : 'text-[#c9d1d9]'}`}>Perspective</button>
+                <button onClick={() => setCameraMode('Orthographic Top')} className={`text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors ${cameraMode === 'Orthographic Top' ? 'text-[#58a6ff] bg-[#21262d]/50' : 'text-[#c9d1d9]'}`}>Orthographic Top</button>
+             </div>
+           </div>
+
            <span className="hover:text-[#e3b341] cursor-pointer select-none transition-colors">Lit</span>
            <span className="hover:text-white cursor-pointer select-none transition-colors">Show</span>
+           
+           <div className="w-[1px] h-4 bg-[#30363d] ml-2"></div>
+           
+           <button 
+             onClick={() => setShowInspector(!showInspector)} 
+             className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-colors ml-2 ${showInspector ? 'bg-[#21262d] text-white' : 'hover:bg-[#21262d] hover:text-[#c9d1d9]'}`}
+             title="Toggle Details Inspector"
+           >
+             <Sliders size={12} /> Details
+           </button>
            
            <div className="w-[1px] h-4 bg-[#30363d]"></div>
            
@@ -288,29 +327,12 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
              </button>
              {showSkyboxMenu && (
                 <div className="absolute top-full mt-2 left-0 w-48 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl z-50 flex flex-col py-1 overflow-hidden">
-                   <div className="px-3 py-2 text-[10px] text-[#8b949e] uppercase tracking-wider font-bold border-b border-[#30363d] mb-1">Environment Material</div>
-                   {['Default (Dark)', 'Clear Day', 'Sunset', 'Sci-Fi Nebula', 'Studio Light'].map(s => (
+                   <div className="px-3 py-2 text-[10px] text-[#8b949e] uppercase tracking-wider font-bold border-b border-[#30363d] mb-1">Environment Preset</div>
+                   {['Default (Dark)', 'Clear Day', 'Studio Light', 'City', 'Forest'].map(s => (
                      <button key={s} onClick={() => setSkybox(s)} className={`text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors ${skybox === s ? 'text-[#58a6ff] bg-[#21262d]/50' : 'text-[#c9d1d9]'}`}>
                        {s}
                      </button>
                    ))}
-                   
-                   <div className="border-t border-[#30363d] mt-1 pt-2 px-3 pb-3 flex flex-col gap-3">
-                     <div className="flex flex-col gap-1.5">
-                       <div className="flex justify-between text-[10px] text-[#8b949e]">
-                          <span>Intensity</span>
-                          <span>{skyboxIntensity.toFixed(1)}</span>
-                       </div>
-                       <input type="range" min="0" max="2" step="0.1" value={skyboxIntensity} onChange={(e) => setSkyboxIntensity(parseFloat(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer accent-[#58a6ff]" />
-                     </div>
-                     <div className="flex flex-col gap-1.5">
-                       <div className="flex justify-between text-[10px] text-[#8b949e]">
-                          <span>Rotation</span>
-                          <span>{skyboxRotation}°</span>
-                       </div>
-                       <input type="range" min="0" max="360" step="1" value={skyboxRotation} onChange={(e) => setSkyboxRotation(parseInt(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer accent-[#58a6ff]" />
-                     </div>
-                   </div>
                 </div>
              )}
            </div>
@@ -325,141 +347,119 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
              <SlidersHorizontal size={12} /> Post Processing
            </button>
 
-           <div className="w-[1px] h-4 bg-[#30363d]"></div>
+           <div className="w-[1px] h-4 bg-[#30363d] mx-2"></div>
            
-           <button 
-             onClick={() => setAiTestingMode(!aiTestingMode)} 
-             className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-colors font-bold ${aiTestingMode ? 'bg-[#f85149]/20 text-[#f85149]' : 'hover:bg-[#f85149]/10 text-[#c9d1d9] hover:text-[#f85149]'}`}
-             title="Run AI Offline Tests on this Viewport"
-           >
-             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-             AI Playtest
-           </button>
+           <div className="relative">
+             <button onClick={() => setShowDebugMenu(!showDebugMenu)} className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-colors ${showDebugMenu ? 'bg-[#21262d] text-white' : 'text-[#8b949e] hover:bg-[#21262d] hover:text-[#c9d1d9]'}`} title="Debug Settings">
+               <Bug size={12} /> Debug <ChevronDown size={10} />
+             </button>
+             {showDebugMenu && (
+                <div className="absolute top-full mt-2 left-0 w-48 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl z-50 flex flex-col py-1 overflow-hidden">
+                   <div className="px-3 py-2 text-[10px] text-[#8b949e] uppercase tracking-wider font-bold border-b border-[#30363d] mb-1">Debug Options</div>
+                   <button onClick={() => setSimulatePhysics(!simulatePhysics)} className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#c9d1d9] flex justify-between items-center">
+                      <span>Simulate Physics</span>
+                      {simulatePhysics && <span className="text-[#3fb950] font-bold text-[10px]">ON</span>}
+                   </button>
+                   <button onClick={() => setShowPhysicsDebug(!showPhysicsDebug)} className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#c9d1d9] flex justify-between items-center">
+                      <span>Physics Colliders</span>
+                      {showPhysicsDebug && <span className="text-[#3fb950] font-bold text-[10px]">ON</span>}
+                   </button>
+                   <button className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#8b949e] flex justify-between items-center cursor-not-allowed">
+                      <span>Show Contact Points</span>
+                   </button>
+                   <button className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#8b949e] flex justify-between items-center cursor-not-allowed">
+                      <span>Show Hierarchy</span>
+                   </button>
+                </div>
+             )}
+           </div>
          </div>
-         <div className="flex gap-4">
-           <span className="text-[#3fb950] font-mono select-none">120 FPS</span>
-           <span className="text-[#58a6ff] font-mono select-none hidden sm:inline">GPU: 42%</span>
+         <div className="flex gap-4 items-center">
+           <span className="text-[#bc8cff] font-mono text-[9px] bg-[#bc8cff]/10 border border-[#bc8cff]/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(188,140,255,0.4)]">FSR 3.0 ACTIVE</span>
+           <span className="text-[#3fb950] font-mono text-[9px] bg-[#3fb950]/10 border border-[#3fb950]/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(63,185,80,0.4)]">NANITE ON</span>
+           <span className="text-[#e3b341] font-mono text-[9px] bg-[#e3b341]/10 border border-[#e3b341]/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(227,179,65,0.4)]">SDF GI ON</span>
+           <span className="text-[#ff7b72] font-mono select-none flex items-center gap-1 font-bold ml-2">144.2 FPS <span className="text-[9px] text-[#8b949e] font-normal">/ 1% 120</span></span>
+           <span className="text-[#58a6ff] font-mono select-none hidden sm:inline text-[9px] ml-2">GPU: 4.2ms | CPU: 1.8ms</span>
          </div>
       </div>
       
-      {/* 3D Render Area */}
-      <div 
-        className="flex-1 relative overflow-hidden transition-all duration-300 bg-black"
-        style={{ filter: getSimulatedPostProcessing() }}
-        onPointerDown={() => setIsObjectSelected(false)}
-      >
-         {/* Skybox Background Layer */}
-         <div 
-           className="absolute pointer-events-none transition-all duration-300"
-           style={{ 
-             top: '-50%', left: '-50%', width: '200%', height: '200%',
-             background: getSkyboxStyle(),
-             transform: `rotate(${skyboxRotation}deg)`,
-             filter: `brightness(${skyboxIntensity})`,
-             zIndex: 0
-           }}
-         />
+      {/* 3D Render Area + Inspector */}
+      <div className="flex-1 relative overflow-hidden flex flex-row">
+        <div className="flex-1 relative bg-[#0d1117] overflow-hidden">
 
-         {/* Transform Tools Gizmo */}
-         <div className="absolute top-4 right-4 bg-[#161b22] border border-[#30363d] rounded p-1 flex flex-col gap-1 shadow-2xl z-50">
-            <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('select'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'select' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Select"><MousePointer2 size={16}/></button>
-            <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('translate'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'translate' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Translate"><Move size={16}/></button>
-            <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('rotate'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'rotate' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Rotate"><RotateCcw size={16}/></button>
-            <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('scale'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'scale' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Scale"><Maximize size={16}/></button>
+         {/* Instance Edit Override Banner */}
+         {isInstanceEditMode && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 bg-[#bc8cff]/10 border border-[#bc8cff]/30 backdrop-blur-md rounded-full px-4 py-1.5 flex items-center gap-3 shadow-[0_0_15px_rgba(188,140,255,0.1)] group cursor-default">
+               <div className="relative">
+                 <span className="text-[11px] text-white font-bold tracking-wider flex items-center gap-2">
+                   <span className="text-[#bc8cff]"><Box size={14} className="inline-block" /> INSTANCE OVERRIDE:</span> {instanceName}
+                 </span>
+                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-[#161b22] border border-[#30363d] rounded-lg p-3 hidden group-hover:block shadow-2xl">
+                    <div className="text-[10px] uppercase font-bold text-[#8b949e] mb-2 border-b border-[#30363d] pb-1">Unlinked Properties</div>
+                    <ul className="text-[11px] space-y-1 text-white mb-3">
+                       <li className="flex justify-between"><span>Transform</span> <span className="text-[#3fb950]">Modified</span></li>
+                       <li className="flex justify-between"><span>Material</span> <span className="text-[#3fb950]">Override (Red_Metal)</span></li>
+                    </ul>
+                    <button onClick={() => alert('Reverted transform and material overrides to Base Blueprint defaults.')} className="w-full text-left px-2 py-1 text-[11px] hover:bg-[#21262d] rounded text-[#ff7b72] flex items-center gap-2 transition-colors mb-1"><Layers size={14}/> Revert to Base Blueprint</button>
+                    <button onClick={() => alert('Instance changes applied to the Base Blueprint. All other instances will inherit these changes.')} className="w-full text-left px-2 py-1 text-[11px] hover:bg-[#21262d] rounded text-[#58a6ff] flex items-center gap-2 transition-colors"><Save size={14}/> Apply to Base Blueprint</button>
+                 </div>
+               </div>
+               <div className="w-[1px] h-3 bg-[#bc8cff]/20"></div>
+               <button 
+                 onClick={handleReturnToMap}
+                 className="text-[10px] text-[#0d1117] bg-[#bc8cff] hover:bg-[#d2a8ff] px-2 py-0.5 rounded font-bold transition-colors"
+               >
+                 Commit to Level
+               </button>
+            </div>
+         )}
+
+         {/* Collision Indicator Overlay */}
+         {collisionEvent && (
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#f85149]/20 border border-[#f85149]/50 backdrop-blur-md rounded-full px-6 py-2 flex items-center gap-3 shadow-[0_0_20px_rgba(248,81,73,0.3)] pointer-events-none animate-pulse">
+               <span className="text-[13px] text-white font-bold tracking-wider flex items-center gap-2">
+                 <Box size={16} className="text-[#f85149]" /> {collisionEvent}
+               </span>
+            </div>
+         )}
+
+         {/* AI Animation Generation Overlay */}
+         {isGeneratingAnim && (
+            <div className="absolute inset-0 bg-[#0d1117]/80 z-50 flex flex-col items-center justify-center backdrop-blur-md">
+               <div className="w-20 h-20 border-4 border-[#30363d] border-t-[#a476ed] rounded-full animate-spin mb-6"></div>
+               <div className="text-white text-xl font-bold tracking-widest uppercase mb-3 flex items-center gap-2">
+                 <PersonStanding className="text-[#a476ed]" />
+                 AI Core: Neural Rigger
+               </div>
+               <div className="text-[#a476ed] text-[13px] font-mono mt-2 animate-pulse text-center">
+                 {animProgress}
+               </div>
+               <div className="w-64 bg-[#21262d] h-2 rounded-full overflow-hidden mt-6 border border-[#30363d]">
+                  <div className="bg-[#a476ed] h-full transition-all duration-[4800ms] ease-out w-full" style={{ animation: 'fillBar 4.8s linear' }}></div>
+               </div>
+               <style>{`
+                 @keyframes fillBar {
+                   0% { width: 0%; }
+                   100% { width: 100%; }
+                 }
+               `}</style>
+            </div>
+         )}
+
+         {/* Transform Tools Gizmo UI overlay */}
+         <div className="absolute top-4 right-4 bg-[#161b22] border border-[#30363d] rounded p-1 flex flex-col gap-1 shadow-2xl z-20">
+            <button onClick={() => setActiveTransformTool('orbit')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'orbit' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Orbit Camera"><Orbit size={16}/></button>
+            <button onClick={() => setActiveTransformTool('pan')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'pan' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Pan Camera"><Hand size={16}/></button>
+            <button onClick={() => setActiveTransformTool('zoom')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'zoom' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Zoom Camera"><ZoomIn size={16}/></button>
             <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
-            <button onClick={(e) => { e.stopPropagation(); setActiveTransformTool('physics'); }} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'physics' ? 'text-[#3fb950] bg-[#3fb950]/10 shadow-inner' : 'text-[#8b949e] hover:text-[#3fb950]'}`} title="Simulate Physics">
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </button>
-         </div>
-
-         {/* 3D Grid Floor Mock via CSS Perspective */}
-         <div className="absolute inset-0 pointer-events-none opacity-[0.12] z-0 transition-all duration-300" 
-              style={{
-                backgroundImage: 'linear-gradient(#58a6ff 2px, transparent 2px), linear-gradient(90deg, #58a6ff 2px, transparent 2px)',
-                backgroundSize: '50px 50px',
-                transform: 'perspective(600px) rotateX(65deg) translateY(-50px) scale(3)',
-                transformOrigin: 'top center'
-              }}>
-         </div>
-
-         {/* World Axis Mock (Bottom Left) */}
-         <div className="absolute bottom-6 left-6 flex flex-col gap-0 items-center z-20 opacity-80 scale-75 transform origin-bottom-left pointer-events-none">
-           <div className="w-[3px] h-10 bg-[#3fb950] relative">
-             <div className="absolute -top-3 -left-1 text-[10px] font-bold text-[#3fb950]">Z</div>
-           </div>
-           <div className="flex items-center -ml-2 -mt-1 relative">
-             <div className="w-[3px] h-10 bg-[#f85149] rotate-90 origin-bottom relative">
-               <div className="absolute -bottom-4 -left-1 text-[10px] font-bold text-[#f85149] -rotate-90">Y</div>
-             </div>
-             <div className="w-[3px] h-10 bg-[#58a6ff] rotate-[225deg] origin-bottom absolute bottom-0 left-0">
-                <div className="absolute -bottom-4 -left-2 text-[10px] font-bold text-[#58a6ff] -rotate-[225deg]">X</div>
-             </div>
-             <div className="w-3 h-3 rounded-full bg-white absolute -bottom-1.5 -left-1.5 z-10 shadow-lg"></div>
-           </div>
-         </div>
-         
-         {/* Center Subject Content / Interactive Object */}
-         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none perspective-[1200px]">
-           <div 
-             className={`w-48 h-48 relative flex items-center justify-center cursor-pointer pointer-events-auto group ${isObjectSelected ? 'ring-0' : ''}`}
-             style={{
-               transformStyle: 'preserve-3d',
-               transform: `translate3d(${objTransform.posX}px, ${objTransform.posY}px, 0) rotateX(${objTransform.rotX}deg) rotateY(${objTransform.rotY}deg) rotateZ(${objTransform.rotZ}deg) scale(${objTransform.scale})`,
-             }}
-             onPointerDown={(e) => { e.stopPropagation(); setIsObjectSelected(true); }}
-           >
-             {/* Quantum/Neural Mesh representation */}
-             <div className="absolute inset-0 border border-[#58a6ff]/30 rounded-full animate-[spin_10s_linear_infinite]" style={{ transformStyle: 'preserve-3d', transform: 'rotateX(75deg)' }}></div>
-             <div className="absolute inset-0 border border-[#bc8cff]/30 rounded-full animate-[spin_8s_linear_infinite_reverse]" style={{ transformStyle: 'preserve-3d', transform: 'rotateY(75deg)' }}></div>
-             <div className="absolute inset-0 border border-[#3fb950]/30 rounded-full animate-[spin_12s_linear_infinite]" style={{ transformStyle: 'preserve-3d', transform: 'rotateZ(75deg)' }}></div>
-             
-             {/* Inner Core */}
-             <div className="w-16 h-16 bg-[radial-gradient(circle_at_center,#ffffff_0%,#a476ed_40%,#161b22_100%)] rounded-full absolute shadow-[0_0_40px_rgba(164,118,237,0.8)] animate-pulse" style={{ transformStyle: 'preserve-3d', transform: `rotateX(${-objTransform.rotX}deg) rotateY(${-objTransform.rotY}deg) rotateZ(${-objTransform.rotZ}deg)` }}></div>
-             
-             {/* Holographic shell */}
-             <div className="w-48 h-48 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0iIzU4YTZmZiIvPjwvc3ZnPg==')] opacity-30 animate-pulse absolute mix-blend-screen" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', transform: 'translateZ(20px)' }}></div>
-             <div className="w-48 h-48 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0iI2JjOGNmZiIvPjwvc3ZnPg==')] opacity-30 animate-[pulse_3s_ease-in-out_infinite] absolute mix-blend-screen" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', transform: 'translateZ(-20px) rotate(30deg)' }}></div>
-
-             <div className="absolute inset-x-0 bottom-[-4rem] text-center whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity" style={{ transform: `rotateX(${-objTransform.rotX}deg) rotateY(${-objTransform.rotY}deg) rotateZ(${-objTransform.rotZ}deg)` }}>
-                <span className="bg-[#0a0a0a]/80 backdrop-blur border border-[#30363d] px-3 py-1 rounded text-[#c9d1d9] text-[10px] font-mono tracking-widest shadow-lg">NX_QUANTUM_ACTOR_01</span>
-             </div>
-
-             {/* Gizmos */}
-             {isObjectSelected && activeTransformTool === 'translate' && (
-               <div className="absolute inset-0 m-auto w-0 h-0 flex items-center justify-center z-50">
-                 <div className="absolute w-24 h-1.5 bg-[#f85149] right-[-6rem] cursor-pointer hover:bg-[#ff7b72] flex justify-end items-center shadow-lg" style={{ transform: 'translateX(3rem)', zIndex: 100 }} onPointerDown={(e) => handlePointerDown(e, 'x')}>
-                   <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-[#f85149] border-b-[8px] border-b-transparent absolute -right-3 pointer-events-none"></div>
-                 </div>
-                 <div className="absolute w-1.5 h-24 bg-[#3fb950] top-[-6rem] cursor-pointer hover:bg-[#2ea043] flex items-start justify-center shadow-lg" style={{ transform: 'translateY(-3rem)', zIndex: 100 }} onPointerDown={(e) => handlePointerDown(e, 'y')}>
-                   <div className="w-0 h-0 border-l-[8px] border-l-transparent border-b-[12px] border-b-[#3fb950] border-r-[8px] border-r-transparent absolute -top-3 pointer-events-none"></div>
-                 </div>
-                 <div className="absolute w-1.5 h-24 bg-[#58a6ff] cursor-pointer hover:bg-[#79c0ff] origin-bottom scale-75 shadow-lg" style={{ transform: 'translateZ(-2rem) translateY(3rem) rotateX(45deg) rotateZ(45deg)', zIndex: 90 }} onPointerDown={(e) => handlePointerDown(e, 'z')}>
-                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-t-[12px] border-t-[#58a6ff] border-r-[8px] border-r-transparent absolute -bottom-3 -left-1.5 pointer-events-none"></div>
-                 </div>
-                 <div className="w-4 h-4 bg-white rounded-sm absolute shadow-md"></div>
-               </div>
-             )}
-
-             {isObjectSelected && activeTransformTool === 'rotate' && (
-               <div className="absolute inset-0 m-auto w-0 h-0 flex items-center justify-center z-50">
-                 <div className="absolute w-40 h-40 border-[4px] border-[#f85149] rounded-full cursor-pointer hover:border-[#ff7b72] opacity-80" style={{ transform: 'rotateY(90deg)' }} onPointerDown={(e) => handlePointerDown(e, 'x')}></div>
-                 <div className="absolute w-40 h-40 border-[4px] border-[#3fb950] rounded-full cursor-pointer hover:border-[#2ea043] opacity-80" style={{ transform: 'rotateX(90deg)' }} onPointerDown={(e) => handlePointerDown(e, 'y')}></div>
-                 <div className="absolute w-40 h-40 border-[4px] border-[#58a6ff] rounded-full cursor-pointer hover:border-[#79c0ff] opacity-80" style={{ transform: 'rotateZ(0deg)' }} onPointerDown={(e) => handlePointerDown(e, 'z')}></div>
-               </div>
-             )}
-
-             {isObjectSelected && activeTransformTool === 'scale' && (
-               <div className="absolute inset-0 m-auto w-0 h-0 flex items-center justify-center z-50">
-                 <div className="absolute w-24 h-1.5 bg-[#e3b341] right-[-6rem] cursor-pointer hover:bg-[#f2cc60] shadow-lg" style={{ transform: 'translateX(3rem)', zIndex: 100 }} onPointerDown={(e) => handlePointerDown(e, 'all')}>
-                    <div className="w-4 h-4 bg-[#e3b341] absolute -right-2 -top-1 pointer-events-none shadow-sm"></div>
-                 </div>
-                 <div className="absolute w-1.5 h-24 bg-[#e3b341] top-[-6rem] cursor-pointer hover:bg-[#f2cc60] shadow-lg" style={{ transform: 'translateY(-3rem)', zIndex: 100 }} onPointerDown={(e) => handlePointerDown(e, 'all')}>
-                    <div className="w-4 h-4 bg-[#e3b341] absolute -top-2 -left-1 pointer-events-none shadow-sm"></div>
-                 </div>
-                 <div className="w-5 h-5 bg-white rounded-sm absolute shadow-md cursor-pointer hover:bg-[#f2cc60]" style={{ zIndex: 110 }} onPointerDown={(e) => handlePointerDown(e, 'all')}></div>
-               </div>
-             )}
-           </div>
+            <button onClick={() => setActiveTransformTool('select')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'select' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Select"><MousePointer2 size={16}/></button>
+            <button onClick={() => setActiveTransformTool('translate')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'translate' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Translate"><Move size={16}/></button>
+            <button onClick={() => setActiveTransformTool('rotate')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'rotate' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Rotate"><RotateCcw size={16}/></button>
+            <button onClick={() => setActiveTransformTool('scale')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'scale' ? 'text-white bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-white'}`} title="Scale"><Maximize size={16}/></button>
+            <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
+            <button onClick={() => setActiveTransformTool('physics')} className={`p-1.5 rounded transition-colors ${activeTransformTool === 'physics' ? 'text-[#e3b341] bg-[#0d1117] shadow-inner' : 'text-[#8b949e] hover:text-[#e3b341]'}`} title="Simulate Physics"><RotateCcw className="rotate-45" size={16}/></button>
+            <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
+            <button onClick={handleGenerateAnim} className="p-1.5 rounded transition-colors text-[#bc8cff] hover:text-[#d2a8ff] hover:bg-[#0d1117]" title="AI Animate Skeleton"><PersonStanding size={16}/></button>
          </div>
 
          {/* Center Subject Content */}
@@ -469,135 +469,570 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
             </h1>
             <p className="text-[#c9d1d9] mt-3 font-mono text-[11px] md:text-sm max-w-md bg-[#0d1117]/80 p-3 rounded-lg backdrop-blur-md border border-[#30363d] shadow-2xl">
               <span className="text-[#8b949e]">Target Edit:</span> {activeFile?.name || 'Unsaved_Map.map'}
-              <br/><br/>
-              <span className="text-[#3fb950] flex items-center justify-center gap-2">
-                <span className="w-1.5 h-1.5 bg-[#3fb950] rounded-full animate-pulse"></span>
-                Real-Time Rasterizer Active
-              </span>
             </p>
          </div>
 
-         {/* Target Content: AI Offline Playtesting Overlay */}
-         {aiTestingMode && (
-           <div className="absolute inset-x-4 bottom-4 top-auto md:top-4 md:bottom-auto md:right-4 md:left-auto md:w-80 pointer-events-none z-50">
-             <div className="bg-[#111]/90 backdrop-blur-xl border border-[#f85149]/30 rounded shadow-[0_0_20px_rgba(248,81,73,0.15)] flex flex-col pointer-events-auto">
-                <div className="bg-[#f85149]/20 px-3 py-2 border-b border-[#f85149]/30 flex items-center justify-between">
-                   <div className="flex items-center gap-2">
-                     <span className="relative flex h-2.5 w-2.5">
-                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f85149] opacity-75"></span>
-                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#f85149]"></span>
-                     </span>
-                     <span className="text-[#f85149] font-bold text-[10px] tracking-widest uppercase">AI Playtesting Active</span>
-                   </div>
-                   <button onClick={() => setAiTestingMode(false)} className="text-[#888] hover:text-[#fff]"><X size={14}/></button>
-                </div>
-                <div className="p-3">
-                   <div className="mb-3 border-b border-[#333] pb-2">
-                      <span className="text-[#888] text-[9px] uppercase tracking-wide">Current Phase</span>
-                      <div className="text-[#fff] font-mono text-xs mt-0.5">{aiTestingPhase}</div>
-                   </div>
-                   <div className="flex flex-col gap-1.5 h-48 overflow-y-auto pr-1 font-mono text-[10px] mt-1">
-                      {aiTestLogs.map((log, i) => (
-                         <div key={i} className={`flex flex-col p-1.5 rounded border ${log.type === 'error' ? 'bg-[#f85149]/10 border-[#f85149]/30 text-[#ff7b72]' : log.type === 'warn' ? 'bg-[#e3b341]/10 border-[#e3b341]/30 text-[#f2cc60]' : 'bg-[#0a0a0a] border-[#333] text-[#ccc]'}`}>
-                            <div className="font-bold border-b border-[#333]/50 pb-0.5 mb-0.5">[{log.action}]</div>
-                            <div className="break-words">{log.result}</div>
-                         </div>
-                      ))}
-                      {/* Anchor element to force scroll could go here if we had a ref */}
-                   </div>
-                </div>
-             </div>
-           </div>
-         )}
-      </div>
+         <Canvas>
+            {cameraMode === 'Perspective' ? (
+              <>
+                <PerspectiveCamera makeDefault position={[5, 5, 5]} fov={50} />
+                <OrbitControls 
+                  makeDefault 
+                  enablePan={true}
+                  enableZoom={true}
+                  enableRotate={true}
+                  mouseButtons={{
+                    LEFT: activeTransformTool === 'orbit' ? THREE.MOUSE.ROTATE : 
+                          activeTransformTool === 'pan' ? THREE.MOUSE.PAN : 
+                          activeTransformTool === 'zoom' ? THREE.MOUSE.DOLLY : 
+                          THREE.MOUSE.ROTATE,
+                    MIDDLE: THREE.MOUSE.DOLLY,
+                    RIGHT: THREE.MOUSE.PAN
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <OrthographicCamera makeDefault position={[0, 20, 0]} zoom={40} near={-100} far={100} top={10} bottom={-10} left={-10} right={10} rotation={[-Math.PI / 2, 0, 0]} />
+                <MapControls 
+                  makeDefault 
+                  enableRotate={false}
+                  enableZoom={true}
+                  enablePan={true}
+                />
+              </>
+            )}
 
-      {/* Post Processing Panel Overlay */}
-      {showPP && (
-        <div className="absolute left-6 top-14 w-72 bg-[#161b22]/95 border border-[#30363d] rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] z-30 backdrop-blur-xl flex flex-col max-h-[calc(100%-80px)] overflow-hidden">
-           
-           <div className="flex items-center justify-between p-3 border-b border-[#30363d] bg-[#0d1117] shrink-0">
-              <div className="flex items-center gap-2 text-[#c9d1d9] font-semibold text-[13px]">
-                 <Eye size={16} className="text-[#ff7b72]"/> Post Process Volume
-              </div>
-              <button onClick={() => setShowPP(false)} className="text-[#8b949e] hover:text-[#c9d1d9]"><X size={16}/></button>
-           </div>
-           
-           <div className="p-4 overflow-y-auto custom-scrollbar flex flex-col gap-6">
-              
-              {/* BLOOM */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[12px] font-bold text-[#c9d1d9] tracking-wider uppercase">Bloom</label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={ppBloom} onChange={() => setPpBloom(!ppBloom)} />
-                    <div className="w-7 h-4 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#3fb950]"></div>
-                  </label>
-                </div>
-                <div className={`flex flex-col gap-2 transition-opacity ${!ppBloom ? 'opacity-30 pointer-events-none' : ''}`}>
-                   <div className="flex justify-between text-[11px] text-[#8b949e]">
-                      <span>Intensity</span>
-                      <span>{bloomIntensity.toFixed(1)}</span>
-                   </div>
-                   <input type="range" min="0" max="5" step="0.1" value={bloomIntensity} onChange={(e) => setBloomIntensity(parseFloat(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer" />
-                </div>
-              </div>
+            <color attach="background" args={['#0d1117']} />
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[10, 10, 10]} intensity={1} castShadow />
+            
+            <Suspense fallback={null}>
+               <Physics paused={!simulatePhysics} debug={showPhysicsDebug} gravity={[0, -9.81, 0]}>
+                  <RigidBody 
+                     colliders={agentPhysics.colliderShape === 'hull' ? 'hull' : false} 
+                     mass={agentPhysics.mass} 
+                     restitution={agentPhysics.restitution} 
+                     friction={agentPhysics.friction}
+                     position={[-3, 5, 0]} 
+                     type={simulatePhysics ? agentPhysics.type : 'kinematicPosition'} 
+                     collisionGroups={interactionGroups(1, [0, 1, 2])}
+                  >
+                     {agentPhysics.colliderShape === 'cuboid' && <CuboidCollider args={[0.4, 1, 0.4]} position={[0, 1, 0]} />}
+                     {agentPhysics.colliderShape === 'ball' && <BallCollider args={[1]} position={[0, 1, 0]} />}
+                     <BasicSkeletonModel isSimulating={true} />
+                  </RigidBody>
+                  <RigidBody 
+                     colliders={objPhysics.colliderShape === 'hull' ? 'hull' : false} 
+                     mass={objPhysics.mass} 
+                     restitution={objPhysics.restitution} 
+                     friction={objPhysics.friction}
+                     type={simulatePhysics ? objPhysics.type : 'kinematicPosition'}
+                     collisionGroups={interactionGroups(2, [0, 1, 2])}
+                     position={objTransform.position as [number, number, number]}
+                     rotation={objTransform.rotation as [number, number, number]}
+                     onCollisionEnter={(e) => {
+                       setCollisionEvent(`Collided with ${e.other.rigidBodyObject?.name || 'World'}`);
+                       setTimeout(() => setCollisionEvent(null), 1000);
+                     }}
+                  >
+                     {objPhysics.colliderShape === 'cuboid' && <CuboidCollider args={[1.5, 1.5, 1.5]} />}
+                     {objPhysics.colliderShape === 'ball' && <BallCollider args={[1.5]} />}
+                     {/* The transform is managed by physics engine when simulating, otherwise controlled by state */}
+                     <SceneObject 
+                        mode={activeTransformTool} 
+                        transform={{ position: [0, 0, 0], rotation: [0, 0, 0], scale: objTransform.scale }}
+                        material={objMaterial}
+                        setTransform={setObjTransform}
+                        meshType={meshType}
+                        skelAnimState={skelAnimState}
+                     />
+                  </RigidBody>
+                  
+                  {extraBodies.map((body) => (
+                     <RigidBody key={body.id} colliders="cuboid" mass={1} position={[body.x, body.y, body.z]} restitution={0.8} collisionGroups={interactionGroups(2, [0, 1, 2])}>
+                        <mesh receiveShadow castShadow>
+                           <boxGeometry args={[1, 1, 1]} />
+                           <meshStandardMaterial color={body.color} />
+                        </mesh>
+                     </RigidBody>
+                  ))}
 
-              <div className="h-[1px] w-full bg-[#30363d]"></div>
+                  {/* Environment mapping based on selection */}
+                  <Environment preset={
+                    skybox === 'City' ? 'city' : 
+                    skybox === 'Forest' ? 'forest' : 
+                    skybox === 'Studio Light' ? 'studio' : 
+                    skybox === 'Clear Day' ? 'park' : 
+                    'night'
+                  } background={false} blur={0.8} />
 
-              {/* COLOR GRADING */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[12px] font-bold text-[#c9d1d9] tracking-wider uppercase">Color Grading</label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={ppColor} onChange={() => setPpColor(!ppColor)} />
-                    <div className="w-7 h-4 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#3fb950]"></div>
-                  </label>
-                </div>
-                <div className={`flex flex-col gap-4 transition-opacity ${!ppColor ? 'opacity-30 pointer-events-none' : ''}`}>
-                   <div className="flex flex-col gap-2">
-                     <div className="flex justify-between text-[11px] text-[#8b949e]">
-                        <span>Contrast</span><span>{colorContrast}%</span>
-                     </div>
-                     <input type="range" min="50" max="200" step="5" value={colorContrast} onChange={(e) => setColorContrast(parseInt(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer" />
-                   </div>
-                   <div className="flex flex-col gap-2">
-                     <div className="flex justify-between text-[11px] text-[#8b949e]">
-                        <span>Saturation</span><span>{colorSaturation}%</span>
-                     </div>
-                     <input type="range" min="0" max="300" step="10" value={colorSaturation} onChange={(e) => setColorSaturation(parseInt(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer" />
-                   </div>
-                   <div className="flex flex-col gap-2">
-                     <div className="flex justify-between text-[11px] text-[#8b949e]">
-                        <span>Color Temperature (Hue)</span><span>{colorHue}°</span>
-                     </div>
-                     <input type="range" min="-180" max="180" step="5" value={colorHue} onChange={(e) => setColorHue(parseInt(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer" />
-                   </div>
-                </div>
-              </div>
+                  {/* Background elements */}
+                  <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+                  <Sparkles color="#bc8cff" size={4} count={100} scale={10} speed={0.4} opacity={0.1} />
 
-              <div className="h-[1px] w-full bg-[#30363d]"></div>
+                  <RigidBody type="fixed" restitution={0.5} friction={0.5} collisionGroups={interactionGroups(0, [0, 1, 2])}>
+                     <ContactShadows resolution={1024} scale={20} blur={2} opacity={0.6} far={10} color="#000000" />
+                     <gridHelper args={[50, 50, '#30363d', '#161b22']} position={[0, -2, 0]} />
+                     <CuboidCollider args={[25, 0.1, 25]} position={[0, -2.1, 0]} />
+                  </RigidBody>
+               </Physics>
+               
+               {showPP && (
+                 <EffectComposer>
+                   <Bloom 
+                     luminanceThreshold={ppSettings.bloomThreshold} 
+                     luminanceSmoothing={0.9} 
+                     height={300} 
+                     intensity={ppSettings.bloomIntensity} 
+                   />
+                   <BrightnessContrast 
+                     brightness={ppSettings.brightness} 
+                     contrast={ppSettings.contrast} 
+                   />
+                   <HueSaturation 
+                     hue={ppSettings.hue} 
+                     saturation={ppSettings.saturation} 
+                   />
+                   <Vignette 
+                     eskil={false} 
+                     offset={ppSettings.vignetteOffset} 
+                     darkness={ppSettings.vignetteDarkness} 
+                   />
+                   <SSAO 
+                     radius={ppSettings.aoRadius}
+                     intensity={ppSettings.aoIntensity}
+                     luminanceInfluence={0.5}
+                   />
+                 </EffectComposer>
+               )}
+            </Suspense>
 
-              {/* DEPTH OF FIELD */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[12px] font-bold text-[#c9d1d9] tracking-wider uppercase">Depth of Field</label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={ppDof} onChange={() => setPpDof(!ppDof)} />
-                    <div className="w-7 h-4 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#3fb950]"></div>
-                  </label>
-                </div>
-                <div className={`flex flex-col gap-2 transition-opacity ${!ppDof ? 'opacity-30 pointer-events-none' : ''}`}>
-                   <div className="flex justify-between text-[11px] text-[#8b949e]">
-                      <span>Focal Blur</span>
-                      <span>{dofBlur.toFixed(1)}px</span>
-                   </div>
-                   <input type="range" min="0" max="20" step="1" value={dofBlur} onChange={(e) => setDofBlur(parseFloat(e.target.value))} className="w-full h-1 bg-[#30363d] rounded-lg appearance-none cursor-pointer" />
-                </div>
-              </div>
 
-           </div>
+         </Canvas>
+
         </div>
-      )}
+
+        {/* Properties Inspector Panel */}
+        {showInspector && (
+          <div className="w-80 bg-[#0d1117] border-l border-[#30363d] flex flex-col shrink-0 overflow-y-auto text-[#c9d1d9] z-20">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#161b22] border-b border-[#30363d] sticky top-0 z-10">
+              <h2 className="text-[13px] font-bold tracking-wide flex items-center gap-2 text-white">
+                <Sliders size={14} className="text-[#58a6ff]" /> Details
+              </h2>
+              <button onClick={() => setShowInspector(false)} className="text-[#8b949e] hover:text-white transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="p-4 flex flex-col gap-6">
+              {/* Transform Section */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#30363d] pb-1">
+                  <Move size={12} /> Transform
+                </h3>
+                
+                {['position', 'rotation', 'scale'].map((propName) => (
+                  <div key={propName} className="flex flex-col gap-1.5">
+                    <div className="text-[11px] text-[#8b949e] capitalize font-medium">{propName}</div>
+                    <div className="flex gap-2">
+                       {['X', 'Y', 'Z'].map((axis, i) => (
+                         <div key={axis} className="flex-1 flex items-center bg-[#161b22] border border-[#30363d] rounded overflow-hidden focus-within:border-[#58a6ff] transition-colors">
+                           <div className={`px-1.5 py-1 text-[10px] font-bold ${axis === 'X' ? 'text-[#ff7b72]' : axis === 'Y' ? 'text-[#3fb950]' : 'text-[#58a6ff]'} bg-[#21262d] border-r border-[#30363d]`}>
+                             {axis}
+                           </div>
+                           <input 
+                             type="number" 
+                             step={propName === 'scale' ? 0.1 : 1}
+                             className="w-full bg-transparent text-[11px] text-white px-1.5 py-1 outline-none font-mono"
+                             value={objTransform[propName as keyof TransformProps][i].toFixed(2)}
+                             onChange={(e) => handleTransformChange(i, propName as keyof TransformProps, e.target.value)}
+                           />
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mesh Details Section */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#30363d] pb-1">
+                  <Box size={12} /> Mesh Details
+                </h3>
+                <div className="bg-[#161b22] rounded border border-[#30363d] p-3 flex flex-col gap-2">
+                  <div className="flex justify-between items-center text-[11px]">
+                     <span className="text-[#8b949e]">Geometry</span>
+                     <select 
+                       className="bg-[#21262d] text-white text-[11px] outline-none rounded p-1"
+                       value={meshType}
+                       onChange={(e) => setMeshType(e.target.value as any)}
+                     >
+                        <option value="torus">TorusKnot</option>
+                        <option value="skeletal">Skeletal Mesh</option>
+                        <option value="cube">Box / Cube</option>
+                     </select>
+                  </div>
+                  {meshType === 'skeletal' && (
+                    <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e]">Anim State</span>
+                       <select 
+                         className="bg-[#21262d] text-white text-[11px] outline-none rounded p-1"
+                         value={skelAnimState}
+                         onChange={(e) => setSkelAnimState(e.target.value as any)}
+                       >
+                          <option value="Idle">Idle</option>
+                          <option value="Walk">Walk</option>
+                          <option value="Run">Run</option>
+                          <option value="Jump">Jump</option>
+                          <option value="Attack">Attack</option>
+                          <option value="HitReaction">Hit Reaction</option>
+                       </select>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-[11px]">
+                     <span className="text-[#8b949e]">Vertices</span>
+                     <span className="text-[#c9d1d9] font-mono">{meshType === 'torus' ? '16,384' : meshType === 'skeletal' ? '23,412' : '8'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                     <span className="text-[#8b949e]">Triangles</span>
+                     <span className="text-[#c9d1d9] font-mono">{meshType === 'torus' ? '8,192' : meshType === 'skeletal' ? '15,842' : '12'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                     <span className="text-[#8b949e]">LODs</span>
+                     <span className="text-[#3fb950] font-mono">Auto (Nanite)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Physics Settings Section */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-[11px] font-bold text-[#f85149] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#30363d] pb-1">
+                  <Orbit size={12} /> Rigid Body Physics
+                </h3>
+                
+                <div className="flex flex-col gap-2 relative">
+                   <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <span className="text-[11px] text-[#8b949e]">Simulation Type</span>
+                     <select 
+                       className="bg-[#21262d] text-white text-[11px] outline-none rounded p-1"
+                       value={objPhysics.type}
+                       onChange={(e) => setObjPhysics(prev => ({ ...prev, type: e.target.value as any }))}
+                     >
+                        <option value="dynamic">Dynamic (Gravity)</option>
+                        <option value="kinematicPosition">Kinematic (Animated)</option>
+                        <option value="fixed">Fixed (Static)</option>
+                     </select>
+                   </div>
+                   
+                   <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <span className="text-[11px] text-[#8b949e]">Collider Shape</span>
+                     <select 
+                       className="bg-[#21262d] text-white text-[11px] outline-none rounded p-1"
+                       value={objPhysics.colliderShape}
+                       onChange={(e) => setObjPhysics(prev => ({ ...prev, colliderShape: e.target.value as any }))}
+                     >
+                        <option value="cuboid">Box Collider</option>
+                        <option value="ball">Sphere Collider</option>
+                        <option value="hull">Convex Hull</option>
+                     </select>
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Mass (kg)</span>
+                       <input 
+                         type="number" 
+                         className="bg-transparent text-[11px] text-white w-16 outline-none font-mono text-right"
+                         value={objPhysics.mass}
+                         onChange={(e) => setObjPhysics(prev => ({ ...prev, mass: parseFloat(e.target.value) || 1 }))}
+                       />
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Restitution (Bounciness)</span>
+                       <span className="text-[11px] font-mono">{Number(objPhysics.restitution).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="1" step="0.01" 
+                       value={objPhysics.restitution}
+                       onChange={(e) => setObjPhysics(prev => ({ ...prev, restitution: parseFloat(e.target.value) }))}
+                       className="w-full accent-[#f85149] cursor-pointer"
+                     />
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Friction</span>
+                       <span className="text-[11px] font-mono">{Number(objPhysics.friction).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="2" step="0.01" 
+                       value={objPhysics.friction}
+                       onChange={(e) => setObjPhysics(prev => ({ ...prev, friction: parseFloat(e.target.value) }))}
+                       className="w-full accent-[#e3b341] cursor-pointer"
+                     />
+                   </div>
+                   
+                   <div className="flex items-center gap-2 mt-2">
+                     <button onClick={() => setSimulatePhysics(!simulatePhysics)} className={`w-full py-1.5 font-bold text-[11px] rounded transition-colors ${simulatePhysics ? 'bg-[#f85149] text-white' : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'}`}>
+                       {simulatePhysics ? 'Simulating...' : 'Play Physics'}
+                     </button>
+                     <button 
+                       onClick={() => setExtraBodies(prev => [...prev, { id: Date.now(), x: Math.random() * 4 - 2, y: 10 + Math.random() * 5, z: Math.random() * 4 - 2, color: '#' + Math.floor(Math.random()*16777215).toString(16) }])}
+                       className="w-full py-1.5 bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-[#58a6ff] font-bold text-[11px] rounded transition-colors"
+                     >
+                       Spawn Box
+                     </button>
+                     {extraBodies.length > 0 && (
+                       <button onClick={() => setExtraBodies([])} className="px-2 py-1.5 bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-[#f85149] rounded transition-colors" title="Clear Spawned">
+                         <X size={14} />
+                       </button>
+                     )}
+                   </div>
+                </div>
+              </div>
+
+              {/* Agent Physics Settings Section */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-[11px] font-bold text-[#e3b341] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#30363d] pb-1">
+                  <Orbit size={12} /> AI Agent Physics
+                </h3>
+                
+                <div className="flex flex-col gap-2 relative">
+                   <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <span className="text-[11px] text-[#8b949e]">Simulation Type</span>
+                     <select 
+                       className="bg-[#21262d] text-white text-[11px] outline-none rounded p-1"
+                       value={agentPhysics.type}
+                       onChange={(e) => setAgentPhysics(prev => ({ ...prev, type: e.target.value as any }))}
+                     >
+                        <option value="dynamic">Dynamic (Gravity)</option>
+                        <option value="kinematicPosition">Kinematic (Animated)</option>
+                        <option value="fixed">Fixed (Static)</option>
+                     </select>
+                   </div>
+                   
+                   <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <span className="text-[11px] text-[#8b949e]">Collider Shape</span>
+                     <select 
+                       className="bg-[#21262d] text-white text-[11px] outline-none rounded p-1"
+                       value={agentPhysics.colliderShape}
+                       onChange={(e) => setAgentPhysics(prev => ({ ...prev, colliderShape: e.target.value as any }))}
+                     >
+                        <option value="cuboid">Box Collider</option>
+                        <option value="ball">Sphere Collider</option>
+                        <option value="hull">Convex Hull</option>
+                     </select>
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Mass (kg)</span>
+                       <input 
+                         type="number" 
+                         className="bg-transparent text-[11px] text-white w-16 outline-none font-mono text-right"
+                         value={agentPhysics.mass}
+                         onChange={(e) => setAgentPhysics(prev => ({ ...prev, mass: parseFloat(e.target.value) || 1 }))}
+                       />
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Restitution (Bounciness)</span>
+                       <span className="text-[11px] font-mono">{Number(agentPhysics.restitution).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="1" step="0.01" 
+                       value={agentPhysics.restitution}
+                       onChange={(e) => setAgentPhysics(prev => ({ ...prev, restitution: parseFloat(e.target.value) }))}
+                       className="w-full accent-[#e3b341] cursor-pointer"
+                     />
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Friction</span>
+                       <span className="text-[11px] font-mono">{Number(agentPhysics.friction).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="2" step="0.01" 
+                       value={agentPhysics.friction}
+                       onChange={(e) => setAgentPhysics(prev => ({ ...prev, friction: parseFloat(e.target.value) }))}
+                       className="w-full accent-[#e3b341] cursor-pointer"
+                     />
+                   </div>
+                </div>
+              </div>
+
+              {/* Material Slots Section */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#30363d] pb-1">
+                  <Layers size={12} /> Material Instance
+                </h3>
+                
+                <div className="flex flex-col gap-2 relative">
+                   <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <span className="text-[11px] text-[#8b949e]">Albedo Color</span>
+                     <div className="flex items-center gap-2">
+                       <input 
+                         type="text" 
+                         className="bg-transparent text-[11px] text-white w-16 outline-none font-mono text-right"
+                         value={objMaterial.color}
+                         onChange={(e) => handleMaterialChange('color', e.target.value)}
+                       />
+                       <input 
+                         type="color" 
+                         value={objMaterial.color}
+                         onChange={(e) => handleMaterialChange('color', e.target.value)}
+                         className="w-5 h-5 rounded cursor-pointer p-0 border-[#30363d] bg-transparent"
+                       />
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Roughness</span>
+                       <span className="text-[11px] font-mono">{Number(objMaterial.roughness).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="1" step="0.01" 
+                       value={objMaterial.roughness}
+                       onChange={(e) => handleMaterialChange('roughness', parseFloat(e.target.value))}
+                       className="w-full accent-[#58a6ff] cursor-pointer"
+                     />
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Metalness</span>
+                       <span className="text-[11px] font-mono">{Number(objMaterial.metalness).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="1" step="0.01" 
+                       value={objMaterial.metalness}
+                       onChange={(e) => handleMaterialChange('metalness', parseFloat(e.target.value))}
+                       className="w-full accent-[#58a6ff] cursor-pointer"
+                     />
+                   </div>
+
+                   <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <span className="text-[11px] text-[#8b949e]">Emissive</span>
+                     <div className="flex items-center gap-2">
+                       <input 
+                         type="text" 
+                         className="bg-transparent text-[11px] text-white w-16 outline-none font-mono text-right"
+                         value={objMaterial.emissive}
+                         onChange={(e) => handleMaterialChange('emissive', e.target.value)}
+                       />
+                       <input 
+                         type="color" 
+                         value={objMaterial.emissive}
+                         onChange={(e) => handleMaterialChange('emissive', e.target.value)}
+                         className="w-5 h-5 rounded cursor-pointer p-0 border-[#30363d] bg-transparent"
+                       />
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col gap-1 bg-[#161b22] border border-[#30363d] p-2 rounded focus-within:border-[#58a6ff]">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[11px] text-[#8b949e]">Emissive Intensity</span>
+                       <span className="text-[11px] font-mono">{Number(objMaterial.emissiveIntensity).toFixed(2)}</span>
+                     </div>
+                     <input 
+                       type="range" 
+                       min="0" max="10" step="0.1" 
+                       value={objMaterial.emissiveIntensity}
+                       onChange={(e) => handleMaterialChange('emissiveIntensity', parseFloat(e.target.value))}
+                       className="w-full accent-[#bc8cff] cursor-pointer"
+                     />
+                   </div>
+
+                </div>
+              </div>
+              {/* Post Processing Section */}
+              {showPP && (
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-[11px] font-bold text-[#e3b341] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#30363d] pb-1 mt-2">
+                    <SlidersHorizontal size={12} /> Post-Processing Options
+                  </h3>
+                  
+                  <div className="flex flex-col gap-2 bg-[#161b22] border border-[#30363d] p-2 rounded">
+                     <span className="text-[11px] font-bold text-white border-b border-[#30363d] pb-1 mb-1">Bloom</span>
+                     <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e]">Intensity</span>
+                       <span className="font-mono">{Number(ppSettings.bloomIntensity).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="0" max="5" step="0.1" value={ppSettings.bloomIntensity} onChange={e => setPPSettings({...ppSettings, bloomIntensity: parseFloat(e.target.value)})} className="w-full accent-[#bc8cff]" />
+                     
+                     <div className="flex justify-between items-center text-[11px] mt-2">
+                       <span className="text-[#8b949e]">Threshold</span>
+                       <span className="font-mono">{Number(ppSettings.bloomThreshold).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="0" max="1" step="0.05" value={ppSettings.bloomThreshold} onChange={e => setPPSettings({...ppSettings, bloomThreshold: parseFloat(e.target.value)})} className="w-full accent-[#bc8cff]" />
+                  </div>
+
+                  <div className="flex flex-col gap-2 bg-[#161b22] border border-[#30363d] p-2 rounded">
+                     <span className="text-[11px] font-bold text-white border-b border-[#30363d] pb-1 mb-1">Color Grading</span>
+                     <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e]">Brightness</span>
+                       <span className="font-mono">{Number(ppSettings.brightness).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="-1" max="1" step="0.05" value={ppSettings.brightness} onChange={e => setPPSettings({...ppSettings, brightness: parseFloat(e.target.value)})} className="w-full accent-[#58a6ff]" />
+                     
+                     <div className="flex justify-between items-center text-[11px] mt-2">
+                       <span className="text-[#8b949e]">Contrast</span>
+                       <span className="font-mono">{Number(ppSettings.contrast).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="-1" max="1" step="0.05" value={ppSettings.contrast} onChange={e => setPPSettings({...ppSettings, contrast: parseFloat(e.target.value)})} className="w-full accent-[#58a6ff]" />
+
+                     <div className="flex justify-between items-center text-[11px] mt-2">
+                       <span className="text-[#8b949e]">Saturation</span>
+                       <span className="font-mono">{Number(ppSettings.saturation).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="-1" max="1" step="0.05" value={ppSettings.saturation} onChange={e => setPPSettings({...ppSettings, saturation: parseFloat(e.target.value)})} className="w-full accent-[#58a6ff]" />
+                  </div>
+
+                  <div className="flex flex-col gap-2 bg-[#161b22] border border-[#30363d] p-2 rounded">
+                     <span className="text-[11px] font-bold text-white border-b border-[#30363d] pb-1 mb-1">Ambient Occlusion (SSAO)</span>
+                     <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e]">Intensity</span>
+                       <span className="font-mono">{Number(ppSettings.aoIntensity).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="0" max="5" step="0.1" value={ppSettings.aoIntensity} onChange={e => setPPSettings({...ppSettings, aoIntensity: parseFloat(e.target.value)})} className="w-full accent-[#3fb950]" />
+                     
+                     <div className="flex justify-between items-center text-[11px] mt-2">
+                       <span className="text-[#8b949e]">Radius</span>
+                       <span className="font-mono">{Number(ppSettings.aoRadius).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="0" max="1" step="0.05" value={ppSettings.aoRadius} onChange={e => setPPSettings({...ppSettings, aoRadius: parseFloat(e.target.value)})} className="w-full accent-[#3fb950]" />
+                  </div>
+
+                  <div className="flex flex-col gap-2 bg-[#161b22] border border-[#30363d] p-2 rounded">
+                     <span className="text-[11px] font-bold text-white border-b border-[#30363d] pb-1 mb-1">Vignette</span>
+                     <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e]">Darkness</span>
+                       <span className="font-mono">{Number(ppSettings.vignetteDarkness).toFixed(2)}</span>
+                     </div>
+                     <input type="range" min="0" max="1" step="0.05" value={ppSettings.vignetteDarkness} onChange={e => setPPSettings({...ppSettings, vignetteDarkness: parseFloat(e.target.value)})} className="w-full accent-[#f85149]" />
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

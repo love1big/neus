@@ -26,6 +26,14 @@ export default function PipelineEditor() {
     setLogs(['[Swarm Commander] Initializing multi-agent pipeline...', 'Allocating local VRAM for 5 concurrent agents.']);
   };
 
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
+  }, []);
+
   useEffect(() => {
     if (pipelineState === 'running') {
       let currentProgress = 0;
@@ -41,7 +49,8 @@ export default function PipelineEditor() {
           setLogs(prev => [...prev, `[Step ${activeStep + 1} Completed] Data serialized to next agent.`]);
           
           if (activeStep < steps.length - 1) {
-            setTimeout(() => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            timeoutRef.current = setTimeout(() => {
               setActiveStep(prev => prev + 1);
               setProgress(0);
               if (activeStep + 1 === 4) {

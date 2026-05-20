@@ -79,7 +79,11 @@ export default function GamePreview({ files }: GamePreviewProps) {
              if(out) {
                const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
                const color = type === 'error' ? '#f85149' : type === 'warn' ? '#e3b341' : '#c9d1d9';
-               out.innerHTML += '<div style="color: ' + color + '; margin-top: 4px;">> ' + msg + '</div>';
+               const newOut = document.createElement('div');
+               newOut.style.color = color;
+               newOut.style.marginTop = '4px';
+               newOut.innerText = '> ' + msg;
+               out.appendChild(newOut);
                out.scrollTop = out.scrollHeight;
              }
            }
@@ -149,7 +153,7 @@ export default function GamePreview({ files }: GamePreviewProps) {
             srcDoc={srcDoc}
             title="Unified Runtime Preview"
             className={`w-full h-full border-none bg-[#0a0a0a] transition-all duration-300 ${simMode === 'PhysicsDebug' ? 'grayscale-[0.5] contrast-[1.2]' : ''} ${simMode === 'AIDebug' ? 'sepia-[0.3] hue-rotate-[180deg]' : ''}`}
-            sandbox="allow-scripts allow-same-origin allow-pointer-lock"
+            sandbox="allow-scripts allow-pointer-lock"
           />
 
           {/* OSD Overlays based on Simulation Mode */}
