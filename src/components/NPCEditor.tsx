@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Users, Search, Plus, Trash2, Save, Activity, BookOpen, Zap, Settings2, ArrowRight, Ghost, MessageSquare, Database, ShieldAlert, GitBranch } from 'lucide-react';
+import { Users, Search, Plus, Trash2, Save, Activity, BookOpen, Zap, Settings2, ArrowRight, Ghost, MessageSquare, Database, ShieldAlert, GitBranch, FlaskConical, Wand2, Dna } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 type Stat = { hp: number; mp: number; strength: number; agility: number; intelligence: number };
-type NPC = { id: string; name: string; title: string; category: string; description: string; stats: Stat; skills: string[]; questIds: string[]; behavior: string; aiType?: string; patrolPath?: string; aggroRange?: number; attackPattern?: string; skillFrequency?: number; reactProximity?: boolean; critiqueSystem?: string; combatWatchDistance?: number; voiceProfile?: string; psychologicalTraits?: string; hiddenAgenda?: string; alignment?: string; conversationStyle?: string; memoryRetention?: string; adultContentOverride?: boolean; nonAiVoiceLines?: string; emotionMatrix?: string; lootTableId?: string; factionId?: string; dialogueId?: string; isMonster?: boolean; spawnConditions?: string; phaseTransitions?: string; };
+type NPC = { id: string; name: string; title: string; category: string; description: string; stats: Stat; skills: string[]; questIds: string[]; behavior: string; aiType?: string; patrolPath?: string; proceduralIdle?: string; aggroRange?: number; attackPattern?: string; skillFrequency?: number; reactProximity?: boolean; critiqueSystem?: string; combatWatchDistance?: number; voiceProfile?: string; psychologicalTraits?: string; hiddenAgenda?: string; alignment?: string; conversationStyle?: string; memoryRetention?: string; adultContentOverride?: boolean; nonAiVoiceLines?: string; emotionMatrix?: string; lootTableId?: string; factionId?: string; dialogueId?: string; isMonster?: boolean; spawnConditions?: string; phaseTransitions?: string; };
 type Skill = { id: string; name: string; type: 'passive' | 'active' | 'ultimate'; description: string; cooldown: number; cost: number; effects: { type: string; value: number }[] };
 type Quest = { id: string; name: string; description: string; npcId: string; nextQuestId: string | null; requirements: string; rewards: string };
 type Faction = { id: string; name: string; allies: string[]; enemies: string[]; neutral: string[]; description: string; };
@@ -119,6 +119,114 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
     const newDt: DialogueTree = { id: uuidv4(), name: 'New Dialogue Tree', npcId: '', rootNodeId: null, nodes: [] };
     setDialogueTrees([...dialogueTrees, newDt]);
     setSelectedDialogueTreeId(newDt.id);
+  };
+
+  const handleEvolveMonster = (baseNpc: NPC, stressType: string) => {
+    // Generate AI/Procedural Name based on stress type and base name
+    const prefixes: Record<string, string[]> = {
+       'Toxic': ['Abyssal', 'Plague', 'Venomous', 'Blighted', '腐敗した (Rotten)', 'Bio-Hazard', 'Noxious'],
+       'Thermal': ['Infernal', 'Magma', 'Scorched', 'Volcanic', '灼熱の (Blazing)', 'Ash-Born', 'Pyroclastic'],
+       'Radioactive': ['Mutant', 'Nuclear', 'Gamma', 'Warped', '放射能 (Radiant)', 'Isotope', 'Cherenkov'],
+       'AbsoluteZero': ['Glacial', 'Everfrost', 'Cryo', 'Shattered', '絶対零度の (Absolute Zero)', 'Permafrost', 'Frostbite'],
+       'Abyssal': ['Void', 'Deep', 'Pressure-Crushed', 'Dark', '深淵の (Abyssal)', 'Trench-Dweller', 'Eldritch'],
+       'LocalizedGravity': ['Dense', 'Singularity', 'Gravity-Bound', 'Floating', '重力の (Gravitational)', 'Crushing', 'Supermassive'],
+       'SubatomicResonance': ['Phase-Shifted', 'Quantum', 'Unstable', 'Flickering', '量子の (Quantum)', 'Entangled', 'Dimensional']
+    };
+    
+    const randomPrefix = prefixes[stressType] ? prefixes[stressType][Math.floor(Math.random() * prefixes[stressType].length)] : 'Evolved';
+    const newName = `${randomPrefix} ${baseNpc.name}`;
+    
+    // Environment-specific highly detailed loot generation (Items, drop rates, and lore names)
+    const environmentLootDict: Record<string, any[]> = {
+       'Toxic': [
+          { itemName: 'Viscous Blight Gland', dropRate: 1.0, minQuantity: 1, maxQuantity: 2, guaranteed: true },
+          { itemName: `Corrosive ${baseNpc.name} Blood`, dropRate: 0.85, minQuantity: 2, maxQuantity: 5, guaranteed: false },
+          { itemName: 'Putrid Marrow', dropRate: 0.60, minQuantity: 1, maxQuantity: 3, guaranteed: false },
+          { itemName: 'Noxious Fumes Bottled', dropRate: 0.30, minQuantity: 1, maxQuantity: 1, guaranteed: false },
+          { itemName: 'Mutated Plaguespore Core (Legendary)', dropRate: 0.03, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ],
+       'Thermal': [
+          { itemName: 'Pulsing Magma Core', dropRate: 1.0, minQuantity: 1, maxQuantity: 1, guaranteed: true },
+          { itemName: `Scorched ${baseNpc.name} Scale`, dropRate: 0.80, minQuantity: 1, maxQuantity: 4, guaranteed: false },
+          { itemName: 'Liquid Fire Vial', dropRate: 0.55, minQuantity: 1, maxQuantity: 2, guaranteed: false },
+          { itemName: 'Ash-Covered Bone Fragment', dropRate: 0.40, minQuantity: 2, maxQuantity: 6, guaranteed: false },
+          { itemName: 'Heart of the Volcano (Legendary)', dropRate: 0.02, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ],
+       'Radioactive': [
+          { itemName: 'Isotope-Enriched Plasma', dropRate: 1.0, minQuantity: 1, maxQuantity: 3, guaranteed: true },
+          { itemName: `Glowing ${baseNpc.name} Gamma Gland`, dropRate: 0.75, minQuantity: 1, maxQuantity: 2, guaranteed: false },
+          { itemName: 'Uranium-Infused Claw/Tooth', dropRate: 0.50, minQuantity: 1, maxQuantity: 4, guaranteed: false },
+          { itemName: 'Mutagenic Sludge', dropRate: 0.35, minQuantity: 1, maxQuantity: 3, guaranteed: false },
+          { itemName: 'Cherenkov Radiator Organ (Legendary)', dropRate: 0.04, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ],
+       'AbsoluteZero': [
+          { itemName: 'Permafrost Crystal', dropRate: 1.0, minQuantity: 1, maxQuantity: 2, guaranteed: true },
+          { itemName: `Shattered ${baseNpc.name} Ice-Bone`, dropRate: 0.85, minQuantity: 2, maxQuantity: 6, guaranteed: false },
+          { itemName: 'Cryo-Stasis Gland', dropRate: 0.45, minQuantity: 1, maxQuantity: 1, guaranteed: false },
+          { itemName: 'Zero-Point Energy Shard', dropRate: 0.20, minQuantity: 1, maxQuantity: 3, guaranteed: false },
+          { itemName: 'Breath of the Primeval Blizzard (Legendary)', dropRate: 0.015, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ],
+       'Abyssal': [
+          { itemName: 'Crushing Depth-Bladder', dropRate: 1.0, minQuantity: 1, maxQuantity: 1, guaranteed: true },
+          { itemName: `Abyssal-Encrusted ${baseNpc.name} Carapace`, dropRate: 0.70, minQuantity: 1, maxQuantity: 3, guaranteed: false },
+          { itemName: 'Bioluminescent Lure', dropRate: 0.60, minQuantity: 1, maxQuantity: 2, guaranteed: false },
+          { itemName: 'Void-Black Scales', dropRate: 0.40, minQuantity: 3, maxQuantity: 8, guaranteed: false },
+          { itemName: 'Echo of the Nightmare Leviathan (Legendary)', dropRate: 0.025, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ],
+       'LocalizedGravity': [
+          { itemName: 'Singularity Core', dropRate: 1.0, minQuantity: 1, maxQuantity: 1, guaranteed: true },
+          { itemName: `Gravity-Dense ${baseNpc.name} Matter`, dropRate: 0.80, minQuantity: 2, maxQuantity: 5, guaranteed: false },
+          { itemName: 'Floating Bone Fragment', dropRate: 0.65, minQuantity: 1, maxQuantity: 4, guaranteed: false },
+          { itemName: 'Anti-Graviton Gland', dropRate: 0.30, minQuantity: 1, maxQuantity: 1, guaranteed: false },
+          { itemName: 'Mass-Altering Catalyst (Legendary)', dropRate: 0.03, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ],
+       'SubatomicResonance': [
+          { itemName: 'Probability Core', dropRate: 1.0, minQuantity: 1, maxQuantity: 1, guaranteed: true },
+          { itemName: `Phase-Shifted ${baseNpc.name} Dust`, dropRate: 0.90, minQuantity: 3, maxQuantity: 10, guaranteed: false },
+          { itemName: 'Entangled Neural Pathway', dropRate: 0.55, minQuantity: 1, maxQuantity: 2, guaranteed: false },
+          { itemName: 'Quantum Flux Capacitor', dropRate: 0.25, minQuantity: 1, maxQuantity: 1, guaranteed: false },
+          { itemName: 'Unstable Resonant Crystal (Legendary)', dropRate: 0.01, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+       ]
+    };
+
+    const specificLoot = environmentLootDict[stressType] || [
+        { itemName: `${stressType} Anomaly Core`, dropRate: 1.0, minQuantity: 1, maxQuantity: 1, guaranteed: true },
+        { itemName: `Mutated ${baseNpc.name} Tissue`, dropRate: 0.8, minQuantity: 1, maxQuantity: 4, guaranteed: false },
+        { itemName: 'Mythical Artifact Fragment', dropRate: 0.05, minQuantity: 1, maxQuantity: 1, guaranteed: false }
+    ];
+
+    const newNpc: NPC = {
+       ...baseNpc,
+       id: uuidv4(),
+       name: newName,
+       title: `Hazard Level EX: ${stressType} Metamorphosis`,
+       description: `[WARNING: CRITICAL MUTATION DETECTED]\nA horrifying evolution of a ${baseNpc.name}, forced to adapt by extreme ${stressType} environments. Its cellular structure has completely rewritten itself to survive and dominate this domain.`,
+       stats: {
+          hp: Math.floor(baseNpc.stats.hp * 2.8),
+          mp: Math.floor(baseNpc.stats.mp * 1.8),
+          strength: Math.floor(baseNpc.stats.strength * 2.2),
+          agility: Math.floor(baseNpc.stats.agility * 1.5),
+          intelligence: Math.floor(baseNpc.stats.intelligence * 2.0),
+       },
+       behavior: 'Hyper-Aggressive (Apex Predator)',
+       lootTableId: '', // Will generate a new loot table below
+       isMonster: true,
+       spawnConditions: `[Require Environment: ${stressType} Hazard Zone - Level 5+]`,
+       phaseTransitions: '75% HP: Activates Hazard Aura | 25% HP: Enters Critical Metamorphosis Overdrive'
+    };
+
+    // Auto-generate legendary loot table for this new evolution
+    const newLoot: LootTable = {
+       id: uuidv4(),
+       name: `${newName} - ${stressType} Droptable`,
+       drops: specificLoot
+    };
+
+    setLootTables([...lootTables, newLoot]);
+    newNpc.lootTableId = newLoot.id;
+
+    setNpcs([...npcs, newNpc]);
+    setSelectedNpcId(newNpc.id);
   };
 
   const deleteNpc = (id: string) => { 
@@ -448,6 +556,26 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
                                <input type="checkbox" id={`prox-${npc.id}`} checked={npc.reactProximity || false} onChange={(e) => updateNpc(npc.id, 'reactProximity', e.target.checked)} className="accent-[#bc8cff]"/>
                                <label htmlFor={`prox-${npc.id}`} className="text-[12px] text-[#c9d1d9] cursor-pointer">React to Player Proximity</label>
                             </div>
+
+                            <div className="flex flex-col gap-1 mt-3 pt-3 border-t border-[#30363d]">
+                                <label className="text-[10px] text-[#8b949e] flex items-center gap-1 font-bold uppercase tracking-wider">
+                                  <Activity size={12}/> Procedural Idle Animation
+                                </label>
+                                <select 
+                                   className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-[12px] text-[#c9d1d9] outline-none focus:border-[#58a6ff]"
+                                   value={npc.proceduralIdle || 'None'}
+                                   onChange={(e) => updateNpc(npc.id, 'proceduralIdle', e.target.value)}
+                                >
+                                   <option value="None">None (Static)</option>
+                                   <option value="Breathing (Calm)">Breathing (Calm)</option>
+                                   <option value="Breathing (Heavy)">Breathing (Heavy/Exhausted)</option>
+                                   <option value="Shifting Weight">Shifting Weight</option>
+                                   <option value="Looking Around">Looking Around</option>
+                                   <option value="Fidgeting">Fidgeting (Nervous)</option>
+                                   <option value="Stretching">Stretching (Bored)</option>
+                                   <option value="Weapon Inspection">Weapon Inspection / Cleaning</option>
+                                </select>
+                            </div>
                          </div>
                          <div className="flex flex-col gap-3">
                             <InputField label="Aggro Range & Line of Sight Attack (m)" type="number" value={npc.aggroRange || 5} onChange={(v: number) => updateNpc(npc.id, 'aggroRange', v)} />
@@ -616,6 +744,32 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
                               <h3 className="text-[#c9d1d9] font-bold mb-4 flex items-center gap-2 border-b border-[#30363d] pb-2"><Ghost size={16} className="text-[#f85149]"/> Monster Specifics</h3>
                               <InputField label="Spawn Conditions" value={npc.spawnConditions || ''} onChange={(v: string) => updateNpc(npc.id, 'spawnConditions', v)} />
                               <TextAreaField label="Phase Transitions (e.g. 50% HP = Enrage)" value={npc.phaseTransitions || ''} onChange={(v: string) => updateNpc(npc.id, 'phaseTransitions', v)} mb="0" />
+                              
+                              <div className="mt-4 bg-[#0d1117] border border-[#f85149]/30 rounded p-4">
+                                 <h4 className="text-[#f85149] font-bold text-[11px] mb-2 flex items-center gap-2"><Dna size={14}/> Hazardous Metamorphosis Simulator</h4>
+                                 <p className="text-[10px] text-[#8b949e] mb-3 leading-relaxed">
+                                    Simulate dropping this monster into a hazardous coordinate zone. A new specialized species will be generated automatically inheriting traits.
+                                 </p>
+                                 <div className="flex gap-2">
+                                    <select id={`evolve-select-${npc.id}`} className="bg-[#161b22] border border-[#30363d] p-1.5 rounded text-[#c9d1d9] text-[11px] flex-1 outline-none">
+                                       <option value="Toxic">Toxic/Radioactive Zone</option>
+                                       <option value="Thermal">Thermal/Lava Zone</option>
+                                       <option value="AbsoluteZero">Absolute Zero Tundra</option>
+                                       <option value="Abyssal">Abyssal Pressure Void</option>
+                                       <option value="LocalizedGravity">Gravitational Anomaly</option>
+                                       <option value="SubatomicResonance">Quantum Resonance Chamber</option>
+                                    </select>
+                                    <button 
+                                      onClick={() => {
+                                         const sel = document.getElementById(`evolve-select-${npc.id}`) as HTMLSelectElement;
+                                         if (sel) handleEvolveMonster(npc, sel.value);
+                                      }}
+                                      className="bg-[#f85149] hover:bg-[#ff7b72] text-[#0d1117] px-3 py-1.5 rounded text-[11px] font-bold transition-colors shadow-[0_0_8px_rgba(248,81,73,0.3)] flex items-center gap-1"
+                                    >
+                                       <FlaskConical size={12}/> Evolve
+                                    </button>
+                                 </div>
+                              </div>
                            </div>
                         )}
                       </div>

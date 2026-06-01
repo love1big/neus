@@ -1,2859 +1,2044 @@
-import React, { useState, useEffect } from 'react';
-import { Map, Grid, Layers, Search, Plus, Save, Play, Mountain, Trees, Box, Hexagon, Move3D, Eye, Camera, Settings, Compass, Undo, Redo, Sun, Wind, PersonStanding, RefreshCw, Maximize2, Route, SquareDashed, Milestone, Clapperboard, ScrollText, Lightbulb, Paintbrush, Flag, Video, Focus, Volume2, Stamp, Cpu, Wand2, CloudRain, Zap, Workflow, ImageUp, Activity, GripHorizontal, Minimize2, Database, Brain, MonitorPlay, Hammer, Bomb, Folder, ChevronUp, ChevronDown, Package, BoxSelect, Trash2, Orbit, Flame, Snowflake, Skull, Waves, Moon, Network, Globe, RotateCcw, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  Map, Grid, Layers, Search, Plus, Save, Play, Mountain, Trees, Box, Hexagon, Move3D, Eye, Camera, Settings, 
+  Compass, Undo, Redo, Sun, Wind, PersonStanding, RefreshCw, Maximize2, Route, SquareDashed, Milestone, 
+  Clapperboard, ScrollText, Lightbulb, Paintbrush, Flag, Video, Focus, Volume2, Stamp, Cpu, Wand2, CloudRain, 
+  Zap, Workflow, ImageUp, Activity, GripHorizontal, Minimize2, Database, Brain, MonitorPlay, Hammer, Bomb, 
+  Folder, ChevronUp, ChevronDown, Package, BoxSelect, Trash2, Orbit, Flame, Snowflake, Skull, Waves, Moon, 
+  Network, Globe, RotateCcw, Sparkles, Info, X, MapPin, AlignCenter, AlignLeft, Target, Key, Droplet, 
+  Palette, MousePointer2, Scissors, Copy, ClipboardPaste, Box as BoxIcon, Link, Mic, Blend, Combine
+} from 'lucide-react';
+
+const PHYSICAL_MATERIALS = [
+  { id: 'ice', name: 'Glacial Ice', category: 'Frozen', friction: 0.1, restitution: 0.2, color: 'bg-cyan-200', hex: '#a5f3fc' },
+  { id: 'mud', name: 'Thick Mud', category: 'Terrain', friction: 0.9, restitution: 0.05, color: 'bg-amber-900', hex: '#78350f' },
+  { id: 'sand', name: 'Dune Sand', category: 'Terrain', friction: 0.7, restitution: 0.1, color: 'bg-yellow-600', hex: '#ca8a04' },
+  { id: 'gravel', name: 'Loose Gravel', category: 'Terrain', friction: 0.8, restitution: 0.3, color: 'bg-stone-500', hex: '#78716c' },
+  { id: 'rock', name: 'Bedrock', category: 'Hard', friction: 0.6, restitution: 0.8, color: 'bg-gray-700', hex: '#374151' },
+  { id: 'grass', name: 'Wet Grass', category: 'Foliage', friction: 0.4, restitution: 0.2, color: 'bg-green-600', hex: '#16a34a' },
+  { id: 'snow', name: 'Powder Snow', category: 'Frozen', friction: 0.5, restitution: 0.1, color: 'bg-slate-200', hex: '#e2e8f0' },
+  { id: 'asphalt', name: 'Asphalt', category: 'Urban', friction: 0.85, restitution: 0.4, color: 'bg-gray-800', hex: '#1f2937' },
+  { id: 'wood', name: 'Sturdy Wood', category: 'Hard', friction: 0.5, restitution: 0.5, color: 'bg-amber-800', hex: '#92400e' },
+  { id: 'metal', name: 'Rusted Metal', category: 'Hard', friction: 0.4, restitution: 0.6, color: 'bg-slate-600', hex: '#475569' }
+];
+
+// Mock Data
+const outlinerData = [
+  { id: '1', name: 'DirectionalLight_Sun', type: 'Light', icon: <Sun size={14} className="text-yellow-400" /> },
+  { id: '2', name: 'SkyAtmosphere', type: 'Environment', icon: <Wind size={14} className="text-blue-300" /> },
+  { id: '3', name: 'VolumetricCloud', type: 'Environment', icon: <CloudRain size={14} className="text-gray-300" /> },
+  { id: '4', name: 'Landscape_Main', type: 'Landscape', icon: <Mountain size={14} className="text-green-500" /> },
+  { id: '5', name: 'PlayerStart', type: 'Gameplay', icon: <Flag size={14} className="text-red-500" /> },
+  { id: '6', name: 'SM_AbandonedBuilding', type: 'StaticMesh', icon: <Box size={14} className="text-gray-400" /> },
+  { id: '7', name: 'WaterBody_Lake', type: 'Water', icon: <Droplet size={14} className="text-blue-500" /> },
+  { id: '8', name: 'BP_Enemy_Patrol', type: 'Blueprint', icon: <Cpu size={14} className="text-purple-400" /> },
+  { id: '9', name: 'PCG_Forest_Biome', type: 'Procedural', icon: <Workflow size={14} className="text-indigo-400" /> },
+  { id: '10', name: 'PostProcessVolume', type: 'Volume', icon: <BoxSelect size={14} className="text-pink-400" /> }
+];
 
 export default function MapEditor({ setActiveTool }: { setActiveTool?: (tool: string) => void }) {
-  const [mode, setMode] = useState('Select');
-  const [perfPos, setPerfPos] = useState({ x: 16, y: 50 });
-  const [splineType, setSplineType] = useState<'Path' | 'Road' | 'River'>('Path');
-  const [splineNodes, setSplineNodes] = useState<{ x: number, y: number, id: number }[]>([
-    { x: 40, y: 60, id: 0 },
-    { x: 60, y: 50, id: 1 },
-    { x: 80, y: 40, id: 2 }
-  ]);
-
-  const generateSplineCurve = (points: {x: number, y: number}[]) => {
-    if (points.length < 2) return '';
-    if (points.length === 2) return `M ${points[0].x}% ${points[0].y}% L ${points[1].x}% ${points[1].y}%`;
-    
-    // Catmull-Rom to Bezier for smooth splines passing exactly through nodes
-    const tension = 1;
-    let path = `M ${points[0].x}% ${points[0].y}%`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = i === 0 ? points[0] : points[i - 1];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = i + 2 < points.length ? points[i + 2] : p2;
-      
-      const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
-      const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
-      const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
-      const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
-      
-      path += ` C ${cp1x}% ${cp1y}%, ${cp2x}% ${cp2y}%, ${p2.x}% ${p2.y}%`;
-    }
-    return path;
-  };
-  const [activeSplineNode, setActiveSplineNode] = useState<number | null>(0);
-  const [isNodeDragging, setIsNodeDragging] = useState<{id: number, startX: number, startY: number, initialX: number, initialY: number} | null>(null);
-  const [isPerfDragging, setIsPerfDragging] = useState<{startX: number, startY: number, initialX: number, initialY: number} | null>(null);
-  const [isPerfMinimized, setIsPerfMinimized] = useState(false);
-  const [isContentBrowserOpen, setIsContentBrowserOpen] = useState(false);
+  // Global States
+  const [activeTab, setActiveTab] = useState<'Select' | 'Landscape' | 'Foliage' | 'Paint' | 'Water' | 'Splines' | 'PCG' | 'Swarm' | 'Smart AI' | 'Lighting' | 'Geometry' | 'Cinematics' | 'Seasons' | 'Audio' | 'Physics' | 'PostProcess' | 'Navigation'>('Select');
+  const [transformMode, setTransformMode] = useState<'Translate' | 'Rotate' | 'Scale'>('Translate');
+  const [coordSpace, setCoordSpace] = useState<'World' | 'Local'>('World');
+  const [viewportMode, setViewportMode] = useState<'Lit' | 'Unlit' | 'Wireframe' | 'Collisions' | 'ShaderComplexity'>('Lit');
+  const [selectedObjectId, setSelectedObjectId] = useState<string | null>('6');
   
-  // AI Chat state
-  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
-  const [aiChatPos, setAiChatPos] = useState({ x: 300, y: 100 });
-  const [isAiChatDragging, setIsAiChatDragging] = useState<{startX: number, startY: number, initialX: number, initialY: number} | null>(null);
+  // Viewport Stats
+  const [cameraSpeed, setCameraSpeed] = useState(4);
+  const [gridSnap, setGridSnap] = useState(true);
+  const [gridSize, setGridSize] = useState(10);
+  const [angleSnap, setAngleSnap] = useState(true);
+  const [angleSize, setAngleSize] = useState(5);
+  
+  // Environment Controls
+  const [timeOfDay, setTimeOfDay] = useState(14.5); // 14:30
+  
+  // Tool Specific States
+  const [brushSize, setBrushSize] = useState(500);
+  const [brushStrength, setBrushStrength] = useState(0.5);
+  const [landscapeTool, setLandscapeTool] = useState<'Sculpt' | 'Smooth' | 'Flatten' | 'Erosion'>('Sculpt');
+  const [erosionMode, setErosionMode] = useState<'Hydraulic' | 'Thermal'>('Hydraulic');
+  const [erosionRealtime, setErosionRealtime] = useState(true);
+  const [foliageDensity, setFoliageDensity] = useState(300);
+  const [waterDepth, setWaterDepth] = useState(50);
 
-  useEffect(() => {
-    if (isPerfDragging) {
-      const handleMouseMove = (e: MouseEvent) => {
-        setPerfPos({
-          x: isPerfDragging.initialX + (e.clientX - isPerfDragging.startX),
-          y: Math.max(0, isPerfDragging.initialY + (e.clientY - isPerfDragging.startY))
-        });
-      };
-      const handleMouseUp = () => setIsPerfDragging(null);
-      
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isPerfDragging]);
+  const [paintMaterial, setPaintMaterial] = useState<'Dirt' | 'Mud' | 'Sand' | 'Snow' | 'Ice' | 'Grass' | 'Rock'>('Dirt');
+  const [paintTool, setPaintTool] = useState<'Paint' | 'Erase' | 'Blend' | 'Fill'>('Paint');
+  const [waterTool, setWaterTool] = useState<'Ocean' | 'Lake' | 'River' | 'Lava' | 'Swamp' | 'Acid'>('Ocean');
 
-  useEffect(() => {
-    if (isNodeDragging) {
-      const handleMouseMove = (e: MouseEvent) => {
-        // In this simple mock, we just move the percentage arbitrarily
-        // To do it correctly relative to container, we'd need container ref. We assume 8px per percentage roughly here
-        setSplineNodes(prev => prev.map(node => {
-          if (node.id === isNodeDragging.id) {
-            return {
-              ...node,
-              x: isNodeDragging.initialX + (e.clientX - isNodeDragging.startX) * 0.1,
-              y: isNodeDragging.initialY + (e.clientY - isNodeDragging.startY) * 0.1
-            }
-          }
-          return node;
-        }));
-      };
-      const handleMouseUp = () => setIsNodeDragging(null);
-      
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isNodeDragging]);
+  // Swarm Protocol States
+  const [swarmEnabled, setSwarmEnabled] = useState(false);
+  const [swarmTarget, setSwarmTarget] = useState<'All Devices' | 'LAN Only' | 'Cloud Burst'>('All Devices');
+  const [swarmIntensity, setSwarmIntensity] = useState(80);
 
-  useEffect(() => {
-    if (isAiChatDragging) {
-      const handleMouseMove = (e: MouseEvent) => {
-        setAiChatPos({
-          x: isAiChatDragging.initialX + (e.clientX - isAiChatDragging.startX),
-          y: Math.max(0, isAiChatDragging.initialY + (e.clientY - isAiChatDragging.startY))
-        });
-      };
-      const handleMouseUp = () => setIsAiChatDragging(null);
-      
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isAiChatDragging]);
+  // Terrain Material Drop
+  const [terrainMaterial, setTerrainMaterial] = useState<string | null>(null);
+  const [isDragOverViewport, setIsDragOverViewport] = useState(false);
+  const currentTerrainMaterial = PHYSICAL_MATERIALS.find(m => m.id === terrainMaterial) || null;
+
+  // Pro Tools States
+  const [lightBounces, setLightBounces] = useState(4);
+  const [volumetricFog, setVolumetricFog] = useState(true);
+  const [geoOp, setGeoOp] = useState<'Extrude' | 'Bevel' | 'Boolean' | 'Cut'>('Extrude');
+  const [frameRate, setFrameRate] = useState(60);
+  const [cinematicFocal, setCinematicFocal] = useState(35);
+
+  // New Systems States
+  const [season, setSeason] = useState<'Spring' | 'Summer' | 'Autumn' | 'Winter' | 'Rainy'>('Spring');
+  const [weatherIntensity, setWeatherIntensity] = useState(50);
+  const [windDirection, setWindDirection] = useState(45);
+  const [windStrength, setWindStrength] = useState(10);
+  const [bloomEnabled, setBloomEnabled] = useState(true);
+  const [exposure, setExposure] = useState(1.0);
+  const [physicsSimulating, setPhysicsSimulating] = useState(false);
+  const [audioCategory, setAudioCategory] = useState<'Ambient' | 'SFX' | 'Music' | 'Voice/TTS'>('Ambient');
+  const [ttsMode, setTtsMode] = useState<'Speech' | 'Singing'>('Speech');
+  
+  // AI Smart Tool States
+  const [aiLocalModel, setAiLocalModel] = useState<'SDXL-Turbo' | 'LLaMA-3-8B' | 'Stable-Mesh'>('SDXL-Turbo');
+  const [isMarqueeSelecting, setIsMarqueeSelecting] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{ x: number, y: number, w: number, h: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [activePromptMode, setActivePromptMode] = useState<'create' | 'edit'>('create');
+  const [aiHistory, setAiHistory] = useState<string[]>([]);
+  const [aiResultBox, setAiResultBox] = useState<{ x: number, y: number, w: number, h: number } | null>(null);
+
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  // Content Drawer
+  const [isContentDrawerOpen, setIsContentDrawerOpen] = useState(false);
+
+  // Material Library
+  const [isMaterialLibraryOpen, setIsMaterialLibraryOpen] = useState(false);
+  const [materialSearch, setMaterialSearch] = useState("");
+  const [draggedMaterial, setDraggedMaterial] = useState<string | null>(null);
+
+  // Asset Studio
+  const [isAssetStudioOpen, setIsAssetStudioOpen] = useState(false);
+  const [assetStudioTheme, setAssetStudioTheme] = useState("Fantasy Ruins");
+  const [isGeneratingAssets, setIsGeneratingAssets] = useState(false);
+  const [generatedProps, setGeneratedProps] = useState<any[]>([]);
+
+  // Network Simulator
+  const [isNetSimOpen, setIsNetSimOpen] = useState(false);
+  const [isSimulatingLatency, setIsSimulatingLatency] = useState(false);
+  const [packetLossData, setPacketLossData] = useState<number[]>([]);
+
+  const startNetworkSimulation = () => {
+    setIsSimulatingLatency(true);
+    setPacketLossData([]);
+    let steps = 0;
+    const interval = setInterval(() => {
+        setPacketLossData(prev => [...prev, Math.random() > 0.85 ? Math.random() * 40 + 60 : Math.random() * 10]);
+        steps++;
+        if(steps > 40) {
+            clearInterval(interval);
+            setIsSimulatingLatency(false);
+        }
+    }, 50);
+  };
+
+  const generateProceduralAssets = () => {
+    setIsGeneratingAssets(true);
+    setGeneratedProps([]);
+    setTimeout(() => {
+      setGeneratedProps([
+        { id: 1, name: 'Ancient Pillar (Broken)', polyCount: '1.2k', type: 'StaticMesh', color: 'bg-stone-500' },
+        { id: 2, name: 'Rubble Pile Large', polyCount: '3.4k', type: 'StaticMesh', color: 'bg-stone-600' },
+        { id: 3, name: 'Overgrown Archway', polyCount: '4.1k', type: 'StaticMesh', color: 'bg-green-700' },
+        { id: 4, name: 'Mystic Shrine Base', polyCount: '2.5k', type: 'StaticMesh', color: 'bg-indigo-900' },
+      ]);
+      setIsGeneratingAssets(false);
+    }, 2000);
+  };
+
+  // Render Time string
+  const formatTime = (time: number) => {
+    const hrs = Math.floor(time);
+    const mins = Math.floor((time - hrs) * 60);
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#0d1117] text-[#c9d1d9] overflow-hidden">
-      {/* Header */}
-      <div className="flex border-b border-[#30363d] p-3 items-center justify-between bg-[#161b22] shrink-0 gap-4 overflow-x-auto custom-scrollbar">
-         <div className="flex items-center gap-3 shrink-0">
-            <div className="p-2 bg-[#58a6ff]/10 rounded text-[#58a6ff]"><Map size={20}/></div>
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-white">Apex Map Builder</h2>
-              <p className="text-[10px] text-[#8b949e]">Level Assembly, Prefabs, Blockout & Navigation</p>
-            </div>
-         </div>
-         
-         <div className="flex gap-1 bg-[#0d1117] border border-[#30363d] rounded p-1 text-[11px] font-bold shrink-0">
-            <button onClick={() => setMode('Select')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Select' ? 'bg-[#21262d] text-[#58a6ff]' : 'text-[#8b949e] hover:text-white'}`}><Move3D size={12}/> Editor</button>
-            <button onClick={() => setMode('Instance_Override')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Instance_Override' ? 'bg-[#21262d] text-[#e3b341]' : 'text-[#8b949e] hover:text-white'}`}><Layers size={12}/> Instance Overrides</button>
-            <button onClick={() => setMode('Landscape')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Landscape' ? 'bg-[#21262d] text-[#3fb950]' : 'text-[#8b949e] hover:text-white'}`}><Mountain size={12}/> Terrain</button>
-            <button onClick={() => setMode('World_Partition')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'World_Partition' ? 'bg-[#21262d] text-[#e3b341]' : 'text-[#8b949e] hover:text-white'}`}><Grid size={12}/> World Partition</button>
-            <button onClick={() => setMode('Foliage')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Foliage' ? 'bg-[#21262d] text-[#3fb950]' : 'text-[#8b949e] hover:text-white'}`}><Trees size={12}/> Foliage</button>
-            <button onClick={() => setMode('Blockout')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Blockout' ? 'bg-[#21262d] text-[#e3b341]' : 'text-[#8b949e] hover:text-white'}`}><Box size={12}/> Blockout</button>
-            <button onClick={() => setMode('NPC')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'NPC' ? 'bg-[#21262d] text-[#bc8cff]' : 'text-[#8b949e] hover:text-white'}`}><PersonStanding size={12}/> NPCs</button>
-            <button onClick={() => setMode('MetaHuman')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'MetaHuman' ? 'bg-[#21262d] text-[#bc8cff]' : 'text-[#8b949e] hover:text-white'}`}><PersonStanding size={12}/> MetaHuman</button>
-            <button onClick={() => setMode('Pathing')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Pathing' ? 'bg-[#21262d] text-[#3fb950]' : 'text-[#8b949e] hover:text-white'}`}><Route size={12}/> Pathing</button>
-            <button onClick={() => setMode('Niagara')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Niagara' ? 'bg-[#21262d] text-[#bc8cff]' : 'text-[#8b949e] hover:text-white'}`}><Zap size={12}/> Niagara FX</button>
-            <button onClick={() => setMode('Volumes')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Volumes' ? 'bg-[#21262d] text-[#f85149]' : 'text-[#8b949e] hover:text-white'}`}><SquareDashed size={12}/> Volumes</button>
-            <button onClick={() => setMode('Quests')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Quests' ? 'bg-[#21262d] text-[#e3b341]' : 'text-[#8b949e] hover:text-white'}`}><ScrollText size={12}/> Quests</button>
-            <button onClick={() => setMode('Cinematic')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Cinematic' ? 'bg-[#21262d] text-[#bc8cff]' : 'text-[#8b949e] hover:text-white'}`}><Clapperboard size={12}/> Cinematic</button>
-            <button onClick={() => setMode('Lighting')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Lighting' ? 'bg-[#21262d] text-[#e3b341]' : 'text-[#8b949e] hover:text-white'}`}><Lightbulb size={12}/> Lighting</button>
-            <button onClick={() => setMode('Audio')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Audio' ? 'bg-[#21262d] text-[#58a6ff]' : 'text-[#8b949e] hover:text-white'}`}><Volume2 size={12}/> Audio</button>
-            <button onClick={() => setMode('Decals')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Decals' ? 'bg-[#21262d] text-[#bc8cff]' : 'text-[#8b949e] hover:text-white'}`}><Stamp size={12}/> Decals</button>
-            <div className="w-px h-6 bg-[#30363d] mx-1 shrink-0 self-center"></div>
-            <button onClick={() => setMode('Chaos_Physics')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Chaos_Physics' ? 'bg-[#f85149]/20 text-[#f85149]' : 'text-[#8b949e] hover:text-[#f85149]'}`}><Wind size={12}/> Chaos Physics</button>
-            <button onClick={() => setMode('Destruction')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Destruction' ? 'bg-[#e3b341]/20 text-[#e3b341]' : 'text-[#8b949e] hover:text-[#e3b341]'}`}><Bomb size={12}/> Destruction</button>
-            <button onClick={() => setMode('Chemistry')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Chemistry' ? 'bg-[#bc8cff]/20 text-[#bc8cff]' : 'text-[#8b949e] hover:text-[#bc8cff]'}`}><Hexagon size={12}/> Chemistry</button>
-            <button onClick={() => setMode('Biology')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Biology' ? 'bg-[#3fb950]/20 text-[#3fb950]' : 'text-[#8b949e] hover:text-[#3fb950]'}`}><Trees size={12}/> Biology</button>
-            <div className="w-px h-6 bg-[#30363d] mx-1 shrink-0 self-center"></div>
-            <button onClick={() => setMode('PCG')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'PCG' ? 'bg-[#7ee787]/20 text-[#7ee787]' : 'text-[#8b949e] hover:text-[#7ee787]'}`}><Cpu size={12}/> PCG</button>
-            <button onClick={() => setMode('Blueprint')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Blueprint' ? 'bg-[#1f6feb]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-[#58a6ff]'}`}><Workflow size={12}/> Blueprint</button>
-            <button onClick={() => setMode('Voxel')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'Voxel' ? 'bg-[#e3b341]/20 text-[#e3b341]' : 'text-[#8b949e] hover:text-[#e3b341]'}`}><Grid size={12}/> Voxel Build</button>
-            <button onClick={() => setMode('AI_Assist')} className={`px-2 py-1.5 rounded transition-colors flex gap-1.5 items-center ${mode === 'AI_Assist' ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-[#58a6ff]'}`}><Wand2 size={12}/> Local AI Tools</button>
-         </div>
+    <div className="flex flex-col h-full bg-[#0d1117] text-[#c9d1d9] font-sans overflow-hidden select-none">
+      
+      {/* Top Main Toolbar */}
+      <div className="h-14 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4 shrink-0 shadow-[0_5px_15px_rgba(0,0,0,0.5)] z-20">
+        <div className="flex items-center gap-4">
+          <div className="flex bg-[#21262d] p-1 rounded-md border border-[#30363d] shadow-inner">
+            <button className="px-3 py-1.5 hover:bg-[#30363d] rounded text-white flex flex-col items-center gap-1 group transition-colors">
+              <Save size={16} className="text-[#8b949e] group-hover:text-white" />
+            </button>
+            <div className="w-px bg-[#30363d] mx-1"></div>
+            <button className="px-3 py-1.5 hover:bg-[#30363d] rounded text-white flex flex-col items-center gap-1 group transition-colors">
+              <Undo size={16} className="text-[#8b949e] group-hover:text-white" />
+            </button>
+            <button className="px-3 py-1.5 hover:bg-[#30363d] rounded text-white flex flex-col items-center gap-1 group transition-colors">
+              <Redo size={16} className="text-[#8b949e] group-hover:text-white" />
+            </button>
+          </div>
 
-         <div className="flex gap-2 text-[11px] font-bold shrink-0">
-            <button onClick={() => setIsAiChatOpen(!isAiChatOpen)} className={`px-3 py-1.5 border border-[#30363d] rounded flex items-center gap-2 transition-colors ${isAiChatOpen ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9]'}`}><Brain size={12}/> AI Offline Chat</button>
-            <button className="px-3 py-1.5 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded flex items-center gap-2 transition-colors"><Undo size={12}/></button>
-            <button className="px-3 py-1.5 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded flex items-center gap-2 transition-colors"><Redo size={12}/></button>
-            <div className="w-px h-6 bg-[#30363d] mx-1"></div>
-            <button className="px-3 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white rounded flex items-center gap-2 transition-colors"><Play size={12}/> Play in Editor (PIE)</button>
-         </div>
+          <div className="flex bg-[#0d1117] p-1 rounded-md border border-[#30363d] shadow-inner overflow-hidden">
+            <TabButton icon={<MousePointer2 size={16}/>} label="Select" active={activeTab==='Select'} onClick={()=>setActiveTab('Select')} color="text-blue-400" bgColor="bg-blue-900/20 text-blue-100" />
+            <TabButton icon={<Mountain size={16}/>} label="Landscape" active={activeTab==='Landscape'} onClick={()=>setActiveTab('Landscape')} color="text-green-500" bgColor="bg-green-900/20 text-green-100" />
+            <TabButton icon={<Trees size={16}/>} label="Foliage" active={activeTab==='Foliage'} onClick={()=>setActiveTab('Foliage')} color="text-emerald-400" bgColor="bg-emerald-900/20 text-emerald-100" />
+            <TabButton icon={<Palette size={16}/>} label="Paint" active={activeTab==='Paint'} onClick={()=>setActiveTab('Paint')} color="text-pink-400" bgColor="bg-pink-900/20 text-pink-100" />
+            <TabButton icon={<Droplet size={16}/>} label="Water" active={activeTab==='Water'} onClick={()=>setActiveTab('Water')} color="text-cyan-400" bgColor="bg-cyan-900/20 text-cyan-100" />
+            <TabButton icon={<Route size={16}/>} label="Splines" active={activeTab==='Splines'} onClick={()=>setActiveTab('Splines')} color="text-yellow-400" bgColor="bg-yellow-900/20 text-yellow-100" />
+            <TabButton icon={<Workflow size={16}/>} label="PCG" active={activeTab==='PCG'} onClick={()=>setActiveTab('PCG')} color="text-indigo-400" bgColor="bg-indigo-900/20 text-indigo-100" />
+            <TabButton icon={<BoxIcon size={16}/>} label="Geometry" active={activeTab==='Geometry'} onClick={()=>setActiveTab('Geometry')} color="text-amber-400" bgColor="bg-amber-900/20 text-amber-100" />
+            <TabButton icon={<CloudRain size={16}/>} label="Seasons" active={activeTab==='Seasons'} onClick={()=>setActiveTab('Seasons')} color="text-sky-400" bgColor="bg-sky-900/20 text-sky-100" />
+            <TabButton icon={<Volume2 size={16}/>} label="Audio" active={activeTab==='Audio'} onClick={()=>setActiveTab('Audio')} color="text-teal-400" bgColor="bg-teal-900/20 text-teal-100" />
+            <TabButton icon={<Orbit size={16}/>} label="Physics" active={activeTab==='Physics'} onClick={()=>setActiveTab('Physics')} color="text-red-400" bgColor="bg-red-900/20 text-red-100" />
+            <TabButton icon={<Compass size={16}/>} label="NavMesh" active={activeTab==='Navigation'} onClick={()=>setActiveTab('Navigation')} color="text-indigo-200" bgColor="bg-indigo-900/20 text-indigo-100" />
+            <TabButton icon={<Sun size={16}/>} label="Lighting" active={activeTab==='Lighting'} onClick={()=>setActiveTab('Lighting')} color="text-yellow-200" bgColor="bg-yellow-900/20 text-yellow-100" />
+            <TabButton icon={<Camera size={16}/>} label="PostProc" active={activeTab==='PostProcess'} onClick={()=>setActiveTab('PostProcess')} color="text-fuchsia-400" bgColor="bg-fuchsia-900/20 text-fuchsia-100" />
+            <TabButton icon={<Clapperboard size={16}/>} label="Cinematics" active={activeTab==='Cinematics'} onClick={()=>setActiveTab('Cinematics')} color="text-rose-400" bgColor="bg-rose-900/20 text-rose-100" />
+            <TabButton icon={<Network size={16}/>} label="Swarm" active={activeTab==='Swarm'} onClick={()=>setActiveTab('Swarm')} color="text-orange-400" bgColor="bg-orange-900/20 text-orange-100" />
+            <TabButton icon={<Brain size={16}/>} label="Smart AI" active={activeTab==='Smart AI'} onClick={()=>setActiveTab('Smart AI')} color="text-purple-400" bgColor="bg-purple-900/20 text-purple-100" />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-[#21262d] px-3 py-1.5 rounded-md border border-[#30363d] shadow-inner">
+            <span className="text-[11px] font-bold text-[#8b949e] uppercase">Env Time</span>
+            <input 
+              type="range" min="0" max="24" step="0.1" value={timeOfDay} 
+              onChange={(e)=>setTimeOfDay(parseFloat(e.target.value))}
+              className="w-24 accent-[#e3b341] h-1.5 bg-[#0d1117] rounded-full appearance-none outline-none overflow-hidden"
+              style={{ background: `linear-gradient(to right, #e3b341 ${(timeOfDay/24)*100}%, #0d1117 ${(timeOfDay/24)*100}%)` }}
+            />
+            <span className="text-[12px] font-mono text-[#e3b341] w-10">{formatTime(timeOfDay)}</span>
+          </div>
+
+          <div className="flex gap-1 bg-[#21262d] p-1 rounded-md border border-[#30363d] shadow-inner">
+             <button 
+                onClick={() => { setIsPlaying(true); setIsSimulating(false); }}
+                className={`px-4 py-1.5 rounded font-bold text-[12px] flex items-center gap-2 transition-all ${isPlaying ? 'bg-[#3fb950]/20 text-[#3fb950] border border-[#3fb950] shadow-[0_0_15px_rgba(63,185,80,0.3)]' : 'hover:bg-[#30363d] text-white border border-transparent'}`}
+             >
+                <Play size={14} className={isPlaying ? "fill-current" : ""} /> Play Level
+             </button>
+             <button 
+                onClick={() => { setIsSimulating(true); setIsPlaying(false); }}
+                className={`px-4 py-1.5 rounded font-bold text-[12px] flex items-center gap-2 transition-all ${isSimulating ? 'bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff] shadow-[0_0_15px_rgba(188,140,255,0.3)]' : 'hover:bg-[#30363d] text-white border border-transparent'}`}
+             >
+                <MonitorPlay size={14} /> Simulate Core
+             </button>
+             {(isPlaying || isSimulating) && (
+               <button 
+                 onClick={() => {setIsPlaying(false); setIsSimulating(false);}}
+                 className="px-3 py-1.5 rounded bg-[#f85149]/20 border border-[#f85149]/50 hover:bg-[#f85149]/40 text-[#f85149] flex items-center transition-colors shadow-[0_0_10px_rgba(248,81,73,0.2)] ml-1"
+               >
+                 <X size={16} strokeWidth={3} />
+               </button>
+             )}
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden relative">
-
-        {/* Floating AI Offline Chat */}
-        {isAiChatOpen && (
-           <div 
-              style={{ left: aiChatPos.x, top: aiChatPos.y, borderBottomRightRadius: '0px' }}
-              className={`absolute w-80 h-96 bg-[#0d1117]/95 backdrop-blur border border-[#30363d] rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] z-[60] flex flex-col overflow-hidden transition-opacity resize ${isAiChatDragging ? 'opacity-80' : 'opacity-100'}`}
-           >
-              <div 
-                 className="h-8 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-3 cursor-move select-none"
-                 onMouseDown={(e) => setIsAiChatDragging({ startX: e.clientX, startY: e.clientY, initialX: aiChatPos.x, initialY: aiChatPos.y })}
-              >
-                 <div className="flex items-center gap-2 text-[#58a6ff]">
-                    <Brain size={14} />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Offline AI Assistant</span>
-                 </div>
-                 <div className="flex gap-1">
-                    <button 
-                       onClick={(e) => { e.stopPropagation(); setIsAiChatOpen(false); }}
-                       className="text-[#8b949e] hover:text-[#f85149] p-0.5 rounded transition-colors"
-                    ><Minimize2 size={12}/></button>
-                 </div>
-              </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-3 flex flex-col gap-3">
-                 <div className="flex gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#58a6ff]/20 flex items-center justify-center shrink-0 border border-[#58a6ff]/50">
-                       <Brain size={12} className="text-[#58a6ff]" />
-                    </div>
-                    <div className="bg-[#21262d] rounded-lg rounded-tl-none p-2 border border-[#30363d] text-[11px] text-[#c9d1d9]">
-                       Hello! I am your Offline Local AI. I can generate scripts, suggest level layouts, or analyze physics setups. What would you like to build?
-                    </div>
-                 </div>
-                 <div className="flex gap-2 flex-row-reverse">
-                    <div className="w-6 h-6 rounded-full bg-[#3fb950]/20 flex items-center justify-center shrink-0 border border-[#3fb950]/50">
-                       <PersonStanding size={12} className="text-[#3fb950]" />
-                    </div>
-                    <div className="bg-[#1f6feb]/20 text-[#c9d1d9] rounded-lg rounded-tr-none p-2 border border-[#1f6feb]/50 text-[11px]">
-                       Can you create a Blueprint for an automatic door with a proximity sensor?
-                    </div>
-                 </div>
-                 <div className="flex gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#58a6ff]/20 flex items-center justify-center shrink-0 border border-[#58a6ff]/50">
-                       <Brain size={12} className="text-[#58a6ff]" />
-                    </div>
-                    <div className="bg-[#21262d] rounded-lg rounded-tl-none p-2 border border-[#30363d] text-[11px] text-[#c9d1d9] w-full">
-                       Generating Blueprint... <br/>
-                       <div className="mt-2 bg-[#0d1117] border border-[#30363d] rounded p-2 text-[10px] font-mono text-[#7ee787]">
-                          <span className="text-[#ff7b72]">Event</span> BeginOverlap (TriggerVolume) {'\n'}
-                          {'  '}-&gt; <span className="text-[#ff7b72]">Timeline</span> (OpenDoor) {'\n'}
-                          {'  '}-&gt; <span className="text-[#79c0ff]">SetRelativeLocation</span> (LeftDoor, RightDoor)
-                       </div>
-                       <button className="mt-2 text-[10px] bg-[#1f6feb] text-white px-2 py-1 rounded w-full hover:bg-[#388bfd] transition-colors">Apply to Selected Actor</button>
-                    </div>
-                 </div>
-              </div>
-              <div className="h-10 border-t border-[#30363d] bg-[#161b22] flex items-center px-2 py-1 shrink-0">
-                 <input type="text" placeholder="Type a command or request..." className="bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-[11px] text-white w-full outline-none focus:border-[#58a6ff]" />
-                 <button className="ml-1 p-1.5 text-[#58a6ff] hover:bg-[#58a6ff]/10 rounded transition-colors">
-                    <div className="w-3 h-3 bg-current rounded-sm" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)'}}></div>
-                 </button>
-              </div>
-           </div>
-        )}
-
-        {/* Floating Performance Monitor (Draggable & Minimized state) */}
-        {!isPerfMinimized && (
-           <div 
-              style={{ left: perfPos.x, top: perfPos.y }}
-              className={`absolute w-64 bg-[#161b22]/95 backdrop-blur border border-[#30363d] rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] z-50 flex flex-col overflow-hidden transition-opacity ${isPerfDragging ? 'opacity-80' : 'opacity-100'}`}
-           >
-              <div 
-                 className="h-6 bg-[#0d1117] border-b border-[#30363d] flex items-center justify-between px-2 cursor-move select-none"
-                 onMouseDown={(e) => setIsPerfDragging({ startX: e.clientX, startY: e.clientY, initialX: perfPos.x, initialY: perfPos.y })}
-              >
-                 <div className="flex items-center gap-1.5 text-[#8b949e]">
-                    <GripHorizontal size={10} />
-                    <span className="text-[9px] font-bold uppercase tracking-widest">System Metrics</span>
-                 </div>
-                 <button 
-                    onClick={(e) => { e.stopPropagation(); setIsPerfMinimized(true); }}
-                    className="text-[#8b949e] hover:text-white p-0.5 rounded transition-colors"
-                 ><Minimize2 size={10}/></button>
-              </div>
-              <div className="p-3 grid grid-cols-2 gap-3 cursor-default">
-                 <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[10px]">
-                       <span className="font-bold text-[#c9d1d9] flex gap-1 items-center"><Activity size={10} className="text-[#58a6ff]"/> CPU</span>
-                       <span className="text-[#8b949e] font-mono">18%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
-                       <div className="h-full bg-[#58a6ff] w-[18%] shadow-[0_0_5px_#58a6ff]"></div>
-                    </div>
-                 </div>
-                 <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[10px]">
-                       <span className="font-bold text-[#c9d1d9] flex gap-1 items-center"><Database size={10} className="text-[#3fb950]"/> RAM</span>
-                       <span className="text-[#8b949e] font-mono">42% (13.5)</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
-                       <div className="h-full bg-[#3fb950] w-[42%] shadow-[0_0_5px_#3fb950]"></div>
-                    </div>
-                 </div>
-                 <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[10px]">
-                       <span className="font-bold text-[#c9d1d9] flex gap-1 items-center"><MonitorPlay size={10} className="text-[#bc8cff]"/> GPU</span>
-                       <span className="text-[#8b949e] font-mono">87% (7.8)</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
-                       <div className="h-full bg-[#bc8cff] w-[87%] shadow-[0_0_5px_#bc8cff]"></div>
-                    </div>
-                 </div>
-                 <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[10px]">
-                       <span className="font-bold text-[#c9d1d9] flex gap-1 items-center"><Brain size={10} className="text-[#e3b341]"/> TPU</span>
-                       <span className="text-[#8b949e] font-mono">60%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
-                       <div className="h-full bg-[#e3b341] w-[60%] shadow-[0_0_5px_#e3b341]"></div>
-                    </div>
-                 </div>
-              </div>
-           </div>
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* Material Library Slide-out Panel */}
+        {isMaterialLibraryOpen && (
+          <div className="w-[300px] border-r border-[#30363d] bg-[#0d1117] flex flex-col z-20 shrink-0 shadow-[5px_0_20px_rgba(0,0,0,0.6)] animate-in slide-in-from-left-4">
+             <div className="h-10 border-b border-[#30363d] flex items-center justify-between px-4 bg-[#161b22]">
+                <span className="text-[12px] font-bold uppercase flex items-center gap-2"><Package size={14} className="text-pink-400"/> Material Library</span>
+                <button onClick={() => setIsMaterialLibraryOpen(false)} className="text-[#8b949e] hover:text-white"><X size={14} /></button>
+             </div>
+             <div className="p-3 border-b border-[#30363d] bg-[#0d1117]">
+                <div className="relative">
+                   <Search size={14} className="absolute left-2.5 top-2 text-[#8b949e]" />
+                   <input 
+                      type="text" 
+                      placeholder="Search physical materials..." 
+                      className="w-full bg-[#161b22] border border-[#30363d] rounded py-1.5 pl-8 pr-3 text-[11px] text-white focus:outline-none focus:border-pink-500/50"
+                      value={materialSearch}
+                      onChange={e => setMaterialSearch(e.target.value)}
+                   />
+                </div>
+             </div>
+             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 custom-scrollbar bg-[#050505]">
+                {PHYSICAL_MATERIALS.filter(m => m.category.toLowerCase().includes(materialSearch.toLowerCase()) || m.name.toLowerCase().includes(materialSearch.toLowerCase())).map(material => (
+                   <div 
+                      key={material.id}
+                      draggable
+                      onDragStart={(e) => {
+                         setDraggedMaterial(material.id);
+                         e.dataTransfer.setData('text/plain', material.id);
+                      }}
+                      onDragEnd={() => setDraggedMaterial(null)}
+                      className={`flex flex-col gap-2 p-3 bg-[#161b22] border border-[#30363d] rounded-lg hover:border-pink-500/50 hover:bg-[#21262d] cursor-grab active:cursor-grabbing transition-colors ${draggedMaterial === material.id ? 'opacity-50 scale-95 border-pink-500' : ''}`}
+                   >
+                      <div className="flex items-center gap-3">
+                         <div className={`w-8 h-8 rounded shrink-0 shadow-inner ${material.color} border border-white/10 relative overflow-hidden`}>
+                            <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay"></div>
+                         </div>
+                         <div className="flex flex-col">
+                            <span className="text-[12px] font-bold text-white">{material.name}</span>
+                            <span className="text-[10px] text-[#8b949e] uppercase">{material.category}</span>
+                         </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-[#30363d]">
+                         <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-[#8b949e]">Friction</span>
+                            <span className="text-[10px] font-mono font-bold text-pink-400">{material.friction.toFixed(2)}</span>
+                         </div>
+                         <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-[#8b949e]">Restitution</span>
+                            <span className="text-[10px] font-mono font-bold text-cyan-400">{material.restitution.toFixed(2)}</span>
+                         </div>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          </div>
         )}
         
-        {/* Outliner & Asset Browser */}
-        <div className="w-64 border-r border-[#30363d] bg-[#161b22] flex flex-col shrink-0">
-            {/* World Outliner */}
-            <div className="flex-1 flex flex-col overflow-hidden border-b border-[#30363d]">
-               <div className="p-2 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117] shrink-0">
-                  <span className="text-[11px] font-bold text-[#c9d1d9] uppercase tracking-wide flex flex-row items-center gap-2"><Layers size={14}/> Outliner</span>
-                  <div className="flex gap-1">
-                     <button className="text-[#8b949e] hover:text-white px-1"><Plus size={14}/></button>
-                     <button className="text-[#8b949e] hover:text-white px-1"><Search size={14}/></button>
-                  </div>
-               </div>
-               <div className="flex-1 overflow-y-auto custom-scrollbar p-2 text-[11px] font-mono select-none">
-                  <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-white font-bold"><Map size={12} className="text-[#58a6ff]"/> Level_01_Main</div>
-                  
-                  <div className="pl-4 mt-1 border-l border-[#30363d] ml-1 flex flex-col gap-[2px]">
-                     <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-[#8b949e] group">
-                        <div className="flex gap-2 items-center"><Mountain size={12}/> Landscape_01</div>
-                        <button onClick={(e) => { e.stopPropagation(); setActiveTool?.('Landscape'); }} className="opacity-0 group-hover:opacity-100 p-0.5 ml-auto text-[#58a6ff]"><Move3D size={12} /></button>
-                     </div>
-                     <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-[#e3b341] group">
-                        <div className="flex gap-2 items-center"><Layers size={12}/> PCG_Forest_Generator</div>
-                        <button onClick={(e) => { e.stopPropagation(); setActiveTool?.('PCG'); }} className="opacity-0 group-hover:opacity-100 p-0.5 ml-auto text-[#58a6ff]"><Settings size={12} /></button>
-                     </div>
-                     <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-[#8b949e]"><Sun size={12}/> DirectionalLight_Main</div>
-                     <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-[#8b949e]"><Wind size={12}/> SkyAtmosphere</div>
-                     
-                     <div className="flex items-center justify-between hover:bg-[#21262d] p-1 rounded cursor-pointer mt-2 group">
-                        <div className="flex items-center gap-2 text-white font-bold"><Box size={12} className="text-[#e3b341]"/> Architecture</div>
-                        <Eye size={12} className="text-[#58a6ff] opacity-0 group-hover:opacity-100" />
-                     </div>
-                     <div className="pl-4 border-l border-[#30363d] ml-1 flex flex-col gap-[2px]">
-                        <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-[#c9d1d9]"><Box size={12}/> SM_Wall_01 <span className="text-[9px] text-[#8b949e] ml-auto">Static</span></div>
-                        <div className="flex items-center gap-2 bg-[#1f6feb]/20 border border-[#1f6feb]/30 p-1 rounded cursor-pointer text-white font-bold"><Box size={12}/> SM_Wall_02 <span className="text-[9px] text-[#8b949e] ml-auto">Static</span></div>
-                        <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer text-[#c9d1d9]"><Box size={12}/> SM_Floor_Concrete_01 <span className="text-[9px] text-[#8b949e] ml-auto">Static</span></div>
-                     </div>
-
-                     <div className="flex items-center gap-2 hover:bg-[#21262d] p-1 rounded cursor-pointer mt-2 text-[#c9d1d9]"><PersonStanding size={12} className="text-[#3fb950]"/> PlayerStart</div>
-                  </div>
-               </div>
-            </div>
-
-            {/* Content Browser Mini */}
-            <div className="h-64 flex flex-col overflow-hidden">
-               <div className="p-2 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117] shrink-0">
-                  <span className="text-[11px] font-bold text-[#c9d1d9] uppercase tracking-wide">
-                     {mode === 'NPC' && 'NPCs & Monsters'}
-                     {mode === 'Physics' && 'Physics & Rigid Bodies'}
-                     {mode === 'Chemistry' && 'Material Reactions & Chemistry'}
-                     {mode === 'Biology' && 'Ecosystem & Bio-Zones'}
-                     {mode === 'Lighting' && 'Lights & Environment'}
-                     {mode === 'Audio' && 'Sound Emitters & Reverb'}
-                     {mode === 'Decals' && 'Decals & Graffiti'}
-                     {mode === 'PCG' && 'Procedural Generation Rules'}
-                     {mode === 'Blueprint' && 'Blueprint Scripts & Logic'}
-                     {mode === 'AI_Assist' && 'Offline AI Generators'}
-                     {mode === 'Pathing' && 'Path & Spline Tools'}
-                     {mode === 'Volumes' && 'Invisible Walls & Volumes'}
-                     {mode === 'Landscape' && 'Landscape Tools'}
-                     {mode === 'Foliage' && 'Foliage Types'}
-                     {mode === 'Quests' && 'Quest Objects & Markers'}
-                     {mode === 'Cinematic' && 'Cameras & Sequences'}
-                     {mode === 'Lighting' && 'Lights & Environment'}
-                     {mode === 'Instance_Override' && 'Instanced Mesh Variations'}
-                     {mode === 'World_Partition' && 'Streaming Grids & Cells'}
-                     {mode === 'Niagara' && 'Particle Systems & Emitters'}
-                     {mode === 'MetaHuman' && 'MetaHuman Roster'}
-                     {mode === 'Chaos_Physics' && 'Physics & Rigid Bodies'}
-                     {mode === 'Voxel' && 'Voxel Brushes'}
-                     {(mode === 'Select' || mode === 'Blockout') && 'Prefabs / Assets'}
-                  </span>
-               </div>
-               <div className="flex-1 overflow-y-auto custom-scrollbar p-2 grid grid-cols-2 gap-2 content-start">
-                  {mode === 'Instance_Override' ? (
-                     <>
-                        <div className="bg-[#161b22] border border-[#e3b341]/20 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(227,179,65,0.05)]">
-                           <BoxSelect size={20} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold">SM_Pine_HISM (32K)</span>
-                        </div>
-                        <div className="bg-[#161b22] border border-[#e3b341]/20 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Layers size={20} className="text-[#8b949e] mb-1"/>
-                           <span className="text-[9px] text-[#8b949e] text-center font-bold">SM_Rock (12K)</span>
-                        </div>
-                     </>
-                  ) : mode === 'Niagara' ? (
-                     <>
-                        <div className="bg-[#161b22] border border-[#bc8cff]/20 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(188,140,255,0.05)]">
-                           <Zap size={20} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold">NS_Explosion</span>
-                        </div>
-                     </>
-                  ) : mode === 'World_Partition' ? (
-                     <>
-                        <div className="bg-[#161b22] border border-[#e3b341]/20 rounded p-2 flex flex-col gap-1 cursor-pointer shadow-[0_0_10px_rgba(227,179,65,0.05)] col-span-2">
-                           <span className="text-[10px] text-[#e3b341] font-bold">WP_Main_Grid</span>
-                           <span className="text-[9px] text-[#8b949e]">Cell Size: 256m</span>
-                           <span className="text-[9px] text-[#8b949e]">Loading Range: 1km</span>
-                        </div>
-                     </>
-                  ) : mode === 'MetaHuman' ? (
-                     <>
-                        <div className="bg-[#161b22] border border-[#bc8cff]/20 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <PersonStanding size={20} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold">MH_Ada_V2</span>
-                        </div>
-                     </>
-                  ) : mode === 'Chaos_Physics' ? (
-                     <>
-                        <div className="bg-[#161b22] border border-[#f85149]/20 rounded p-2 flex flex-col gap-1 cursor-pointer shadow-[0_0_10px_rgba(248,81,73,0.05)] col-span-2">
-                           <span className="text-[10px] text-[#f85149] font-bold flex items-center gap-1"><Wind size={10}/> VF_Tornado_01</span>
-                        </div>
-                     </>
-                  ) : mode === 'Voxel' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#e3b341]/50 hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(227,179,65,0.1)] col-span-2">
-                           <Box size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold tracking-wider uppercase">Extrude Block</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Bomb size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold tracking-wider uppercase">Carve</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Paintbrush size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold tracking-wider uppercase">Paint Brick</span>
-                        </div>
-                        <div className="col-span-2 mt-2">
-                           <span className="text-[10px] text-[#8b949e] font-bold block mb-1">Brick Material</span>
-                           <div className="grid grid-cols-4 gap-1">
-                              <div className="w-full bg-[#888] aspect-square rounded-[2px] border-2 border-[#fff] cursor-pointer" title="Stone"></div>
-                              <div className="w-full bg-[#5c4033] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Wood"></div>
-                              <div className="w-full bg-[#3fb950] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Grass"></div>
-                              <div className="w-full bg-[#58a6ff] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Glass"></div>
-                              <div className="w-full bg-[#a35e3d] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Dirt"></div>
-                              <div className="w-full bg-[#9c9c9c] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Concrete"></div>
-                              <div className="w-full bg-[#ff7b72] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Brick"></div>
-                              <div className="w-full bg-[#000] aspect-square rounded-[2px] border border-[#30363d] cursor-pointer" title="Obsidian"></div>
-                           </div>
-                        </div>
-                     </>
-                  ) : mode === 'Landscape' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#3fb950]/50 hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(63,185,80,0.1)] col-span-2">
-                           <Mountain size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Sculpt Tool</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Paintbrush size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Paint Material</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Layers size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Erosion Gen</span>
-                        </div>
-                     </>
-                  ) : mode === 'Foliage' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#3fb950]/50 hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(63,185,80,0.1)] col-span-2">
-                           <Trees size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Foliage Paint Brush</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Trees size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Pine_Tree_01</span>
-                           <div className="text-[8px] bg-[#3fb950] text-[#0d1117] px-1 rounded font-bold">ACTIVE</div>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Wind size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Grass_Tuft_02</span>
-                           <div className="text-[8px] bg-[#3fb950] text-[#0d1117] px-1 rounded font-bold">ACTIVE</div>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Grid size={24} className="text-[#8b949e] mb-1"/>
-                           <span className="text-[9px] text-[#8b949e] text-center">Rock_Mossy_Small</span>
-                        </div>
-                     </>
-                  ) : mode === 'Quests' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#e3b341]/50 hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(227,179,65,0.1)] col-span-2">
-                           <ScrollText size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Basic Quest Giver</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Flag size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Objective Marker</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Box size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Pickup Item (Quest)</span>
-                        </div>
-                     </>
-                  ) : mode === 'Cinematic' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#bc8cff]/50 hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(188,140,255,0.1)] col-span-2">
-                           <Video size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Cine Camera Actor</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Camera size={24} className="text-[#8b949e] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Camera Rig Rail</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Camera size={24} className="text-[#8b949e] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Camera Rig Crane</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer col-span-2 mt-2">
-                           <Clapperboard size={16} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Open Sequencer / Cutscene Editor</span>
-                        </div>
-                     </>
-                  ) : mode === 'Lighting' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#e3b341]/50 hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(227,179,65,0.1)]">
-                           <Sun size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Directional Light</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Lightbulb size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Point Light</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Focus size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Spot Light</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Wind size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Sky Atmosphere</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab col-span-2">
-                           <Map size={16} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Post Process Volume</span>
-                        </div>
-                     </>
-                  ) : mode === 'Pathing' ? (
-                     <>
-                        <div 
-                           onClick={() => setSplineType('Path')}
-                           className={`bg-[#0d1117] border ${splineType === 'Path' ? 'border-[#3fb950] shadow-[0_0_10px_rgba(63,185,80,0.1)]' : 'border-[#30363d] hover:border-[#3fb950]'} rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer col-span-2`}
-                        >
-                           <Route size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Draw New Patrol Path</span>
-                        </div>
-                        <div 
-                           onClick={() => setSplineType('Road')}
-                           className={`bg-[#0d1117] border ${splineType === 'Road' ? 'border-[#e3b341] shadow-[0_0_10px_rgba(227,179,65,0.1)]' : 'border-[#30363d] hover:border-[#e3b341]'} rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer col-span-2`}
-                        >
-                           <Map size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Draw New Road Spline</span>
-                        </div>
-                        <div 
-                           onClick={() => setSplineType('River')}
-                           className={`bg-[#0d1117] border ${splineType === 'River' ? 'border-[#58a6ff] shadow-[0_0_10px_rgba(88,166,255,0.1)]' : 'border-[#30363d] hover:border-[#58a6ff]'} rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer col-span-2`}
-                        >
-                           <Waves size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Draw New River Spline</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Map size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Nav Node</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Milestone size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Waypoint Indicator</span>
-                        </div>
-                     </>
-                  ) : mode === 'Volumes' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#f85149]/50 hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(248,81,73,0.1)] col-span-2">
-                           <SquareDashed size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Invisible Blocking Wall</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <SquareDashed size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Trigger/Spawn Volume</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <SquareDashed size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Kill Z Volume</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(88,166,255,0.1)]">
-                           <Wind size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Storm Wind (Physics IK)</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(63,185,80,0.1)]">
-                           <CloudRain size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Water Drag/Submersion</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(227,179,65,0.1)]">
-                           <Flame size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Extreme Heat (Bio-Res)</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#7ee787] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(126,231,135,0.1)]">
-                           <Snowflake size={24} className="text-[#7ee787] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Ice Slipperiness</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(188,140,255,0.1)]">
-                           <Skull size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Toxic Gas (Vision Blur)</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#d29922] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(210,153,34,0.1)]">
-                           <Waves size={24} className="text-[#d29922] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Quicksand (Sinking IK)</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(227,179,65,0.1)]">
-                           <Activity size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Anti-Gravity Anomaly</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(248,81,73,0.1)]">
-                           <Hammer size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Fragile Surface (Weight Cap)</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(88,166,255,0.1)]">
-                           <Zap size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Hyper-Magnetic</span>
-                        </div>
-                     </>
-                  ) : mode === 'NPC' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#bc8cff]/50 hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(188,140,255,0.1)]">
-                           <PersonStanding size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Mob_Goblin_01</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#bc8cff]/50 hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(188,140,255,0.1)]">
-                           <PersonStanding size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Mob_Orc_Warrior</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#3fb950]/50 hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(63,185,80,0.1)]">
-                           <PersonStanding size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">NPC_Merchant</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#3fb950]/50 hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(63,185,80,0.1)]">
-                           <PersonStanding size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">NPC_Guard</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#e3b341]/50 hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(227,179,65,0.1)] col-span-2">
-                           <Map size={16} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Spawn / Nav Path Node</span>
-                        </div>
-                     </>
-                  ) : mode === 'Physics' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#f85149]/50 hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(248,81,73,0.1)] col-span-2">
-                           <Wind size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Wind/Force Field Volume</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Box size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Rigid Body Tool</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Grid size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Soft Body / Cloth</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#f85149] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab col-span-2">
-                           <Layers size={16} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Fluid / Water Simulation</span>
-                        </div>
-                     </>
-                  ) : mode === 'Destruction' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#e3b341]/50 hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 shadow-[0_0_10px_rgba(227,179,65,0.1)] col-span-2 cursor-pointer">
-                           <Hammer size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Fracture Mesh</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Bomb size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Explosion Field</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer">
-                           <Package size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Material Health</span>
-                        </div>
-                     </>
-                  ) : mode === 'Chemistry' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#bc8cff]/50 hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(188,140,255,0.1)] col-span-2">
-                           <Hexagon size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Material Reactivity Grid</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Sun size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Flammability Node</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <RefreshCw size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Toxicity / Acid Pool</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab col-span-2">
-                           <Compass size={16} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Conductivity / Electricity</span>
-                        </div>
-                     </>
-                  ) : mode === 'Biology' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#3fb950]/50 hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(63,185,80,0.1)] col-span-2">
-                           <Trees size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Ecosystem Spawner</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Lightbulb size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Growth Cycle Node</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#3fb950] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <PersonStanding size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Predator/Prey Link</span>
-                        </div>
-                     </>
-                  ) : mode === 'Audio' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#58a6ff]/50 hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(88,166,255,0.1)] col-span-2">
-                           <Volume2 size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center font-bold tracking-wider uppercase">Ambient River / Lava</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Box size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Volcano Event Sound</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Activity size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Dynamic Reverb</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab col-span-2">
-                           <Settings size={16} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center tracking-wider uppercase">100% Audio Master Control</span>
-                        </div>
-                     </>
-                  ) : mode === 'Decals' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#bc8cff]/50 hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(188,140,255,0.1)] col-span-2">
-                           <Stamp size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Place Decal (Projection)</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Paintbrush size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Dirt_Splatter_01</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#bc8cff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Hexagon size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Blood_Pool_03</span>
-                        </div>
-                     </>
-                  ) : mode === 'PCG' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#7ee787]/50 hover:border-[#7ee787] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(126,231,135,0.1)] col-span-2">
-                           <Cpu size={24} className="text-[#7ee787] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">PCG Graph / Volume</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#7ee787] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Trees size={24} className="text-[#7ee787] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Rule: Forest Scatter</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#7ee787] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Box size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Rule: City Blocks</span>
-                        </div>
-                     </>
-                  ) : mode === 'Blueprint' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#1f6feb]/50 hover:border-[#1f6feb] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab shadow-[0_0_10px_rgba(31,111,235,0.1)] col-span-2">
-                           <Workflow size={24} className="text-[#58a6ff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">New Blueprint Class</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#1f6feb] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Zap size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">BP_Door_Interact</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#1f6feb] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <PersonStanding size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">BP_PlayerTrigger</span>
-                        </div>
-                     </>
-                  ) : mode === 'AI_Assist' ? (
-                     <>
-                        <div className="bg-[#0d1117] border border-[#e3b341]/50 hover:border-[#e3b341] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_20px_rgba(227,179,65,0.2)] col-span-2 group">
-                           <Globe size={24} className="text-[#e3b341] mb-1 group-hover:animate-pulse"/>
-                           <span className="text-[9px] text-white font-bold text-center uppercase tracking-wider">100% Real-world Generator</span>
-                           <span className="text-[8px] text-[#e3b341] text-center">Auto-Material & Component Separation</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#58a6ff]/50 hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(88,166,255,0.2)] group">
-                           <ImageUp size={24} className="text-[#58a6ff] mb-1 group-hover:animate-pulse"/>
-                           <span className="text-[9px] text-white font-bold text-center">Image To Blockout</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#58a6ff]/50 hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer group">
-                           <Wand2 size={24} className="text-[#e3b341] mb-1 group-hover:animate-pulse"/>
-                           <span className="text-[9px] text-white font-bold text-center">Text to Terrain</span>
-                        </div>
-                     </>
-                  ) : (
-                     <>
-                        <div className="col-span-2 bg-[#21262d]/50 border border-[#30363d] rounded p-1.5 flex items-center justify-center gap-2 mb-1">
-                           <Move3D size={12} className="text-[#8b949e]" />
-                           <span className="text-[9px] text-[#8b949e]">Drag & Drop to map</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Flag size={24} className="text-[#e3b341] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Location: Camp</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Map size={24} className="text-[#bc8cff] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">POI: Ruined Temple</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Box size={24} className="text-[#8b949e] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Cube_1m</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Box size={24} className="text-[#8b949e] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">Ramp_2x2</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <Trees size={24} className="text-[#3fb950] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">OakTree_01</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#e3b341] mb-1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">House_Wood_01</span>
-                        </div>
-                        <div className="bg-[#0d1117] border border-[#30363d] hover:border-[#58a6ff] rounded p-2 flex flex-col items-center justify-center gap-1 cursor-grab">
-                           <PersonStanding size={24} className="text-[#f85149] mb-1"/>
-                           <span className="text-[9px] text-[#c9d1d9] text-center">BP_EnemyRespawn</span>
-                        </div>
-                     </>
-                  )}
-               </div>
-            </div>
-        </div>
-
-        {/* Viewport 3D */}
-        <div className="flex-1 bg-gradient-to-t from-[#111] to-[#222] relative flex flex-col overflow-hidden">
-            
-            <div className="absolute top-2 left-2 flex gap-1 z-10 flex-wrap">
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#c9d1d9] flex items-center gap-1 hover:bg-[#21262d] transition-colors"><Grid size={12}/> <span className="text-[#58a6ff]">10u</span></button>
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#c9d1d9] flex items-center gap-1 hover:bg-[#21262d] transition-colors"><RefreshCw size={12}/> <span className="text-[#3fb950]">15°</span></button>
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#c9d1d9] flex items-center gap-1 hover:bg-[#21262d] transition-colors"><Maximize2 size={12}/> <span className="text-[#e3b341]">0.25</span></button>
-               <div className="w-px h-5 bg-[#30363d] mx-0.5 mt-0.5"></div>
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#c9d1d9] flex items-center gap-1 hover:bg-[#21262d] transition-colors"><Camera size={12}/> Perspective ▼</button>
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#c9d1d9] flex items-center gap-1 hover:bg-[#21262d] transition-colors"><Compass size={12}/> Lit ▼</button>
-               <div className="w-px h-5 bg-[#30363d] mx-0.5 mt-0.5"></div>
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#8b949e] flex items-center gap-1 hover:text-[#c9d1d9] hover:bg-[#21262d] transition-colors"><Eye size={12}/> Show ▼</button>
-               <button className="bg-[#161b22]/80 backdrop-blur border border-[#30363d] px-2 py-1 rounded text-[10px] font-bold text-[#8b949e] flex items-center gap-1 hover:text-[#c9d1d9] hover:bg-[#21262d] transition-colors"><Layers size={12}/> View Layers ▼</button>
-            </div>
-
-            <div className="absolute top-2 right-2 flex gap-1 z-10 bg-[#161b22]/80 backdrop-blur border border-[#30363d] rounded p-1">
-               <div className="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-[#21262d] rounded" title="Translate (W)"><Move3D size={14} className="text-[#8b949e]"/></div>
-               <div className="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-[#21262d] rounded bg-[#21262d]" title="Rotate (E)"><RefreshCw size={14} className="text-[#58a6ff]"/></div>
-               <div className="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-[#21262d] rounded" title="Scale (R)"><Maximize2 size={14} className="text-[#8b949e]"/></div>
-               <div className="w-px h-4 bg-[#30363d] mx-0.5 self-center"></div>
-               <div className="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-[#21262d] rounded" title="Local / World Space"><Layers size={14} className="text-[#8b949e]"/></div>
-            </div>
-
-            {/* Performance Monitor */}
-            {!isPerfMinimized && (
-               <div 
-                  className="absolute z-40 bg-[#161b22]/90 backdrop-blur-md border border-[#30363d] rounded-lg shadow-lg w-56 flex flex-col overflow-hidden transition-shadow hover:shadow-[0_0_15px_rgba(88,166,255,0.15)]"
-                  style={{ top: perfPos.y, left: perfPos.x }}
-               >
-                  {/* Drag Handle & Header */}
-                  <div 
-                     className="bg-[#21262d] p-1.5 flex items-center justify-between cursor-move"
-                     onMouseDown={(e) => setIsPerfDragging({ startX: e.clientX, startY: e.clientY, initialX: perfPos.x, initialY: perfPos.y })}
-                  >
-                     <div className="flex items-center gap-1.5 text-[#8b949e]">
-                        <GripHorizontal size={12}/>
-                        <span className="text-[10px] font-bold text-[#c9d1d9] uppercase tracking-wide">System Metrics</span>
-                     </div>
-                     <button 
-                        onClick={() => setIsPerfMinimized(true)} 
-                        className="text-[#8b949e] hover:text-white p-0.5 rounded hover:bg-[#30363d]"
-                     >
-                        <Minimize2 size={10} />
-                     </button>
-                  </div>
-                  {/* Metrics Body */}
-                  <div className="p-2 flex flex-col gap-2">
-                     <div className="flex flex-col gap-1">
-                        <div className="flex justify-between items-end">
-                           <span className="text-[9px] text-[#8b949e] flex items-center gap-1"><Cpu size={10}/> CPU</span>
-                           <span className="text-[10px] font-mono font-bold text-[#7ee787]">18%</span>
-                        </div>
-                        <div className="h-1 bg-[#0d1117] rounded-full overflow-hidden">
-                           <div className="h-full bg-[#7ee787] w-[18%]"></div>
-                        </div>
-                     </div>
-                     <div className="flex flex-col gap-1">
-                        <div className="flex justify-between items-end">
-                           <span className="text-[9px] text-[#8b949e] flex items-center gap-1"><Database size={10}/> RAM</span>
-                           <span className="text-[10px] font-mono font-bold text-[#e3b341]">4.2<span className="text-[8px] text-[#8b949e]">/16GB</span></span>
-                        </div>
-                        <div className="h-1 bg-[#0d1117] rounded-full overflow-hidden">
-                           <div className="h-full bg-[#e3b341] w-[26%]"></div>
-                        </div>
-                     </div>
-                     <div className="flex flex-col gap-1">
-                        <div className="flex justify-between items-end">
-                           <span className="text-[9px] text-[#8b949e] flex items-center gap-1"><MonitorPlay size={10}/> GPU</span>
-                           <span className="text-[10px] font-mono font-bold text-[#58a6ff]">65%</span>
-                        </div>
-                        <div className="h-1 bg-[#0d1117] rounded-full overflow-hidden">
-                           <div className="h-full bg-[#58a6ff] w-[65%]"></div>
-                        </div>
-                     </div>
-                     <div className="flex flex-col gap-1">
-                        <div className="flex justify-between items-end">
-                           <span className="text-[9px] text-[#8b949e] flex items-center gap-1"><Brain size={10}/> TPU <span className="text-[7px] bg-[#3fb950]/20 text-[#3fb950] px-1 rounded">AI</span></span>
-                           <span className="text-[10px] font-mono font-bold text-[#bc8cff]">89%</span>
-                        </div>
-                        <div className="h-1 bg-[#0d1117] rounded-full overflow-hidden">
-                           <div className="h-full bg-[#bc8cff] w-[89%]"></div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
-
-            {/* Mock 3D Grid & Gizmo */}
-            <div className="absolute inset-0 pointer-events-none perspective-[1000px] flex items-center justify-center">
-               
-               <div className="w-full h-full absolute" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '50px 50px', transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}></div>
-               
-               {mode === 'Select' ? (
-                 <>
-                   {/* Instance Override Active Visual */}
-                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px) translateX(0px)' }}>
-                     <div className="relative w-16 h-16 border-2 border-[#bc8cff] bg-[#bc8cff]/10 group shadow-[0_0_20px_rgba(188,140,255,0.3)]">
-                        <div className="absolute -top-3 -right-3 w-6 h-6 bg-[#bc8cff] rounded-full flex items-center justify-center text-[#0d1117] animate-pulse">
-                           <Wand2 size={10} />
-                        </div>
-                        <div className="text-[#bc8cff] font-bold text-[4px] transform -rotate-x-[75deg] whitespace-nowrap absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#0d1117]/80 px-1 border border-[#bc8cff]/50 rounded">OVERRIDDEN: SM_Wall_02</div>
-                     </div>
-                   </div>
-
-                   {/* Gizmo Mock */}
-                   <div className="absolute w-20 h-20 -translate-x-0 translate-y-10">
-                      <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                      <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                      <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                   </div>
-                 </>
-               ) : mode === 'Pathing' ? (
-               <div 
-                 className="absolute inset-0 w-full h-full"
-                 onDoubleClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    // Basic approx coordinate projection onto the 3D-angled plane
-                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                    const y = ((e.clientY - rect.top) / rect.height) * 100;
-                    setSplineNodes([...splineNodes, { id: Date.now(), x, y }]);
-                 }}
-               >
-                 <svg className="absolute inset-0 w-full h-full overflow-visible" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   {splineNodes.length > 1 && (
-                     <path 
-                       d={generateSplineCurve(splineNodes)} 
-                       fill="none" 
-                       stroke={splineType === 'River' ? '#58a6ff' : splineType === 'Road' ? '#e3b341' : '#3fb950'} 
-                       strokeWidth={splineType === 'River' ? '4' : splineType === 'Road' ? '3' : '2'}
-                       strokeDasharray={splineType === 'Path' ? "5,5" : "none"} 
-                       className={splineType === 'Path' ? "animate-[dash_2s_linear_infinite]" : ""} 
-                     />
-                   )}
-                   {splineNodes.map((n, i) => (
-                     <circle 
-                       key={n.id}
-                       cx={`${n.x}%`} 
-                       cy={`${n.y}%`} 
-                       r={splineType === 'Path' ? '2' : '3'}
-                       fill={activeSplineNode === i ? "#fff" : (splineType === 'River' ? '#58a6ff' : splineType === 'Road' ? '#e3b341' : '#3fb950')} 
-                       className={`cursor-pointer ${activeSplineNode === i ? 'animate-pulse' : ''}`}
-                       onDoubleClick={(e) => e.stopPropagation()}
-                       onMouseDown={(e) => {
-                         e.stopPropagation();
-                         setActiveSplineNode(i);
-                         setIsNodeDragging({ id: n.id, startX: e.clientX, startY: e.clientY, initialX: n.x, initialY: n.y });
-                       }}
-                     />
-                   ))}
-                 </svg>
-                 
-                 {activeSplineNode !== null && splineNodes[activeSplineNode] && (
-                     <div 
-                       className="absolute w-8 h-8 rounded border border-[#e3b341] bg-[#e3b341]/20 flex items-center justify-center shadow-[0_0_15px_rgba(227,179,65,0.4)] pointer-events-none"
-                       style={{
-                         left: `calc(50% + ${(splineNodes[activeSplineNode].x - 50) * 3}%)`,
-                         top: `calc(50% + ${(splineNodes[activeSplineNode].y - 50) * 0.5}% - 60px)`, // Rough projection
-                       }}
-                     >
-                        <div className="text-[#e3b341] font-bold text-[8px] whitespace-nowrap -translate-y-6 bg-[#0d1117]/80 px-1 rounded absolute border border-[#e3b341]/50">Nav Node {activeSplineNode}</div>
-                     </div>
-                 )}
-               </div>
-               ) : mode === 'Instance_Override' ? (
-               <>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-                    <div className="relative w-64 h-64 border border-[#e3b341]/20 rounded-full flex items-center justify-center" style={{ transform: 'rotateX(60deg)' }}>
-                       <div className="absolute top-4 left-4 w-4 h-4 bg-[#e3b341] rounded opacity-80 shadow-[0_0_10px_#e3b341]"></div>
-                       <div className="absolute top-12 left-20 w-4 h-4 bg-[#f85149] rounded opacity-80 shadow-[0_0_10px_#f85149] scale-150 rotate-45"></div>
-                       <div className="absolute bottom-10 left-10 w-4 h-4 bg-[#3fb950] rounded opacity-80 shadow-[0_0_10px_#3fb950] scale-50"></div>
-                       <div className="absolute bottom-20 right-10 w-4 h-4 bg-[#e3b341] rounded opacity-80 shadow-[0_0_10px_#e3b341] rotate-12"></div>
-                       <div className="absolute top-20 right-20 w-4 h-4 bg-[#e3b341] rounded opacity-80 shadow-[0_0_10px_#e3b341] scale-125"></div>
-                       
-                       {/* Override Selection Gizmo */}
-                       <div className="absolute top-12 left-20 w-10 h-10 border-2 border-dashed border-[#58a6ff] rounded animate-[spin_4s_linear_infinite]"></div>
-                    </div>
-                 </div>
-                 <div className="absolute left-6 bottom-6 text-[#8b949e] font-mono text-[10px]">
-                    <div className="flex items-center gap-2"><div className="w-2 h-2 bg-[#e3b341] rounded-sm"></div> Default Instance</div>
-                    <div className="flex items-center gap-2 mt-1"><div className="w-2 h-2 bg-[#f85149] rounded-sm"></div> Overridden Instance</div>
-                 </div>
-               </>
-               ) : mode === 'World_Partition' ? (
-               <>
-                 <div className="absolute inset-0 bg-[#0d1117]/80 flex items-center justify-center" style={{ backgroundImage: 'linear-gradient(#30363d 1px, transparent 1px), linear-gradient(90deg, #30363d 1px, transparent 1px)', backgroundSize: '100px 100px' }}>
-                    <div className="relative w-full h-full flex flex-wrap justify-center items-center gap-[2px]">
-                       {Array.from({length: 48}).map((_, i) => (
-                           <div key={i} className={`w-[98px] h-[98px] border border-[#58a6ff]/30 ${i % 7 === 0 ? 'bg-[#3fb950]/20 border-[#3fb950]' : i % 5 === 0 ? 'bg-[#58a6ff]/10' : 'bg-transparent'} flex items-center justify-center text-[10px] font-mono text-[#8b949e]`}>
-                              LID_{i}
-                           </div>
-                       ))}
-                    </div>
-                 </div>
-               </>
-               ) : mode === 'Niagara' ? (
-               <>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
-                    <div className="relative">
-                       <Zap size={64} className="text-[#bc8cff] animate-pulse" />
-                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border border-[#bc8cff]/50 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
-                    </div>
-                 </div>
-               </>
-               ) : mode === 'Chaos_Physics' ? (
-               <>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none">
-                    <div className="relative w-48 h-48 border border-[#f85149]/30 rounded-lg flex items-center justify-center overflow-hidden">
-                       <div className="absolute w-12 h-12 bg-[#f85149] rounded rotate-12 top-4 left-4 blur-sm opacity-50"></div>
-                       <div className="absolute w-8 h-8 bg-[#f85149] rounded-full bottom-12 right-12 blur-[2px] opacity-70"></div>
-                       <div className="absolute w-full h-full border border-[#f85149]/50 mix-blend-screen" style={{ backgroundImage: 'radial-gradient(circle at center, transparent 0%, #f8514920 100%)' }}></div>
-                    </div>
-                 </div>
-               </>
-               ) : mode === 'MetaHuman' ? (
-               <>
-                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                    <PersonStanding size={200} className="text-[#bc8cff]" />
-                 </div>
-               </>
-               ) : mode === 'Voxel' ? (
-               <>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none" style={{ transform: 'rotateX(60deg) rotateZ(45deg) scale(2) translateY(-50px)' }}>
-                    {/* Fake Voxel Grid Structure */}
-                    <div className="relative w-32 h-32">
-                       {/* Layer 1 Example Boxes */}
-                       <div className="absolute top-[0px] left-[0px] w-8 h-8 bg-[#888] border border-[#a0a0a0]"></div>
-                       <div className="absolute top-[0px] left-[32px] w-8 h-8 bg-[#888] border border-[#a0a0a0]"></div>
-                       <div className="absolute top-[32px] left-[0px] w-8 h-8 bg-[#888] border border-[#a0a0a0]"></div>
-                       {/* Layer 2 Hovering Box */}
-                       <div className="absolute top-[0px] left-[0px] w-8 h-8 bg-[#58a6ff]/80 border-2 border-[#58a6ff] -translate-x-2 -translate-y-2 shadow-[0_10px_20px_rgba(0,0,0,0.5)]"></div>
-                    </div>
-                 </div>
-                 
-                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-[#0d1117]/80 backdrop-blur border border-[#30363d] px-4 py-2 rounded-lg text-center flex flex-col gap-1 items-center pointer-events-none drop-shadow-lg">
-                    <span className="text-white text-[11px] font-bold uppercase tracking-widest flex items-center gap-2"><Grid size={12} className="text-[#e3b341]"/>Voxel Building Mode Active</span>
-                    <span className="text-[#8b949e] text-[10px]">LMB: Place Block · RMB: Delete Block · MouseWheel: Change Layer Height</span>
-                 </div>
-               </>
-               ) : mode === 'Volumes' ? (
-               <>
-                 {/* Auto-Fit Demonstration: Outline of a model inside the volume */}
-                 <div className="w-48 h-20 border border-[#58a6ff]/50 absolute rotate-x-[75deg] -translate-x-12 translate-y-6 bg-[#58a6ff]/10"></div>
-                 <div className="text-[#58a6ff] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap absolute translate-x-0 translate-y-5">Selected Mesh</div>
-
-                 <div className="w-64 h-32 border-2 border-[#f85149] bg-[#f85149]/10 absolute rotate-x-[75deg] -translate-x-20 translate-y-0 shadow-[inset_0_0_30px_rgba(248,81,73,0.2)]">
-                    <div className="text-[#f85149] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#f85149]/50">BlockingVolume_Wall</div>
-                    
-                    {/* Resize Handles */}
-                    <div className="absolute top-[-4px] left-[-4px] w-2 h-2 bg-white border border-[#f85149] cursor-nwse-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute top-[-4px] right-[-4px] w-2 h-2 bg-white border border-[#f85149] cursor-nesw-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute bottom-[-4px] left-[-4px] w-2 h-2 bg-white border border-[#f85149] cursor-nesw-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute bottom-[-4px] right-[-4px] w-2 h-2 bg-white border border-[#f85149] cursor-nwse-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute top-1/2 left-[-4px] -translate-y-1/2 w-2 h-2 bg-white border border-[#f85149] cursor-ew-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute top-1/2 right-[-4px] -translate-y-1/2 w-2 h-2 bg-white border border-[#f85149] cursor-ew-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute top-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-white border border-[#f85149] cursor-ns-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-white border border-[#f85149] cursor-ns-resize shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
-                 </div>
-                 
-                 <div className="w-40 h-40 border-2 border-dashed border-[#e3b341] bg-[#e3b341]/5 absolute rotate-x-[75deg] translate-x-32 translate-y-10 shadow-[inset_0_0_20px_rgba(227,179,65,0.1)]">
-                    <div className="text-[#e3b341] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#e3b341]/50">Trigger_SpawnAmbush</div>
-                 </div>
-                 
-                 <div className="w-48 h-32 border-2 border-[#58a6ff] bg-[#58a6ff]/10 absolute rotate-x-[75deg] -translate-x-32 -translate-y-40 shadow-[inset_0_0_30px_rgba(88,166,255,0.2)]">
-                    <div className="text-[#58a6ff] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#58a6ff]/50 flex items-center gap-1"><Wind size={10}/> Env_HurricaneForce</div>
-                    <svg className="w-full h-full opacity-50 relative z-10 overflow-visible"><path d="M 20 20 Q 50 10 80 20" stroke="#58a6ff" strokeWidth="2" fill="none" className="animate-[dash_1s_linear_infinite]" strokeDasharray="4,4"/><path d="M 20 60 Q 50 50 80 60" stroke="#58a6ff" strokeWidth="2" fill="none" className="animate-[dash_1s_linear_infinite]" strokeDasharray="4,4"/></svg>
-                 </div>
-                 
-                 <div className="w-56 h-48 border-2 border-[#3fb950] bg-[#3fb950]/20 absolute rotate-x-[75deg] translate-x-10 -translate-y-20 shadow-[inset_0_0_40px_rgba(63,185,80,0.3)] backdrop-blur-[2px]">
-                    <div className="text-[#3fb950] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#3fb950]/50 flex items-center gap-1"><CloudRain size={10}/> Env_DeepWaterLake</div>
-                 </div>
-
-                 <div className="w-40 h-40 border-2 border-dashed border-[#e3b341] bg-[#e3b341]/10 absolute rotate-x-[75deg] -translate-x-60 translate-y-10 shadow-[inset_0_0_50px_rgba(227,179,65,0.3)]">
-                    <div className="text-[#e3b341] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/90 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#e3b341]/50 flex items-center gap-1"><Flame size={10} className="animate-pulse text-[#f85149]"/> Env_VolcanoHeat (AI Gen)</div>
-                    <svg className="w-full h-full opacity-30 relative z-10 overflow-visible"><circle cx="80" cy="80" r="50" stroke="#e3b341" strokeWidth="1" fill="none" className="animate-ping"/></svg>
-                 </div>
-
-                 <div className="w-32 h-32 border-2 border-[#bc8cff] bg-[#bc8cff]/10 absolute rotate-x-[75deg] translate-x-60 -translate-y-30 shadow-[inset_0_0_50px_rgba(188,140,255,0.3)]">
-                    <div className="text-[#bc8cff] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/90 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#bc8cff]/50 flex items-center gap-1"><Skull size={10} className="animate-bounce text-[#bc8cff]"/> Env_ToxicSwamp</div>
-                    <div className="absolute w-full h-full inset-0 bg-[#bc8cff]/5 mix-blend-screen animate-pulse"></div>
-                 </div>
-
-                 <div className="w-24 h-24 border-2 border-dashed border-[#d29922] bg-[#d29922]/20 absolute rotate-x-[75deg] translate-x-40 translate-y-40 shadow-[inset_0_0_30px_rgba(210,153,34,0.4)]">
-                    <div className="text-[#d29922] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/90 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#d29922]/50 flex items-center gap-1"><Waves size={10}/> Hazard_Quicksand</div>
-                 </div>
-
-                 <div className="w-48 h-48 border border-[#e3b341] bg-[#e3b341]/5 absolute rotate-x-[75deg] -translate-x-20 -translate-y-40 shadow-[inset_0_0_60px_rgba(227,179,65,0.15)] rounded-full">
-                    <div className="text-[#e3b341] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/90 px-2 py-0.5 rounded absolute -top-10 left-1/2 -translate-x-1/2 border border-[#e3b341]/50 flex items-center gap-1"><Activity size={10} className="animate-pulse text-[#e3b341]"/> Anomaly_AntiGravity</div>
-                    <div className="absolute inset-0 bg-[#e3b341]/20 mix-blend-screen animate-spin rounded-full blur-[2px]" style={{ animationDuration: '4s' }}></div>
-                 </div>
-
-                 <div className="w-32 h-64 border-2 border-dashed border-[#58a6ff] bg-[#58a6ff]/10 absolute rotate-x-[75deg] translate-x-64 -translate-y-10 shadow-[inner_0_0_20px_rgba(88,166,255,0.3)]">
-                    <div className="text-[#58a6ff] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/90 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#58a6ff]/50 flex items-center gap-1"><Zap size={10} className="text-[#58a6ff]"/> Magnetic Field</div>
-                 </div>
-
-                 <div className="w-32 h-32 border-2 border-[#7ee787] bg-[#7ee787]/20 absolute rotate-x-[75deg] translate-x-20 translate-y-30 shadow-[inset_0_0_40px_rgba(126,231,135,0.4)]">
-                    <div className="text-[#7ee787] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/90 px-2 py-0.5 rounded absolute -top-8 left-1/2 -translate-x-1/2 border border-[#7ee787]/50 flex items-center gap-1"><Activity size={10} className="animate-pulse text-[#7ee787]"/> Radiation_Gamma</div>
-                 </div>
-
-                 {/* Gizmo Mock on Blocking Volume */}
-                 <div className="absolute w-20 h-20 -translate-x-20 translate-y-0">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               ) : mode === 'Landscape' ? (
-               <>
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#3fb950] overflow-visible" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <circle cx="50%" cy="50%" r="40" fill="none" strokeWidth="1" strokeDasharray="2,2" className="animate-[spin_4s_linear_infinite] opacity-50" />
-                   <circle cx="50%" cy="50%" r="20" fill="#3fb950" className="opacity-10" />
-                 </svg>
-                 <div className="absolute w-32 h-32 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#3fb950]/30 to-transparent rotate-x-[75deg] -translate-x-10 translate-y-10 filter blur-xl"></div>
-                 <div className="text-[#3fb950] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-20 bg-[#0d1117]/80 px-2 py-0.5 rounded border border-[#3fb950]/50 absolute top-1/2 left-1/2 flex items-center gap-2"><Mountain size={12}/> Brush: Raise <span className="opacity-50">Radius: 800</span></div>
-               </>
-               ) : mode === 'Foliage' ? (
-               <>
-                 <div className="absolute w-4 h-12 bg-none border-l-2 border-b-2 border-dashed border-[#3fb950] rotate-x-[75deg] -translate-x-10 translate-y-10"></div>
-                 <div className="absolute w-4 h-10 bg-none border-l-2 border-b-2 border-dashed border-[#3fb950] rotate-x-[75deg] translate-x-20 translate-y-32"></div>
-                 <div className="absolute w-4 h-8 bg-none border-l-2 border-b-2 border-dashed border-[#3fb950] rotate-x-[75deg] -translate-x-32 -translate-y-10"></div>
-                 
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#3fb950] overflow-visible opacity-30" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <circle cx="50%" cy="50%" r="60" fill="none" strokeWidth="1" />
-                 </svg>
-               </>
-               ) : mode === 'Quests' ? (
-               <>
-                 <div className="w-8 h-8 rounded-full border-2 border-[#e3b341] bg-[#e3b341]/20 absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[0_0_20px_rgba(227,179,65,0.5)] shadow-inner flex items-center justify-center">
-                    <div className="text-[#e3b341] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-10 absolute bg-[#0d1117]/80 px-1 rounded border border-[#e3b341]/50 flex flex-col items-center">
-                       <span className="text-[14px]">!</span>
-                       <span className="font-mono mt-0.5">Quest_ReturnAmulet</span>
-                    </div>
-                    <div className="w-1 h-3 bg-[#e3b341] absolute bottom-1/2 left-1/2 -mb-1.5 -ml-0.5"></div>
-                 </div>
-
-                 {/* Gizmo Mock on Quest Object */}
-                 <div className="absolute w-20 h-20 -translate-x-4 translate-y-12">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               ) : mode === 'Cinematic' ? (
-               <>
-                 <div className="w-12 h-8 border-2 border-[#bc8cff] bg-[#bc8cff]/20 absolute rotate-x-[75deg] -translate-x-20 translate-y-20 shadow-[0_0_20px_rgba(188,140,255,0.5)] shadow-inner flex items-center justify-center">
-                    <div className="w-4 h-4 border-2 border-[#bc8cff] rounded-full absolute -top-4"></div>
-                    <div className="text-[#bc8cff] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-12 absolute bg-[#0d1117]/80 px-1 rounded border border-[#bc8cff]/50">Cam_IntroSweep</div>
-                 </div>
-                 
-                 {/* Camera view frustum mock */}
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#bc8cff] overflow-visible opacity-50" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <path d="M 45% 65% L 40% 75%" fill="none" strokeWidth="0.5" />
-                   <path d="M 45% 65% L 55% 70%" fill="none" strokeWidth="0.5" />
-                   <path d="M 40% 75% L 55% 70%" fill="none" strokeWidth="0.5" strokeDasharray="2,2"/>
-                 </svg>
-
-                 {/* Gizmo Mock on Camera */}
-                 <div className="absolute w-20 h-20 -translate-x-12 translate-y-16">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               ) : mode === 'Lighting' ? (
-               <>
-                 <div className="w-8 h-8 rounded-full border-2 border-[#e3b341] bg-[#e3b341]/20 absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[0_0_40px_rgba(227,179,65,0.8)] shadow-inner flex items-center justify-center">
-                    <div className="text-[#e3b341] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-8 absolute bg-[#0d1117]/80 px-1 rounded border border-[#e3b341]/50 flex items-center gap-1">
-                        <Sun size={10} className="inline"/>DirectionalLight_Sun
-                    </div>
-                 </div>
-
-                 {/* Light Rays */}
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#e3b341] overflow-visible opacity-20" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                    <path d="M 45% 55% L 60% 80%" fill="none" strokeWidth="1" strokeDasharray="3,3" />
-                    <path d="M 45% 55% L 30% 90%" fill="none" strokeWidth="1" strokeDasharray="3,3" />
-                    <path d="M 45% 55% L 70% 30%" fill="none" strokeWidth="1" strokeDasharray="3,3" />
-                 </svg>
-                 
-                 {/* Gizmo Mock on Light */}
-                 <div className="absolute w-20 h-20 -translate-x-4 translate-y-12">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               ) : mode === 'Physics' ? (
-               <>
-                 {/* Physics Field Mock */}
-                 <div className="w-48 h-48 border-2 border-[#f85149] bg-[#f85149]/5 absolute rotate-x-[75deg] translate-x-10 translate-y-20 shadow-[inset_0_0_40px_rgba(248,81,73,0.2)]"></div>
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#f85149] overflow-visible opacity-50" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <path d="M 45% 60% Q 50% 50% 65% 55%" fill="none" strokeWidth="1" strokeDasharray="5,5" className="animate-[dash_1s_linear_infinite]" />
-                   <path d="M 40% 70% Q 50% 60% 60% 65%" fill="none" strokeWidth="1" strokeDasharray="5,5" className="animate-[dash_1s_linear_infinite]" />
-                   <path d="M 50% 55% Q 60% 45% 70% 50%" fill="none" strokeWidth="1" strokeDasharray="5,5" className="animate-[dash_1s_linear_infinite]" />
-                 </svg>
-                 <div className="text-[#f85149] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded border border-[#f85149]/50 absolute translate-x-10 translate-y-10">ForceField_Tornado</div>
-                 <div className="absolute w-10 h-10 -translate-x-10 translate-y-32 bg-[#e3b341]/80 rounded filter blur-sm shadow-[0_0_20px_#e3b341]"></div>
-               </>
-               ) : mode === 'Destruction' ? (
-               <>
-                 <div className="w-40 h-40 border border-[#e3b341]/50 absolute rotate-x-[75deg] translate-x-5 translate-y-5 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-[#e3b341]/10"></div>
-                 </div>
-                 {/* Voronoi / Fracture Pattern Mock inside a bounding box */}
-                 <svg className="absolute w-40 h-40 overflow-visible pointer-events-none" style={{ transform: 'rotateX(75deg) scale(1) translateX(5px) translateY(5px)' }}>
-                    <path d="M 10 10 L 50 20 L 40 60 Z" fill="none" stroke="#e3b341" strokeWidth="2" />
-                    <path d="M 50 20 L 90 10 L 80 50 Z" fill="none" stroke="#e3b341" strokeWidth="2" />
-                    <path d="M 40 60 L 80 50 L 70 90 L 30 80 Z" fill="rgba(227, 179, 65, 0.2)" stroke="#e3b341" strokeWidth="2" />
-                    <path d="M 80 50 L 120 40 L 110 80 Z" fill="none" stroke="#e3b341" strokeWidth="2" />
-                    <path d="M 10 10 L 30 80 L 0 70 Z" fill="none" stroke="#e3b341" strokeWidth="2" />
-                    <circle cx="55" cy="70" r="4" fill="#e3b341" />
-                 </svg>
-                 <div className="text-[#e3b341] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded border border-[#e3b341]/50 absolute translate-x-10 -translate-y-5 flex items-center gap-1">
-                    <Hammer size={10} /> SM_Wall_01 (Voronoi: 12 Chunks)
-                 </div>
-               </>
-               ) : mode === 'Chemistry' ? (
-               <>
-                 {/* Chemistry Reaction Mock */}
-                 <div className="w-56 h-56 absolute rotate-x-[75deg] -translate-x-10 translate-y-20" style={{ backgroundImage: 'radial-gradient(ellipse at center, rgba(188, 140, 255, 0.2) 0%, transparent 70%)' }}></div>
-                 <div className="absolute w-20 h-20 rotate-x-[75deg] -translate-x-5 translate-y-25 border border-[#bc8cff] bg-[#bc8cff]/10 animate-pulse flex items-center justify-center">
-                    <span className="text-[#bc8cff] font-bold text-[12px] transform -rotate-x-[75deg]">H2O + Na</span>
-                 </div>
-                 <div className="absolute w-8 h-8 -translate-x-10 translate-y-10 bg-[#f85149]/80 rounded-full filter blur shadow-[0_0_30px_#f85149] animate-bounce"></div>
-                 <div className="absolute w-8 h-8 -translate-x-0 translate-y-20 bg-[#f85149]/80 rounded-full filter blur shadow-[0_0_30px_#f85149] animate-bounce delay-100"></div>
-                 <div className="absolute w-8 h-8 -translate-x-20 translate-y-15 bg-[#f85149]/80 rounded-full filter blur shadow-[0_0_30px_#f85149] animate-bounce delay-200"></div>
-               </>
-               ) : mode === 'Biology' ? (
-               <>
-                 {/* Biology Ecosystem Mock */}
-                 <div className="w-64 h-64 border border-[#3fb950] border-dashed rounded-full absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[inset_0_0_40px_rgba(63,185,80,0.1)]"></div>
-                 <div className="text-[#3fb950] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded border border-[#3fb950]/50 absolute -translate-x-10 translate-y-0">EcoZone_Forest_01</div>
-                 
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#3fb950]" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <circle cx="45%" cy="55%" r="2" fill="#3fb950" className="animate-ping" />
-                   <circle cx="55%" cy="60%" r="2" fill="#3fb950" className="animate-ping delay-100" />
-                   <circle cx="50%" cy="45%" r="2" fill="#3fb950" className="animate-ping delay-200" />
-                   <circle cx="40%" cy="40%" r="2" fill="#f85149" className="animate-pulse" /> {/* Predator */}
-                   <path d="M 40% 40% L 45% 55%" fill="none" strokeWidth="0.5" strokeDasharray="2,2" stroke="#f85149" className="opacity-50" />
-                 </svg>
-               </>
-               ) : mode === 'Audio' ? (
-               <>
-                 {/* Audio Area Mock */}
-                 <div className="w-8 h-8 rounded-full border-2 border-[#58a6ff] bg-[#58a6ff]/20 absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[0_0_20px_rgba(88,166,255,0.5)] shadow-inner flex items-center justify-center">
-                    <div className="text-[#58a6ff] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-8 absolute bg-[#0d1117]/80 px-1 rounded border border-[#58a6ff]/50">Ambient_Wind_01</div>
-                    <div className="w-1 h-2 bg-[#58a6ff] absolute bottom-1/2 left-1/2 -mb-1 -ml-0.5"></div>
-                 </div>
-                 {/* Sound Radius */}
-                 <div className="w-48 h-48 rounded-full border border-[#58a6ff]/30 absolute rotate-x-[75deg] -translate-x-30 -translate-y-10 animate-ping" style={{ animationDuration: '3s' }}></div>
-                 <div className="w-32 h-32 rounded-full border border-[#58a6ff]/50 absolute rotate-x-[75deg] -translate-x-22 -translate-y-2"></div>
-               </>
-               ) : mode === 'Decals' ? (
-               <>
-                 {/* Decal Projection Mock */}
-                 <div className="w-24 h-24 border-2 border-[#bc8cff] absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[inset_0_0_20px_rgba(188,140,255,0.3)] bg-gradient-to-br from-[#bc8cff]/20 to-transparent"></div>
-                 <div className="text-[#bc8cff] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-20 absolute bg-[#0d1117]/80 px-2 py-0.5 rounded border border-[#bc8cff]/50 absolute top-1/2 left-1/2 flex items-center gap-2">Decal_BurnMark</div>
-                 {/* Decal Gizmo */}
-                 <div className="absolute w-20 h-20 -translate-x-20 translate-y-16">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               ) : mode === 'PCG' ? (
-               <>
-                 {/* Procedural Grid Mock */}
-                 <div className="w-64 h-64 border-2 border-[#7ee787] border-dashed absolute rotate-x-[75deg] -translate-x-10 translate-y-10 bg-[#7ee787]/5" style={{ backgroundImage: 'radial-gradient(circle, #7ee787 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: 'center' }}></div>
-                 <div className="text-[#7ee787] font-bold text-[10px] transform -rotate-x-[75deg] whitespace-nowrap bg-[#0d1117]/80 px-2 py-0.5 rounded border border-[#7ee787]/50 absolute -translate-x-10 translate-y-0">PCG_Volume_Forest</div>
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <rect x="40%" y="45%" width="4" height="4" fill="#3fb950" className="opacity-80" />
-                   <rect x="50%" y="55%" width="4" height="4" fill="#3fb950" className="opacity-80" />
-                   <rect x="55%" y="40%" width="4" height="4" fill="#3fb950" className="opacity-80" />
-                   <circle cx="45%" cy="60%" r="2" fill="#8b949e" /> {/* Rock */}
-                 </svg>
-               </>
-               ) : mode === 'Blueprint' ? (
-               <>
-                 {/* Blueprint Logic Grid Mock */}
-                 <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #30363d 1px, transparent 1px)', backgroundSize: '30px 30px', backgroundPosition: 'center', opacity: 0.5 }}></div>
-                 
-                 <div className="absolute top-1/2 left-1/2 -translate-x-32 -translate-y-20 bg-[#0d1117] border-2 border-[#1f6feb] rounded shadow-[0_0_15px_rgba(31,111,235,0.2)] flex flex-col w-40 z-20 overflow-hidden">
-                    <div className="bg-gradient-to-r from-[#1f6feb] to-[#0d1117] px-2 py-1 flex items-center justify-between">
-                       <span className="text-white text-[10px] font-bold">Event BeginPlay</span>
-                       <Play size={10} className="text-white opacity-80" />
-                    </div>
-                    <div className="p-2 flex flex-col gap-2">
-                       <div className="flex justify-end pr-1">
-                          <div className="w-2 h-2 rounded-full border border-white bg-transparent relative">
-                             <div className="absolute top-1/2 left-2 w-16 h-px bg-white/50"></div>
-                          </div>
-                          <span className="text-[8px] ml-4 font-mono text-[#c9d1d9]">Exec</span>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div className="absolute top-1/2 left-1/2 translate-x-10 translate-y-10 bg-[#0d1117] border-2 border-[#3fb950] rounded shadow-[0_0_15px_rgba(63,185,80,0.2)] flex flex-col w-48 z-20 overflow-hidden">
-                    <div className="bg-gradient-to-r from-[#3fb950] to-[#0d1117] px-2 py-1 flex items-center justify-between">
-                       <span className="text-white text-[10px] font-bold">Spawn Actor from Class</span>
-                       <Box size={10} className="text-white opacity-80" />
-                    </div>
-                    <div className="p-2 flex flex-col gap-2 relative">
-                       <div className="flex justify-between px-1">
-                          <div className="w-2 h-2 rounded-full border border-white bg-transparent -ml-2 relative">
-                             <div className="absolute top-1/2 right-2 w-16 h-px bg-white/50 -translate-y-0.5" style={{ transform: 'rotate(-45deg)' }}></div>
-                          </div>
-                          <span className="text-[8px] font-mono text-[#c9d1d9]">Exec</span>
-                          <span className="text-[8px] font-mono text-[#c9d1d9]">Exec</span>
-                          <div className="w-2 h-2 rounded-full border border-white bg-transparent -mr-2"></div>
-                       </div>
-                       
-                       <div className="flex justify-between px-1">
-                          <span className="text-[8px] ml-2 font-mono text-[#bc8cff]">Class</span>
-                          <span className="text-[8px] font-mono text-[#58a6ff]">Return Value</span>
-                          <div className="w-2 h-2 rounded-full bg-[#58a6ff] -mr-2"></div>
-                       </div>
-                    </div>
-                 </div>
-               </>
-               ) : mode === 'AI_Assist' ? (
-               <>
-                {/* AI Overlay Mock */}
-                <div className="w-full h-full absolute inset-0 bg-gradient-to-br from-[#e3b341]/5 to-[#58a6ff]/5"></div>
-                <div className="absolute top-[10%] left-[10%] bottom-[10%] right-[10%] border-2 border-[#e3b341]/50 border-dashed rounded-xl bg-[#0d1117]/80 backdrop-blur-md shadow-[0_0_50px_rgba(227,179,65,0.15)] flex flex-col items-center justify-center gap-4 z-20 overflow-hidden">
-                   <div className="absolute inset-0 bg-[#e3b341]/5 pointer-events-none animate-pulse"></div>
-                   <div className="p-4 bg-gradient-to-b from-[#e3b341]/20 to-transparent rounded-full border border-[#e3b341]/30 relative z-10">
-                      <Globe size={48} className="text-[#e3b341] drop-shadow-[0_0_15px_rgba(227,179,65,0.8)] animate-[spin_10s_linear_infinite]"/>
-                   </div>
-                   <div className="flex flex-col items-center gap-1 relative z-10">
-                      <h3 className="text-white font-bold text-xl tracking-wider uppercase text-center flex items-center gap-2">
-                         <Wand2 size={20} className="text-[#e3b341]" /> 100% Core Reality: Map Generator
-                      </h3>
-                      <p className="text-[12px] text-[#e3b341] font-mono text-center mb-1 bg-[#161b22] px-2 py-0.5 rounded border border-[#e3b341]/20">Auto-Material Assignment & Destructible Separation Enabled</p>
-                   </div>
-                   
-                   <p className="text-[12px] text-[#8b949e] max-w-lg text-center relative z-10 leading-relaxed">
-                      Enter a prompt or drag a concept image. The AI will not just place static meshes. It will **completely separate structures** into base components (beams, panels, hinges) and assigning **100% realistic materials** (wood, iron, glass) based on the environmental logic. You will retain <span className="text-[#e3b341] font-bold">100% manual override</span> capabilities in the editor afterwards via Smart Transmutation.
-                   </p>
-                   
-                   <div className="flex w-full max-w-lg mt-2 relative z-10">
-                      <input type="text" className="flex-1 bg-[#161b22] border border-[#30363d] focus:border-[#e3b341]/50 rounded-l p-3 text-white text-[12px] outline-none placeholder-[#8b949e]" placeholder="e.g. Abandoned swamp cabin with rusted metal roof and rotting wood walls..." />
-                      <button className="bg-gradient-to-r from-[#e3b341]/80 to-[#bc8cff]/80 hover:from-[#e3b341] hover:to-[#bc8cff] text-[#0d1117] px-6 py-2 text-[13px] rounded-r font-bold transition-all shadow-[0_0_20px_rgba(227,179,65,0.3)] flex items-center gap-2 tracking-wider">
-                         <Play size={14} className="fill-current"/> GENERATE WORLD
-                      </button>
-                   </div>
-
-                   <div className="flex gap-4 mt-2 relative z-10">
-                       <button className="bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] px-4 py-1.5 text-[11px] rounded border border-[#30363d] transition-colors flex items-center gap-1.5">
-                          <ImageUp size={14}/> Include Reference Image
-                       </button>
-                       <button className="bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] px-4 py-1.5 text-[11px] rounded border border-[#30363d] transition-colors flex items-center gap-1.5">
-                          <Brain size={14} className="text-[#bc8cff]"/> Use Local Multimodal (Qwen-VL)
-                       </button>
-                   </div>
-                </div>
-               </>
-               ) : mode === 'NPC' ? (
-               <>
-                 <div className="w-8 h-8 rounded-full border-2 border-[#bc8cff] bg-[#bc8cff]/20 absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[0_0_20px_rgba(188,140,255,0.5)] shadow-inner flex items-center justify-center">
-                    <div className="text-[#bc8cff] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-8 absolute bg-[#0d1117]/80 px-1 rounded border border-[#bc8cff]/50">Orc #1</div>
-                    <div className="w-1 h-3 bg-[#bc8cff] absolute bottom-1/2 left-1/2 -mb-1.5 -ml-0.5"></div>
-                 </div>
-                 
-                 <div className="w-8 h-8 rounded-full border-2 border-[#bc8cff]/50 bg-[#bc8cff]/10 absolute rotate-x-[75deg] translate-x-32 translate-y-2 flex items-center justify-center">
-                    <div className="text-[#bc8cff]/80 font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-8 absolute bg-[#0d1117]/80 px-1 rounded border border-[#bc8cff]/30">Orc #2</div>
-                    <div className="w-1 h-3 bg-[#bc8cff]/50 absolute bottom-1/2 left-1/2 -mb-1.5 -ml-0.5"></div>
-                 </div>
-
-                 <div className="w-8 h-8 rounded-full border-2 border-[#3fb950] bg-[#3fb950]/20 absolute rotate-x-[75deg] -translate-x-40 -translate-y-20 flex items-center justify-center">
-                    <div className="text-[#3fb950] font-bold text-[8px] transform -rotate-x-[75deg] whitespace-nowrap -translate-y-8 absolute bg-[#0d1117]/80 px-1 rounded border border-[#3fb950]/50">Merchant</div>
-                    <div className="w-1 h-3 bg-[#3fb950] absolute bottom-1/2 left-1/2 -mb-1.5 -ml-0.5"></div>
-                 </div>
-
-                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#e3b341]" style={{ transform: 'rotateX(75deg) scale(3) translateY(-100px)' }}>
-                   <path d="M 45% 55% Q 50% 60% 60% 50% T 70% 55%" fill="none" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" />
-                 </svg>
-
-                 {/* Gizmo Mock on active Item */}
-                 <div className="absolute w-20 h-20 -translate-x-4 translate-y-12">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               ) : (
-               <>
-                 {/* Selected Object Mock */}
-                 <div className="w-32 h-32 border-2 border-[#58a6ff] bg-[#58a6ff]/20 absolute rotate-x-[75deg] -translate-x-10 translate-y-10 shadow-[inset_0_0_20px_rgba(88,166,255,0.5)]"></div>
-  
-                 {/* Gizmo Mock */}
-                 <div className="absolute w-20 h-20 -translate-x-4 translate-y-12">
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f85149]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-full bg-[#58a6ff]"></div>
-                    <div className="absolute bottom-0 left-0 w-[2px] h-10 bg-[#3fb950] origin-bottom -rotate-45"></div>
-                 </div>
-               </>
-               )}
-            </div>
-            
-            <div className="text-[#333] text-5xl font-bold tracking-widest uppercase rotate-[-10deg] opacity-20 pointer-events-none absolute bottom-10 left-10 z-0">MAP EDITOR</div>
-        </div>
-
-        {/* Details Panel */}
-        <div className="w-72 border-l border-[#30363d] bg-[#161b22] flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
-           <div className="p-2 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117] sticky top-0 z-10">
-              <span className="font-bold text-[11px] uppercase tracking-wider text-[#c9d1d9] flex items-center gap-2"><Settings size={12}/> Details</span>
+        {/* Left Toolbar (Massive Mode Specific Tools) */}
+        <div className="w-[340px] bg-[#161b22] border-r border-[#30363d] flex flex-col shrink-0 z-10 shadow-[5px_0_20px_rgba(0,0,0,0.6)]">
+           <div className="h-10 border-b border-[#30363d] flex items-center justify-between px-4 bg-[#0d1117]">
+             <span className="text-[13px] font-bold uppercase tracking-widest text-white flex items-center gap-2 shadow-text">
+               {activeTab === 'PCG' ? <Workflow size={14} className="text-[#a371f7]"/> : 
+                activeTab === 'Foliage' ? <Trees size={14} className="text-[#3fb950]"/> : 
+                activeTab === 'Swarm' ? <Network size={14} className="text-orange-400"/> : 
+                activeTab === 'Smart AI' as any ? <Brain size={14} className="text-purple-400"/> : 
+                <Settings size={14} className="text-[#58a6ff]"/>}
+               {activeTab} Mode Settings
+             </span>
            </div>
-           
-           <div className="p-3 flex flex-col gap-4 text-[11px]">
-               <div>
-                  <input type="text" defaultValue={
-                     mode === 'Pathing' ? 'Spline_OrcCamp' : 
-                     mode === 'Volumes' ? 'BlockingVolume_Wall' : 
-                     mode === 'NPC' ? 'Mob_Orc_Warrior_01' : 
-                     mode === 'Landscape' ? 'Terrain_Main' :
-                     mode === 'Foliage' ? 'FoliageInstancedMesh' :
-                     mode === 'Quests' ? 'QuestGiver_01' :
-                     mode === 'Cinematic' ? 'CineCameraActor_Primary' :
-                     mode === 'Lighting' ? 'DirectionalLight_Sun' :
-                     mode === 'Physics' ? 'ForceField_Tornado' :
-                     mode === 'Destruction' ? 'SM_Wall_01_Fractured' :
-                     mode === 'Chemistry' ? 'ReactionVolume_NaH2O' :
-                     mode === 'Biology' ? 'EcoZone_Forest_01' :
-                     mode === 'Audio' ? 'Ambient_Forest_Wind' :
-                     mode === 'Decals' ? 'Decal_BloodSplatter' :
-                     mode === 'PCG' ? 'PCG_PineForest_Rules' :
-                     mode === 'Blueprint' ? 'BP_MainGameState' :
-                     mode === 'AI_Assist' ? 'AI_Agent_01' :
-                     'SM_Wall_02'} 
-                     key={mode} 
-                     className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1.5 text-white outline-none font-bold text-[12px] mb-2" />
-                   {['Select', 'NPC', 'Destruction', 'Biology', 'AI_Assist'].includes(mode) && (
-                     <button 
-                       onClick={() => {
-                          sessionStorage.setItem('editInstanceContext', 'true');
-                          sessionStorage.setItem('editInstanceName', 'Instance_Override_' + Math.floor(Math.random() * 1000));
-                          if (setActiveTool) setActiveTool('Modeling');
-                       }}
-                       className="w-full py-1.5 bg-[#bc8cff]/10 border border-[#bc8cff]/30 hover:bg-[#bc8cff]/20 text-[#bc8cff] font-bold text-[10px] uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(188,140,255,0.05)] text-center"
-                     >
-                        <Wand2 size={12} className="inline-block" /> Edit Unique Instance
-                     </button>
-                   )}
-               </div>
 
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Transform</div>
-                 <div className="grid grid-cols-1 gap-2">
-                    <div className="flex gap-2 items-center bg-[#0d1117] border border-[#30363d] p-1 rounded">
-                       <span className="text-[10px] text-[#8b949e] w-12 text-center uppercase">Location</span>
-                       <input type="number" defaultValue="420" className="flex-1 bg-transparent border-r border-[#30363d] text-center outline-none text-[#f85149] font-mono" />
-                       <input type="number" defaultValue="-150" className="flex-1 bg-transparent border-r border-[#30363d] text-center outline-none text-[#3fb950] font-mono" />
-                       <input type="number" defaultValue="0" className="flex-1 bg-transparent text-center outline-none text-[#58a6ff] font-mono" />
+           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-5">
+              
+              {/* SELECT MODE */}
+              {activeTab === 'Select' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase mb-3 flex items-center gap-2"><Lightbulb size={12}/> Quick Add Entities</h3>
+                       <div className="grid grid-cols-2 gap-2">
+                         <QuickAddBtn icon={<Lightbulb/>} label="Point Light" />
+                         <QuickAddBtn icon={<BoxIcon/>} label="Static Cube" />
+                         <QuickAddBtn icon={<PersonStanding/>} label="Player Start" />
+                         <QuickAddBtn icon={<Wand2/>} label="AI NavMesh Vol" />
+                         <QuickAddBtn icon={<CloudRain/>} label="Post Process" />
+                         <QuickAddBtn icon={<Wind/>} label="Sky Atmosphere" />
+                       </div>
                     </div>
-                    <div className="flex gap-2 items-center bg-[#0d1117] border border-[#30363d] p-1 rounded">
-                       <span className="text-[10px] text-[#8b949e] w-12 text-center uppercase">Rotation</span>
-                       <input type="number" defaultValue="0" className="flex-1 bg-transparent border-r border-[#30363d] text-center outline-none text-[#f85149] font-mono" />
-                       <input type="number" defaultValue="90" className="flex-1 bg-transparent border-r border-[#30363d] text-center outline-none text-[#3fb950] font-mono" />
-                       <input type="number" defaultValue="0" className="flex-1 bg-transparent text-center outline-none text-[#58a6ff] font-mono" />
-                    </div>
-                    <div className="flex gap-2 items-center bg-[#0d1117] border border-[#30363d] p-1 rounded">
-                       <span className="text-[10px] text-[#8b949e] w-12 text-center uppercase">Scale</span>
-                       <input type="number" defaultValue="1.0" className="flex-1 bg-transparent border-r border-[#30363d] text-center outline-none text-[#f85149] font-mono" />
-                       <input type="number" defaultValue="1.0" className="flex-1 bg-transparent border-r border-[#30363d] text-center outline-none text-[#3fb950] font-mono" />
-                       <input type="number" defaultValue="1.0" className="flex-1 bg-transparent text-center outline-none text-[#58a6ff] font-mono" />
+                    
+                    <div className="flex flex-col gap-2">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase mb-1">Advanced Selection</h3>
+                       <button className="flex items-center gap-3 p-3 bg-[#21262d] border border-[#30363d] rounded-xl hover:border-[#58a6ff] hover:bg-[#58a6ff]/10 transition-all text-left shadow-sm">
+                          <BoxSelect size={20} className="text-[#58a6ff]"/>
+                          <div className="flex flex-col">
+                            <span className="text-[12px] text-white font-bold">Marquee Box Select</span>
+                            <span className="text-[10px] text-[#8b949e]">Select multiple actors in 3D box</span>
+                          </div>
+                       </button>
+                       <button className="flex items-center gap-3 p-3 bg-[#21262d] border border-[#30363d] rounded-xl hover:border-[#bc8cff] hover:bg-[#bc8cff]/10 transition-all text-left shadow-sm">
+                          <Target size={20} className="text-[#bc8cff]"/>
+                          <div className="flex flex-col">
+                            <span className="text-[12px] text-white font-bold">Select by Material Group</span>
+                            <span className="text-[10px] text-[#8b949e]">Find all actors using shared material</span>
+                          </div>
+                       </button>
                     </div>
                  </div>
-              </div>
+              )}
 
-              <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Wand2 size={10} className="inline inline-block"/> AI Smart Transmutation Hub</div>
-                 <div className="space-y-2 relative">
-                    {/* Glowing background effect for Transmutation */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#e3b341]/5 to-transparent rounded pointer-events-none"></div>
+              {/* LANDSCAPE MODE */}
+              {activeTab === 'Landscape' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="grid grid-cols-2 gap-2">
+                       <ToolBtn icon={<Mountain/>} label="Sculpt" active={landscapeTool === 'Sculpt'} onClick={() => setLandscapeTool('Sculpt')} />
+                       <ToolBtn icon={<Waves/>} label="Smooth" active={landscapeTool === 'Smooth'} onClick={() => setLandscapeTool('Smooth')} />
+                       <ToolBtn icon={<AlignCenter/>} label="Flatten" active={landscapeTool === 'Flatten'} onClick={() => setLandscapeTool('Flatten')} />
+                       <ToolBtn icon={<CloudRain/>} label="Erosion" active={landscapeTool === 'Erosion'} onClick={() => setLandscapeTool('Erosion')} />
+                    </div>
 
-                    <div className="flex flex-col gap-2 bg-[#0d1117] border border-[#e3b341]/30 p-2 rounded relative z-10 shadow-[inset_0_0_20px_rgba(227,179,65,0.02)]">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col gap-4 shadow-inner">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase border-b border-[#30363d] pb-2 flex items-center gap-2"><Settings size={12}/> Brush Settings</h3>
                        
-                       {/* Material Target Selection */}
-                       <div className="flex flex-col gap-1">
-                          <span className="text-[#8b949e] font-bold text-[9px] uppercase tracking-wider flex justify-between">
-                             <span>Current: <span className="text-[#c9d1d9]">Plank_Wood_01</span></span>
-                             <span>Mass: <span className="text-[#c9d1d9] font-mono">14.2 kg</span></span>
-                          </span>
-                          <div className="relative group">
-                             <select className="appearance-none w-full bg-[#21262d] text-[#e3b341] border border-[#30363d] rounded p-1.5 outline-none text-[10px] font-bold font-mono uppercase cursor-pointer transition-colors hover:border-[#e3b341] pl-2 pr-6">
-                                <option>➔ Transmute to: Corrugated Iron</option>
-                                <option>➔ Transmute to: Reinforced Concrete</option>
-                                <option>➔ Transmute to: Scratched Glass</option>
-                                <option>➔ Transmute to: Raw Titanium</option>
-                                <option>➔ Transmute to: Flesh / Biomass</option>
-                                <option>➔ Transmute to: Superconductor</option>
-                             </select>
-                             <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                                <ChevronDown size={12} className="text-[#8b949e] group-hover:text-[#e3b341] transition-colors" />
+                       <SliderControl label="Brush Size" value={brushSize} max={5000} color="#58a6ff" onChange={setBrushSize} />
+                       <SliderControl label="Tool Strength" value={brushStrength} max={1} step={0.01} color="#3fb950" onChange={setBrushStrength} />
+                       
+                       {landscapeTool === 'Erosion' && (
+                          <div className="flex flex-col gap-3 mt-2 border-t border-[#30363d] pt-3 animate-in fade-in">
+                             <div className="flex justify-between items-center bg-[#161b22] border border-[#30363d] p-1 rounded-md">
+                                <button className={`flex-1 text-[11px] py-1 font-bold rounded ${erosionMode === 'Hydraulic' ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-white'}`} onClick={() => setErosionMode('Hydraulic')}>Hydraulic</button>
+                                <button className={`flex-1 text-[11px] py-1 font-bold rounded ${erosionMode === 'Thermal' ? 'bg-[#ff7b72]/20 text-[#ff7b72]' : 'text-[#8b949e] hover:text-white'}`} onClick={() => setErosionMode('Thermal')}>Thermal</button>
+                             </div>
+                             <ToggleSwitch label="Real-Time Simulation" active={erosionRealtime} color={erosionMode === 'Hydraulic' ? '#58a6ff' : '#ff7b72'} onChange={setErosionRealtime} />
+                             {erosionMode === 'Hydraulic' && (
+                                <>
+                                   <SliderControl label="Rain Amount" value={0.8} max={1} step={0.01} color="#58a6ff" />
+                                   <SliderControl label="Sediment Capacity" value={0.4} max={1} step={0.01} color="#58a6ff" />
+                                   <SliderControl label="Evaporation Rate" value={0.2} max={1} step={0.01} color="#58a6ff" />
+                                </>
+                             )}
+                             {erosionMode === 'Thermal' && (
+                                <>
+                                   <SliderControl label="Talus Angle" value={0.6} max={1} step={0.01} color="#ff7b72" />
+                                   <SliderControl label="Weathering Rate" value={0.7} max={1} step={0.01} color="#ff7b72" />
+                                </>
+                             )}
+                          </div>
+                       )}
+
+                       {landscapeTool !== 'Erosion' && (
+                          <div className="flex flex-col gap-1.5 mt-2">
+                             <span className="text-[11px] font-bold text-[#8b949e] uppercase">Falloff Curve</span>
+                             <div className="flex gap-2 h-10">
+                                <div className="flex-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNMCAxMDBDMDAgNTAgMTAwIDUwIDEwMCAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg==')] bg-contain bg-no-repeat bg-center rounded border border-[#30363d] cursor-pointer hover:border-[#58a6ff] hover:bg-[#21262d]"></div>
+                                <div className="flex-1 bg-[linear-gradient(to_bottom,transparent,rgba(88,166,255,0.2))] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNMCAxMDBDMTAwIDEwMCAxMDAgMCAxMDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNThhNmZmIiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4=')] bg-contain bg-no-repeat bg-center rounded border-2 border-[#58a6ff] cursor-pointer shadow-[0_0_10px_rgba(88,166,255,0.2)]"></div>
+                                <div className="flex-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNMCAxMDBMMTAwIDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI1Ii8+PC9zdmc+')] bg-contain bg-no-repeat bg-center rounded border border-[#30363d] cursor-pointer hover:border-[#58a6ff] hover:bg-[#21262d]"></div>
                              </div>
                           </div>
+                       )}
+                    </div>
+                 </div>
+              )}
+
+              {/* FOLIAGE MODE */}
+              {activeTab === 'Foliage' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col gap-3 shadow-inner max-h-[250px] overflow-y-auto custom-scrollbar">
+                       <div className="flex justify-between items-center border-b border-[#30363d] pb-2">
+                         <h3 className="text-[11px] text-[#8b949e] font-bold uppercase flex items-center gap-2"><Trees size={12}/> Foliage Types</h3>
+                         <button className="text-[#3fb950] hover:text-white"><Plus size={14}/></button>
+                       </div>
+                       <div className="grid grid-cols-3 gap-2">
+                         <FoliageItem name="OakTree_01" active color="border-[#3fb950] bg-[#3fb950]/10" />
+                         <FoliageItem name="PineTree_Tall" active color="border-[#3fb950] bg-[#3fb950]/10" />
+                         <FoliageItem name="Bush_Thick" />
+                         <FoliageItem name="Fern_Clusters" active color="border-[#3fb950] bg-[#3fb950]/10" />
+                         <FoliageItem name="Rock_Mossy" />
+                         <FoliageItem name="DeadLog" />
+                       </div>
+                    </div>
+
+                    <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col gap-4 shadow-[0_5px_10px_rgba(0,0,0,0.3)]">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase border-b border-[#30363d] pb-2">Painting & Scattering Rules</h3>
+                       <SliderControl label="Paint Density (per 1k sq.m)" value={foliageDensity} max={1000} color="#3fb950" onChange={setFoliageDensity} />
+                       
+                       <div className="grid grid-cols-2 gap-4">
+                          <RangeControl label="Scale X" min={0.5} max={1.5} color="#c9d1d9" />
+                          <RangeControl label="Scale Z" min={0.8} max={1.2} color="#58a6ff" />
                        </div>
 
-                       <div className="h-px bg-gradient-to-r from-transparent via-[#30363d] to-transparent my-1"></div>
+                       <div className="flex flex-col gap-2 border-t border-[#30363d] pt-3">
+                          <ToggleSwitch label="Align to Normal" active={true} color="#3fb950" />
+                          <ToggleSwitch label="Random Yaw (0-360°)" active={true} color="#3fb950" />
+                          <ToggleSwitch label="Collision Enabled" active={false} color="#f85149" />
+                       </div>
+                    </div>
+                 </div>
+              )}
 
-                       {/* Auto-Linked Physics Rules Matrix */}
-                       <div className="flex flex-col gap-1.5 mt-1 relative">
-                          <span className="text-[#e3b341] font-bold text-[9px] uppercase tracking-wider mb-1 flex items-center gap-1">
-                             <Network size={10} /> Auto-Linked Physical Matrix:
-                          </span>
+              {/* PAINT MODE */}
+              {activeTab === 'Paint' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="grid grid-cols-4 gap-2">
+                       <ToolBtn icon={<Palette/>} label="Paint" active={paintTool === 'Paint'} onClick={() => setPaintTool('Paint')} />
+                       <ToolBtn icon={<Paintbrush/>} label="Erase" active={paintTool === 'Erase'} onClick={() => setPaintTool('Erase')} />
+                       <ToolBtn icon={<Blend size={16} />} label="Blend" active={paintTool === 'Blend'} onClick={() => setPaintTool('Blend')} />
+                       <ToolBtn icon={<Stamp/>} label="Fill" active={paintTool === 'Fill'} onClick={() => setPaintTool('Fill')} />
+                    </div>
+
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col gap-3 shadow-inner max-h-[300px] overflow-y-auto custom-scrollbar">
+                       <div className="flex justify-between items-center border-b border-[#30363d] pb-2">
+                         <h3 className="text-[11px] text-[#8b949e] font-bold uppercase flex items-center gap-2"><Layers size={12}/> Surface Materials</h3>
+                         <button className="text-[#58a6ff] hover:text-white"><Plus size={14}/></button>
+                       </div>
+                       
+                       <div className="grid grid-cols-2 gap-2">
+                          <PaintMaterialBtn label="Dirt" active={paintMaterial === 'Dirt'} onClick={() => setPaintMaterial('Dirt')} color="text-amber-700" />
+                          <PaintMaterialBtn label="Mud" active={paintMaterial === 'Mud'} onClick={() => setPaintMaterial('Mud')} color="text-orange-900" />
+                          <PaintMaterialBtn label="Sand" active={paintMaterial === 'Sand'} onClick={() => setPaintMaterial('Sand')} color="text-yellow-200" />
+                          <PaintMaterialBtn label="Snow" active={paintMaterial === 'Snow'} onClick={() => setPaintMaterial('Snow')} color="text-white" />
+                          <PaintMaterialBtn label="Ice" active={paintMaterial === 'Ice'} onClick={() => setPaintMaterial('Ice')} color="text-cyan-200" />
+                          <PaintMaterialBtn label="Grass" active={paintMaterial === 'Grass'} onClick={() => setPaintMaterial('Grass')} color="text-green-500" />
+                          <PaintMaterialBtn label="Rock" active={paintMaterial === 'Rock'} onClick={() => setPaintMaterial('Rock')} color="text-gray-500" />
+                          <PaintMaterialBtn label="Gravel" active={false} color="text-gray-400" />
+                       </div>
+                    </div>
+
+                    <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col gap-4 shadow-[0_5px_10px_rgba(0,0,0,0.3)]">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase border-b border-[#30363d] pb-2">Brush Settings</h3>
+                       <SliderControl label="Brush Size" value={brushSize} max={5000} color="#ff7b72" onChange={setBrushSize} />
+                       <SliderControl label="Tool Strength" value={brushStrength} max={1} step={0.01} color="#ff7b72" onChange={setBrushStrength} />
+                       <div className="flex flex-col gap-2 border-t border-[#30363d] pt-3">
+                          <ToggleSwitch label="Use Height Blend" active={true} color="#ff7b72" />
+                          <ToggleSwitch label="Auto-Displacement" active={false} color="#ff7b72" />
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* WATER MODE */}
+              {activeTab === 'Water' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="grid grid-cols-3 gap-2 bg-[#0d1117] p-2 rounded-xl border border-[#30363d]">
+                       <ToolBtn icon={<Waves/>} label="Ocean" active={waterTool === 'Ocean'} onClick={() => setWaterTool('Ocean')} />
+                       <ToolBtn icon={<Droplet/>} label="Lake" active={waterTool === 'Lake'} onClick={() => setWaterTool('Lake')} />
+                       <ToolBtn icon={<Route/>} label="River" active={waterTool === 'River'} onClick={() => setWaterTool('River')} />
+                       <ToolBtn icon={<Flame/>} label="Lava" active={waterTool === 'Lava'} onClick={() => setWaterTool('Lava')} />
+                       <ToolBtn icon={<Skull/>} label="Acid" active={waterTool === 'Acid'} onClick={() => setWaterTool('Acid')} />
+                       <ToolBtn icon={<Waves/>} label="Swamp" active={waterTool === 'Swamp'} onClick={() => setWaterTool('Swamp')} />
+                    </div>
+
+                    <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col gap-4 shadow-[0_5px_10px_rgba(0,0,0,0.3)]">
+                       <h3 className="text-[11px] text-[#58a6ff] font-bold uppercase border-b border-[#58a6ff]/30 pb-2 flex items-center gap-2"><LockWater size={12}/> Fluid Dynamics</h3>
+                       
+                       <SliderControl label="Fluid Depth Falloff" value={waterDepth} max={100} color="#58a6ff" onChange={setWaterDepth} unit="m" />
+                       <SliderControl label="Surface Turbulence" value={4.2} max={10} step={0.1} color="#58a6ff" unit="m" />
+                       <SliderControl label="Flow Velocity" value={1.5} max={5} step={0.1} color="#bc8cff" unit="m/s" />
+
+                       <div className="flex flex-col gap-2 border-t border-[#30363d] pt-3">
+                          <ToggleSwitch label="Generate Foam / Crust" active={true} color="#58a6ff" />
+                          <ToggleSwitch label="Underwater Caustics" active={true} color="#58a6ff" />
+                          <ToggleSwitch label="Buoyancy Simulation" active={true} color="#f85149" />
+                          <ToggleSwitch label="Fluid Interaction Physics" active={true} color="#3fb950" />
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* PCG MODE */}
+              {activeTab === 'PCG' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="bg-[#161b22] border border-[#a371f7]/50 shadow-[0_0_20px_rgba(163,113,247,0.15)] rounded-xl p-4 relative overflow-hidden">
+                       <div className="absolute top-0 right-0 w-24 h-24 bg-[#a371f7] blur-[60px] opacity-20 pointer-events-none"></div>
+                       <h3 className="text-[13px] font-bold text-white mb-1 flex items-center gap-2"><Workflow size={16} className="text-[#a371f7]"/> PCG Graph Editor</h3>
+                       <p className="text-[10px] text-[#8b949e] mb-4">Procedural Content Generation Framework allows node-based logic to spawn entities procedurally at runtime or cook-time.</p>
+                       <button className="w-full bg-[#a371f7] hover:bg-[#b084f8] text-white py-2 rounded-lg font-bold text-[11px] shadow-[0_0_15px_rgba(163,113,247,0.4)] transition-all flex items-center justify-center gap-2 mb-2">
+                          <Link size={14}/> Open Node Graph Window
+                       </button>
+                       <button onClick={() => setIsAssetStudioOpen(true)} className="w-full bg-[#21262d] border border-[#a371f7]/40 hover:bg-[#a371f7]/20 text-[#d6bdfb] py-2 rounded-lg font-bold text-[11px] transition-all flex items-center justify-center gap-2">
+                          <Hammer size={14}/> Procedural Asset Studio
+                       </button>
+                    </div>
+
+                    <div className="bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col p-4 gap-3 shadow-inner">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase border-b border-[#30363d] pb-2">Active Graph Components</h3>
+                       
+                       {/* Mock node stack */}
+                       <div className="flex flex-col gap-2 text-[10px] font-mono">
+                          <div className="bg-[#21262d] border border-[#30363d] p-2 rounded flex items-center justify-between">
+                             <span className="flex items-center gap-2 font-bold text-white"><BoxSelect size={12} className="text-[#58a6ff]"/> Surface Sampler</span>
+                             <span className="text-[#3fb950]">14.2ms</span>
+                          </div>
+                          <div className="flex justify-center"><ChevronDown size={12} className="text-[#8b949e]"/></div>
+                          <div className="bg-[#21262d] border border-[#30363d] p-2 rounded flex items-center justify-between">
+                             <span className="flex items-center gap-2 font-bold text-white"><Move3D size={12} className="text-[#e3b341]"/> Transform Points</span>
+                             <span className="text-[#3fb950]">2.1ms</span>
+                          </div>
+                          <div className="flex justify-center"><ChevronDown size={12} className="text-[#8b949e]"/></div>
+                          <div className="bg-[#21262d] border-2 border-[#a371f7] p-2 rounded flex items-center justify-between shadow-[0_0_10px_rgba(163,113,247,0.2)]">
+                             <span className="flex items-center gap-2 font-bold text-white"><Box size={12} className="text-[#a371f7]"/> Static Mesh Spawner</span>
+                             <span className="text-[#e3b341]">45.8ms</span>
+                          </div>
+                       </div>
+                       
+                       <button className="mt-2 py-2 bg-[#161b22] border border-[#30363d] hover:bg-[#30363d] rounded text-[#c9d1d9] font-bold text-[10px] transition-all flex items-center justify-center gap-2"><RefreshCw size={12}/> Generate (Cook Layer)</button>
+                    </div>
+                 </div>
+              )}
+
+              {/* SWARM MODE */}
+              {activeTab === 'Swarm' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="bg-[#161b22] border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.15)] rounded-xl p-4 relative overflow-hidden">
+                       <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500 blur-[60px] opacity-20 pointer-events-none"></div>
+                       <h3 className="text-[13px] font-bold text-white mb-1 flex items-center gap-2"><Network size={16} className="text-orange-400"/> Swarm Protocol</h3>
+                       <p className="text-[10px] text-[#8b949e] mb-4">Offload heavy mesh and lightmass processing to all connected local network devices.</p>
+                       
+                       <div className="flex items-center justify-between bg-[#0d1117] p-3 rounded-lg border border-[#30363d] mb-4">
+                          <div className="flex flex-col">
+                             <span className="text-[11px] font-bold text-white">Enable Protocol</span>
+                             <span className="text-[9px] text-orange-400">Warning: High bandwidth usage</span>
+                          </div>
+                          <ToggleSwitch label="" active={swarmEnabled} onChange={setSwarmEnabled} color="#f97316" />
+                       </div>
+
+                       <div className={`flex flex-col gap-4 transition-all duration-300 ${swarmEnabled ? 'opacity-100 pointer-events-auto' : 'opacity-30 pointer-events-none'}`}>
+                          <div className="flex flex-col gap-2">
+                             <span className="text-[10px] font-bold text-[#8b949e] uppercase">Node Target Domain</span>
+                             <div className="flex gap-1 bg-[#0d1117] p-1 rounded-md border border-[#30363d]">
+                                <button onClick={() => setSwarmTarget('All Devices')} className={`flex-1 py-1 text-[10px] rounded font-bold transition-all ${swarmTarget === 'All Devices' ? 'bg-orange-500 text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'}`}>All Nodes</button>
+                                <button onClick={() => setSwarmTarget('LAN Only')} className={`flex-1 py-1 text-[10px] rounded font-bold transition-all ${swarmTarget === 'LAN Only' ? 'bg-orange-500 text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'}`}>Local Only</button>
+                                <button onClick={() => setSwarmTarget('Cloud Burst')} className={`flex-1 py-1 text-[10px] rounded font-bold transition-all ${swarmTarget === 'Cloud Burst' ? 'bg-orange-500 text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'}`}>Cloud Burst</button>
+                             </div>
+                          </div>
+
+                          <SliderControl label="Offload Intensity" value={swarmIntensity} max={100} color="#f97316" onChange={setSwarmIntensity} unit="%" />
+                       </div>
+                    </div>
+
+                    <div className={`bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col p-4 gap-3 shadow-inner transition-all duration-300 ${swarmEnabled ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase border-b border-[#30363d] pb-2 flex items-center gap-2"><Cpu size={12}/> Connected Nodes</h3>
+                       
+                       <div className="flex flex-col gap-2">
+                          <div className="bg-[#21262d] border border-[#30363d] p-2 rounded flex items-center justify-between relative overflow-hidden group">
+                             <div className="absolute inset-0 bg-orange-500/10 w-[80%] border-r border-orange-500/30"></div>
+                             <div className="flex items-center gap-2 relative z-10">
+                                <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                                <span className="text-[10px] font-bold text-white">Ryzen_Threadripper</span>
+                             </div>
+                             <span className="text-[10px] text-orange-400 font-mono relative z-10">80% Load</span>
+                          </div>
                           
-                          <div className="grid grid-cols-2 gap-1">
-                             {/* Mechanics Box */}
-                             <div className="flex flex-col gap-1 p-1.5 bg-[#161b22] border border-[#30363d] rounded transition-all hover:border-[#f85149]/50 group">
-                                <div className="flex justify-between items-center border-b border-[#30363d] pb-1 mb-0.5">
-                                   <span className="text-[#f85149] font-bold text-[8px] uppercase flex items-center gap-1"><Bomb size={8}/> Mechanics</span>
-                                </div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Fracture: <span className="text-[#8b949e] font-mono group-hover:text-white">Metallic Tear</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Hardness: <span className="text-[#8b949e] font-mono group-hover:text-white">8.5 Mohs</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Yield Str: <span className="text-[#8b949e] font-mono group-hover:text-white">250 MPa</span></div>
+                          <div className="bg-[#21262d] border border-[#30363d] p-2 rounded flex items-center justify-between relative overflow-hidden group">
+                             <div className="absolute inset-0 bg-orange-500/10 w-[45%] border-r border-orange-500/30"></div>
+                             <div className="flex items-center gap-2 relative z-10">
+                                <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                                <span className="text-[10px] font-bold text-white">RTX_4090_Compute</span>
                              </div>
+                             <span className="text-[10px] text-orange-400 font-mono relative z-10">45% Load</span>
+                          </div>
 
-                             {/* Thermal Box */}
-                             <div className="flex flex-col gap-1 p-1.5 bg-[#161b22] border border-[#30363d] rounded transition-all hover:border-[#ff7b72]/50 group">
-                                <div className="flex justify-between items-center border-b border-[#30363d] pb-1 mb-0.5">
-                                   <span className="text-[#ff7b72] font-bold text-[8px] uppercase flex items-center gap-1"><Flame size={8}/> Thermal</span>
-                                </div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Melting Pt: <span className="text-[#8b949e] font-mono group-hover:text-white">1,538 °C</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Conductivity: <span className="text-[#8b949e] font-mono group-hover:text-white">High</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Flammable: <span className="text-[#8b949e] font-mono group-hover:text-[#ff7b72]">0%</span></div>
+                          <div className="bg-[#21262d] border border-[#30363d] p-2 rounded flex items-center justify-between relative overflow-hidden group">
+                             <div className="absolute inset-0 bg-orange-500/10 w-[12%] border-r border-orange-500/30"></div>
+                             <div className="flex items-center gap-2 relative z-10">
+                                <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+                                <span className="text-[10px] font-bold text-white">MacBook_Pro_M3</span>
                              </div>
-
-                             {/* Chemistry Box */}
-                             <div className="flex flex-col gap-1 p-1.5 bg-[#161b22] border border-[#30363d] rounded transition-all hover:border-[#bc8cff]/50 group">
-                                <div className="flex justify-between items-center border-b border-[#30363d] pb-1 mb-0.5">
-                                   <span className="text-[#bc8cff] font-bold text-[8px] uppercase flex items-center gap-1"><Hexagon size={8}/> Chemistry</span>
-                                </div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Water Rxn: <span className="text-[#8b949e] font-mono group-hover:text-[#bc8cff]">Oxidation</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Acid Rxn: <span className="text-[#8b949e] font-mono group-hover:text-[#bc8cff]">Dissolve</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Toxicity: <span className="text-[#8b949e] font-mono group-hover:text-white">None</span></div>
+                             <span className="text-[10px] text-orange-400 font-mono relative z-10">12% Load</span>
+                          </div>
+                          
+                          <div className="bg-[#21262d] border border-[#30363d] p-2 rounded flex items-center justify-between text-opacity-50">
+                             <div className="flex items-center gap-2">
+                                <span className="relative flex h-2 w-2"><span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span></span>
+                                <span className="text-[10px] font-bold text-[#8b949e]">Studio_Server_Rack_1</span>
                              </div>
+                             <span className="text-[10px] text-[#8b949e] font-mono">Offline</span>
+                          </div>
+                       </div>
+                       
+                       <button className="mt-2 py-2 bg-[#161b22] border border-[#30363d] hover:bg-[#30363d] hover:border-orange-500/50 rounded text-orange-400 font-bold text-[10px] transition-all flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(249,115,22,0.1)]"><RefreshCw size={12}/> Scan Local Subnet</button>
+                       <button onClick={() => setIsNetSimOpen(true)} className="py-2 bg-[#21262d] border border-blue-500/50 hover:bg-blue-500/20 rounded text-blue-400 font-bold text-[10px] transition-all flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(59,130,246,0.1)]"><Activity size={12}/> Network Latency Debugger</button>
+                    </div>
+                 </div>
+              )}
 
-                             {/* Acoustic & Electronics Box */}
-                             <div className="flex flex-col gap-1 p-1.5 bg-[#161b22] border border-[#30363d] rounded transition-all hover:border-[#58a6ff]/50 group">
-                                <div className="flex justify-between items-center border-b border-[#30363d] pb-1 mb-0.5">
-                                   <span className="text-[#58a6ff] font-bold text-[8px] uppercase flex items-center gap-1"><Volume2 size={8}/> Acoustics</span>
+              {/* SMART AI MODE */}
+              {activeTab === 'Smart AI' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="bg-[#161b22] border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)] rounded-xl p-4 relative overflow-hidden">
+                       <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500 blur-[80px] opacity-20 pointer-events-none"></div>
+                       <h3 className="text-[13px] font-bold text-white mb-1 flex items-center gap-2"><Brain size={16} className="text-purple-400"/> Offline AI Gen</h3>
+                       <p className="text-[10px] text-[#8b949e] mb-4">Select an area in the viewport to generate terrains, objects, or apply transformations via AI. Zero cloud dependency.</p>
+                       
+                       <div className="flex items-center justify-between bg-[#0d1117] p-2 rounded-lg border border-[#30363d] mb-4">
+                           <div className="flex flex-col">
+                             <span className="text-[11px] font-bold text-white uppercase flex items-center gap-1.5"><Database size={10} className="text-purple-400"/> Model Engine</span>
+                             <span className="text-[9px] text-[#8b949e]">Locally executing weights</span>
+                           </div>
+                           <select 
+                             value={aiLocalModel} 
+                             onChange={(e) => setAiLocalModel(e.target.value as any)}
+                             className="bg-[#21262d] text-[10px] text-white border border-[#30363d] rounded px-2 py-1 outline-none"
+                           >
+                             <option value="SDXL-Turbo">SDXL-Turbo (Texture/Mat)</option>
+                             <option value="Stable-Mesh">Stable-Mesh 3D</option>
+                             <option value="LLaMA-3-8B">LLaMA-3-8B (Logic/Tags)</option>
+                           </select>
+                       </div>
+
+                       <div className="flex flex-col gap-3">
+                          <div className="flex gap-1 bg-[#0d1117] p-1 rounded-md border border-[#30363d]">
+                             <button onClick={() => setActivePromptMode('create')} className={`flex-1 py-1.5 text-[10px] rounded font-bold transition-all flex justify-center items-center gap-1.5 ${activePromptMode === 'create' ? 'bg-purple-500 text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'}`}><Wand2 size={12}/> Create</button>
+                             <button onClick={() => setActivePromptMode('edit')} className={`flex-1 py-1.5 text-[10px] rounded font-bold transition-all flex justify-center items-center gap-1.5 ${activePromptMode === 'edit' ? 'bg-purple-500 text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'}`}><Scissors size={12}/> Edit</button>
+                          </div>
+                          
+                          <div className="bg-[#050505] border border-[#30363d] rounded-lg p-3 text-[10px] text-[#8b949e] italic text-center">
+                             Right-click or drag-select an area in the viewport to open the context AI prompter.
+                          </div>
+                          
+                          <button className="py-2 bg-purple-500/10 border border-purple-500/50 hover:bg-purple-500/30 rounded text-purple-400 font-bold text-[10px] transition-all flex items-center justify-center gap-2 mt-2">
+                             <Database size={12}/> Offline AI Mode Active
+                          </button>
+                       </div>
+                    </div>
+                    
+                    <div className="bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col p-4 gap-3 shadow-inner">
+                       <h3 className="text-[11px] text-[#8b949e] font-bold uppercase border-b border-[#30363d] pb-2 flex items-center justify-between">
+                          <span className="flex items-center gap-2"><AlignLeft size={12}/> AI History</span>
+                          <span className="text-[9px] bg-[#21262d] px-1.5 py-0.5 rounded text-white">Local</span>
+                       </h3>
+                       
+                       <div className="flex flex-col gap-2">
+                          {aiHistory.length === 0 ? (
+                             <div className="text-[10px] text-[#8b949e] text-center italic py-4">No recent generations</div>
+                          ) : (
+                             aiHistory.map((hist, idx) => (
+                                <div key={idx} className="bg-[#21262d] border border-[#30363d] p-2 rounded text-[10px] text-[#c9d1d9] flex flex-col gap-1 hover:border-purple-500/30 transition-colors cursor-pointer">
+                                   <span className="font-bold text-white flex items-center gap-1.5"><Sparkles size={10} className="text-purple-400"/> "{hist}"</span>
+                                   <span className="text-[9px] text-[#8b949e] opacity-70 flex items-center justify-between">Local Render <RotateCcw size={10} className="hover:text-white"/></span>
                                 </div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Impact Snd: <span className="text-[#8b949e] font-mono group-hover:text-white">Hollow Clang</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Absorption: <span className="text-[#8b949e] font-mono group-hover:text-white">0.05</span></div>
-                                <div className="text-[8px] text-[#c9d1d9] flex justify-between">Magnetic: <span className="text-[#8b949e] font-mono group-hover:text-[#58a6ff]">True</span></div>
+                             ))
+                          )}
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* SEASONS & WEATHER MODE */}
+              {activeTab === 'Seasons' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="grid grid-cols-5 gap-1.5 bg-[#0d1117] p-2 rounded-xl border border-[#30363d]">
+                       <ToolBtn icon={<CloudRain size={14}/>} label="Spring" active={season === 'Spring'} onClick={() => setSeason('Spring')} />
+                       <ToolBtn icon={<Sun size={14}/>} label="Summer" active={season === 'Summer'} onClick={() => setSeason('Summer')} />
+                       <ToolBtn icon={<Mountain size={14}/>} label="Autumn" active={season === 'Autumn'} onClick={() => setSeason('Autumn')} />
+                       <ToolBtn icon={<Snowflake size={14}/>} label="Winter" active={season === 'Winter'} onClick={() => setSeason('Winter')} />
+                       <ToolBtn icon={<CloudRain size={14}/>} label="Rainy" active={season === 'Rainy'} onClick={() => setSeason('Rainy')} />
+                    </div>
+
+                    <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col gap-4 shadow-[0_5px_10px_rgba(0,0,0,0.3)]">
+                       <h3 className="text-[11px] text-sky-100 font-bold uppercase border-b border-[#30363d] pb-2 flex items-center gap-2"><Wind size={14} className="text-sky-400"/> Weather Simulation</h3>
+                       
+                       <SliderControl label="Weather Intensity" value={weatherIntensity} max={100} color="#38bdf8" onChange={setWeatherIntensity} unit="%" />
+                       <SliderControl label="Wind Direction" value={windDirection} max={360} color="#38bdf8" onChange={setWindDirection} unit="°" />
+                       <SliderControl label="Wind Strength" value={windStrength} max={100} color="#e0f2fe" onChange={setWindStrength} />
+                       
+                       <div className="flex flex-col gap-2 border-t border-[#30363d] pt-3">
+                          <ToggleSwitch label="Dynamic Clouds" active={true} color="#38bdf8" />
+                          <ToggleSwitch label="Foliage Wind Sway" active={true} color="#38bdf8" />
+                          <ToggleSwitch label="Weather Particles" active={true} color="#38bdf8" />
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* POST PROCESS MODE */}
+              {activeTab === 'PostProcess' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner flex flex-col gap-4">
+                       <h3 className="text-[11px] font-bold text-fuchsia-100 uppercase flex items-center gap-2 border-b border-[#30363d] pb-2"><Camera size={14} className="text-fuchsia-400"/> Post Processing Volume</h3>
+                       
+                       <div className="flex items-center justify-between border-b border-[#30363d] pb-3">
+                          <span className="text-[11px] font-bold text-white">Enable Bloom</span>
+                          <ToggleSwitch active={bloomEnabled} onChange={setBloomEnabled} color="#e879f9" />
+                       </div>
+                       
+                       <SliderControl label="Exposure Bias" value={exposure} max={5} step={0.1} color="#e879f9" onChange={setExposure} />
+                       <SliderControl label="Chromatic Aberration" value={1.5} max={5} step={0.1} color="#e879f9" />
+                       <SliderControl label="Film Grain" value={0.5} max={2} step={0.1} color="#e879f9" />
+                       <SliderControl label="Vignette Intensity" value={0.8} max={2} step={0.1} color="#e879f9" />
+                    </div>
+                 </div>
+              )}
+
+              {/* AUDIO MODE */}
+              {activeTab === 'Audio' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="flex gap-2 bg-[#0d1117] p-2 rounded-xl border border-[#30363d] overflow-x-auto custom-scrollbar">
+                       <ToolBtn icon={<Volume2 size={14}/>} label="Ambient" active={audioCategory === 'Ambient'} onClick={() => setAudioCategory('Ambient')} />
+                       <ToolBtn icon={<Zap size={14}/>} label="SFX" active={audioCategory === 'SFX'} onClick={() => setAudioCategory('SFX')} />
+                       <ToolBtn icon={<Play size={14}/>} label="Music" active={audioCategory === 'Music'} onClick={() => setAudioCategory('Music')} />
+                       <ToolBtn icon={<Mic size={14}/>} label="Voice/TTS" active={audioCategory === 'Voice/TTS'} onClick={() => setAudioCategory('Voice/TTS')} />
+                    </div>
+                    
+                    {audioCategory === 'Voice/TTS' ? (
+                       <div className="p-4 bg-[#161b22] border border-purple-500/50 rounded-xl flex flex-col gap-3 shadow-[0_0_15px_rgba(168,85,247,0.15)] relative overflow-hidden">
+                          <div className="absolute inset-0 bg-purple-500/5 pointer-events-none"></div>
+                          <h3 className="text-[11px] font-bold text-purple-300 uppercase flex items-center gap-2"><Brain size={14} className="text-purple-400"/> Offline AI Thai Engine (Vocal & Singing)</h3>
+                          <div className="border border-purple-500/30 rounded-lg p-2 bg-[#050505] text-[10px] text-[#c9d1d9] leading-relaxed max-h-[140px] overflow-y-auto custom-scrollbar">
+                             <strong>Local NLP Model Active:</strong> Fine-tuned for precise <span className="text-purple-400">Thai Phonics & Singing</span>.
+                             <div className="mt-2 text-[#8b949e]">
+                                <ul className="pl-3 list-disc opacity-80 flex flex-col gap-1">
+                                   <li><strong>พยัญชนะต้น:</strong> Correct articulation (e.g. ก = เสียงกักที่คอ, ป = ริมฝีปาก)</li>
+                                   <li><strong>สระ:</strong> Precise duration map (กะ = สั้น, กา = ยาว)</li>
+                                   <li><strong>ตัวสะกด (8 แม่):</strong> Final consonant mapping (กบ → ป, กด → ต)</li>
+                                   <li><strong>วรรณยุกต์ (5 เสียง):</strong> Exact Hz shifting for สามัญ, เอก, โท, ตรี, จัตวา</li>
+                                   <li><strong>คำเป็น–คำตาย:</strong> Dynamic vitality duration constraint logic.</li>
+                                   <li className="text-pink-400 font-bold mt-1"><strong>โหมดร้องเพลง:</strong> รองรับการลากเสียงสระตามโน้ตดนตรีและควบคุม Vibrato ลูกคอ</li>
+                                </ul>
                              </div>
                           </div>
                           
-                          {/* Visual Change preview line */}
-                          <div className="mt-1 bg-[#161b22] py-1 px-2 rounded border border-[#30363d] flex items-center justify-between">
-                             <div className="flex items-center gap-1">
-                                <Eye size={10} className="text-[#8b949e]"/>
-                                <span className="text-[8px] text-[#8b949e] font-bold">PBR Shader:</span>
-                             </div>
-                             <span className="text-[8px] font-mono text-[#7ee787]">M_RustPlates_Inst</span>
+                          <div className="flex gap-2 border-b border-[#30363d] pb-3 z-10 relative">
+                              <button onClick={() => setTtsMode('Speech')} className={`flex-1 py-1.5 text-[10px] font-bold rounded transition-colors ${ttsMode === 'Speech' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50' : 'bg-[#0d1117] text-[#8b949e] border border-[#30363d] hover:text-white'}`}>Speech (พูด)</button>
+                              <button onClick={() => setTtsMode('Singing')} className={`flex-1 py-1.5 text-[10px] font-bold rounded transition-colors ${ttsMode === 'Singing' ? 'bg-pink-500/20 text-pink-400 border border-pink-500/50' : 'bg-[#0d1117] text-[#8b949e] border border-[#30363d] hover:text-white'}`}>Singing (ร้องเพลง)</button>
                           </div>
 
-                          {/* 100% Core Reality: Target Physics Injection */}
-                          <div className="mt-1 flex flex-col gap-1 p-1.5 bg-[#0d1117] border border-[#3fb950]/30 rounded relative overflow-hidden">
-                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#3fb950]/5 to-transparent animate-[shimmer_2s_infinite]"></div>
-                             <div className="flex justify-between items-center border-b border-[#30363d] pb-1 relative z-10">
-                                <span className="text-[#3fb950] font-bold text-[8px] uppercase flex items-center gap-1 tracking-wider"><Activity size={8}/> AI Physics Suggestions</span>
-                                <span className="text-[7px] text-[#3fb950] border border-[#3fb950]/30 px-1 rounded-sm">Target: Iron</span>
+                          <div className="flex flex-col gap-2 mt-1 relative z-10">
+                             <div className="flex justify-between items-center">
+                                 <label className="text-[10px] text-[#8b949e] font-bold uppercase">Prompt / Text</label>
+                                 {ttsMode === 'Singing' && <span className="text-[9px] text-pink-400 bg-pink-500/10 px-1 border border-pink-500/20 rounded">รองรับโน้ต (e.g. C4)</span>}
                              </div>
-                             
-                             <div className="grid grid-cols-3 gap-1 mt-0.5 relative z-10">
-                                <div className="flex flex-col bg-[#161b22] px-1 py-0.5 rounded border border-[#30363d]">
-                                   <span className="text-[7px] text-[#8b949e] uppercase">Friction</span>
-                                   <input type="number" defaultValue="0.30" className="bg-transparent border-none outline-none text-[#c9d1d9] font-mono text-[9px] w-full" />
-                                </div>
-                                <div className="flex flex-col bg-[#161b22] px-1 py-0.5 rounded border border-[#30363d]">
-                                   <span className="text-[7px] text-[#8b949e] uppercase">Restitution</span>
-                                   <input type="number" defaultValue="0.10" className="bg-transparent border-none outline-none text-[#c9d1d9] font-mono text-[9px] w-full" />
-                                </div>
-                                <div className="flex flex-col bg-[#161b22] px-1 py-0.5 rounded border border-[#30363d]">
-                                   <span className="text-[7px] text-[#8b949e] uppercase">Density (g/cm³)</span>
-                                   <input type="number" defaultValue="7.80" className="bg-transparent border-none outline-none text-[#c9d1d9] font-mono text-[9px] w-full" />
-                                </div>
-                             </div>
-
-                             <button className="mt-1 w-full flex items-center justify-center gap-1 bg-[#3fb950]/10 hover:bg-[#3fb950]/20 border border-[#3fb950]/50 text-[#3fb950] py-1 rounded text-[8px] uppercase tracking-wider font-bold transition-colors relative z-10 shadow-[0_0_10px_rgba(63,185,80,0.1)]">
-                                <Workflow size={8} /> Apply Physics To Active Object
+                             <textarea 
+                                className="w-full bg-[#0d1117] border border-[#30363d] focus:border-purple-500 rounded p-2 text-[11px] text-white resize-none outline-none h-[75px] shadow-inner"
+                                value={ttsMode === 'Singing' ? "<note=C4, duration=2>ปะ</note> <note=E4, duration=4>กะ</note> <note=G4, duration=8>ติ</note>" : "ปกติ (ปะ-กะ-ติ)\nฉันรักภาษาไทย"}
+                                onChange={() => {}}
+                             ></textarea>
+                          </div>
+                          
+                          <div className="flex gap-2 relative z-10">
+                             <button className={`flex-1 ${ttsMode === 'Singing' ? 'bg-pink-600 hover:bg-pink-500' : 'bg-purple-600 hover:bg-purple-500'} text-white rounded py-2 text-[11px] font-bold shadow-lg transition-colors flex items-center justify-center gap-2`}>
+                                <Mic size={12}/> Generate Offline {ttsMode === 'Singing' ? 'Vocal Track' : 'Audio'}
+                             </button>
+                             <button className="w-10 bg-[#30363d] hover:bg-[#58a6ff] hover:text-white rounded flex items-center justify-center transition-colors">
+                                <Play size={12} fill="currentColor"/>
                              </button>
                           </div>
-
+                          
+                          <div className="border-t border-[#30363d] pt-3 mt-1 flex flex-col gap-3 relative z-10">
+                             {ttsMode === 'Speech' ? (
+                                <>
+                                 <SliderControl label="Speech Rate (ความเร็ว)" value={1} max={2} step={0.1} color="#a855f7" />
+                                 <SliderControl label="Tone Depth (ทุ้ม/แหลม)" value={0.5} max={1} step={0.01} color="#a855f7" />
+                                </>
+                             ) : (
+                                <>
+                                 <SliderControl label="Pitch Correction (จูนเสียง)" value={0.8} max={1} step={0.01} color="#f472b6" />
+                                 <SliderControl label="Vibrato Depth (ลูกคอ)" value={0.6} max={1} step={0.01} color="#f472b6" />
+                                 <SliderControl label="BPM (ความเร็วเพลง)" value={120} max={200} step={1} color="#f472b6" />
+                                </>
+                             )}
+                          </div>
                        </div>
+                    ) : (
+                       <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col gap-3 shadow-inner">
+                          <h3 className="text-[11px] font-bold text-teal-100 uppercase flex items-center gap-2"><Volume2 size={14} className="text-teal-400"/> Audio Emitter Placement</h3>
+                          <div className="border border-[#30363d] rounded-lg p-2 bg-[#050505] text-[10px] text-[#8b949e]">
+                             Click in viewport to place localized audio emitters.
+                          </div>
+                          <SliderControl label="Attenuation Radius" value={3000} max={10000} color="#2dd4bf" unit=" units" />
+                          <SliderControl label="Master Volume" value={80} max={100} color="#99f6e4" unit="%" />
+                       </div>
+                    )}
+                 </div>
+              )}
 
-                       <button className="mt-2 w-full py-1.5 rounded bg-gradient-to-r from-[#e3b341]/20 to-[#e3b341]/10 hover:from-[#e3b341]/30 hover:to-[#e3b341]/20 border border-[#e3b341]/50 text-[#e3b341] font-bold text-[10px] uppercase tracking-wider transition-all shadow-[0_0_10px_rgba(227,179,65,0.1)] hover:shadow-[0_0_15px_rgba(227,179,65,0.2)] flex items-center justify-center gap-1.5 relative overflow-hidden group">
-                          <Brain size={12} className="relative z-10 group-hover:scale-110 transition-transform" /> 
-                          <span className="relative z-10">Execute AI Transmutation</span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#e3b341]/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+              {/* PHYSICS MODE */}
+              {activeTab === 'Physics' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner flex flex-col gap-4">
+                       <h3 className="text-[11px] font-bold text-red-100 uppercase flex items-center justify-between border-b border-[#30363d] pb-2">
+                          <span className="flex items-center gap-2"><Orbit size={14} className="text-red-400"/> Rigid Body Physics</span>
+                          <button onClick={() => setPhysicsSimulating(!physicsSimulating)} className={`px-2 py-1 rounded text-[9px] font-bold ${physicsSimulating ? 'bg-red-500 text-white' : 'bg-[#21262d] text-[#8b949e] border border-[#30363d]'}`}>
+                             {physicsSimulating ? 'SIMULATING' : 'START SIM'}
+                          </button>
+                       </h3>
+                       
+                       <div className="grid grid-cols-2 gap-2">
+                          <button className="py-2 bg-[#21262d] border border-[#30363d] hover:border-red-500/50 rounded flex flex-col items-center gap-1 text-[10px] text-[#c9d1d9] transition-colors"><BoxIcon size={16} className="text-red-400"/> Add Ragdoll</button>
+                          <button className="py-2 bg-[#21262d] border border-[#30363d] hover:border-red-500/50 rounded flex flex-col items-center gap-1 text-[10px] text-[#c9d1d9] transition-colors"><Flag size={16} className="text-red-400"/> Cloth Sim</button>
+                          <button className="py-2 bg-[#21262d] border border-[#30363d] hover:border-red-500/50 rounded flex flex-col items-center gap-1 text-[10px] text-[#c9d1d9] transition-colors"><Bomb size={16} className="text-red-400"/> Destruction</button>
+                          <button className="py-2 bg-[#21262d] border border-[#30363d] hover:border-red-500/50 rounded flex flex-col items-center gap-1 text-[10px] text-[#c9d1d9] transition-colors"><Waves size={16} className="text-red-400"/> Fluid Sim</button>
+                       </div>
+                       <SliderControl label="Global Gravity" value={9.81} max={20} step={0.1} color="#f87171" unit=" m/s²" />
+                    </div>
+                 </div>
+              )}
+
+              {/* NAVIGATION MODE */}
+              {activeTab === 'Navigation' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner flex flex-col gap-4">
+                       <h3 className="text-[11px] font-bold text-indigo-200 uppercase flex items-center justify-between border-b border-[#30363d] pb-2">
+                          <span className="flex items-center gap-2"><Compass size={14} className="text-indigo-400"/> NavMesh Bounds Volume</span>
+                       </h3>
+                       <div className="grid grid-cols-2 gap-2">
+                          <button className="py-2 bg-indigo-500/10 border border-indigo-500/50 hover:bg-indigo-500/30 rounded flex flex-col items-center gap-1 text-[10px] text-indigo-200 transition-colors"><Plus size={16}/> Build NavMesh</button>
+                          <button className="py-2 bg-[#21262d] border border-[#30363d] hover:border-indigo-500/50 rounded flex flex-col items-center gap-1 text-[10px] text-[#c9d1d9] transition-colors"><RotateCcw size={16} className="text-indigo-400"/> Clear NavMesh</button>
+                       </div>
+                       
+                       <SliderControl label="Agent Radius" value={40} max={100} color="#818cf8" unit="cm" />
+                       <SliderControl label="Agent Height" value={180} max={300} color="#818cf8" unit="cm" />
+                       <SliderControl label="Max Slope Angle" value={45} max={90} color="#818cf8" unit="°" />
+                    </div>
+                 </div>
+              )}
+
+              {/* LIGHTING MODE (PRO TOOL) */}
+              {activeTab === 'Lighting' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner flex flex-col gap-4">
+                       <h3 className="text-[11px] font-bold text-yellow-100 uppercase flex items-center gap-2 border-b border-[#30363d] pb-2"><Sun size={14} className="text-yellow-400"/> Global Illumination</h3>
+                       
+                       <div className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold text-[#8b949e]">Time of Day (Sun Angle)</span>
+                          <div className="flex items-center gap-3">
+                             <input type="range" min={0} max={24} step={0.1} value={timeOfDay} onChange={(e) => setTimeOfDay(parseFloat(e.target.value))} className="flex-1 accent-yellow-400 h-1 bg-[#30363d] rounded-full appearance-none outline-none" />
+                             <div className="w-10 text-right text-[11px] font-mono text-yellow-400">{Math.floor(timeOfDay)}:{(timeOfDay % 1 * 60).toString().padStart(2, '0')}</div>
+                          </div>
+                       </div>
+                       
+                       <div className="flex items-center justify-between border-t border-[#30363d] pt-3">
+                          <span className="text-[11px] font-bold text-white">Volumetric Fog</span>
+                          <ToggleSwitch active={volumetricFog} onChange={setVolumetricFog} color="#facc15" />
+                       </div>
+                       
+                       <SliderControl label="Light Bounces (Lumen)" value={lightBounces} max={12} color="#facc15" onChange={setLightBounces} unit=" bounces" />
+                    </div>
+                 </div>
+              )}
+
+              {/* GEOMETRY MODE (PRO TOOL) */}
+              {activeTab === 'Geometry' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner flex flex-col gap-4">
+                       <h3 className="text-[11px] font-bold text-amber-100 uppercase flex items-center gap-2 border-b border-[#30363d] pb-2"><BoxIcon size={14} className="text-amber-400"/> Pro Geometry</h3>
+                       
+                       <div className="grid grid-cols-2 gap-2">
+                          <button onClick={() => setGeoOp('Extrude')} className={`py-2 rounded text-[11px] font-bold transition-all flex justify-center items-center gap-2 border ${geoOp === 'Extrude' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-[#21262d] text-[#8b949e] border-[#30363d] hover:text-white'}`}><ChevronUp size={12}/> Extrude</button>
+                          <button onClick={() => setGeoOp('Bevel')} className={`py-2 rounded text-[11px] font-bold transition-all flex justify-center items-center gap-2 border ${geoOp === 'Bevel' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-[#21262d] text-[#8b949e] border-[#30363d] hover:text-white'}`}><Link size={12}/> Bevel</button>
+                          <button onClick={() => setGeoOp('Boolean')} className={`py-2 rounded text-[11px] font-bold transition-all flex justify-center items-center gap-2 border ${geoOp === 'Boolean' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-[#21262d] text-[#8b949e] border-[#30363d] hover:text-white'}`}><Combine size={12}/> Boolean</button>
+                          <button onClick={() => setGeoOp('Cut')} className={`py-2 rounded text-[11px] font-bold transition-all flex justify-center items-center gap-2 border ${geoOp === 'Cut' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-[#21262d] text-[#8b949e] border-[#30363d] hover:text-white'}`}><Scissors size={12}/> Cut</button>
+                       </div>
+                       
+                       <div className="bg-[#050505] p-3 rounded border border-[#30363d] text-[10px] text-[#8b949e]">
+                          Select faces, edges, or vertices in the viewport to apply geometry operations. Destructive workflow enabled.
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* CINEMATICS MODE (PRO TOOL) */}
+              {activeTab === 'Cinematics' && (
+                 <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-left-4">
+                    <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-xl shadow-inner flex flex-col gap-4">
+                       <h3 className="text-[11px] font-bold text-rose-100 uppercase flex items-center gap-2 border-b border-[#30363d] pb-2"><Clapperboard size={14} className="text-rose-400"/> Sequencer & Camera</h3>
+                       
+                       <div className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold text-[#8b949e]">Master Framerate</span>
+                          <div className="flex gap-1 bg-[#21262d] p-1 rounded-md border border-[#30363d]">
+                             {[24, 30, 60, 120].map(fps => (
+                                <button key={fps} onClick={() => setFrameRate(fps)} className={`flex-1 py-1 text-[10px] rounded font-bold transition-all ${frameRate ===fps ? 'bg-rose-500 text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#30363d]'}`}>{fps}</button>
+                             ))}
+                          </div>
+                       </div>
+                       
+                       <SliderControl label="Lens Focal Length (mm)" value={cinematicFocal} max={200} color="#fb7185" onChange={setCinematicFocal} />
+                       
+                       <button className="py-2 bg-rose-500/10 border border-rose-500/50 hover:bg-rose-500/30 rounded text-rose-400 font-bold text-[11px] transition-all flex items-center justify-center gap-2 mt-2">
+                          <Plus size={14}/> Add Camera Track
                        </button>
                     </div>
                  </div>
-              </div>
-
-              <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Paintbrush size={10} className="inline"/> Material Overrides</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between bg-[#0d1117] border border-[#30363d] p-1.5 rounded">
-                       <span className="text-[#8b949e] font-bold text-[10px]">Albedo (Color)</span>
-                       <div className="flex items-center gap-2">
-                          <input type="color" defaultValue="#4f5b66" className="w-8 h-5 p-0 border-0 bg-transparent rounded cursor-pointer" />
-                       </div>
-                    </div>
-                    <div className="flex items-center justify-between bg-[#0d1117] border border-[#30363d] p-1.5 rounded">
-                       <span className="text-[#8b949e] font-bold text-[10px]">Roughness</span>
-                       <input type="range" min="0" max="1" step="0.01" defaultValue="0.6" className="w-20 accent-[#bc8cff]" />
-                       <span className="text-[#c9d1d9] font-mono text-[10px] w-6 text-right">0.6</span>
-                    </div>
-                    <div className="flex flex-col gap-1.5 bg-[#0d1117] border border-[#30363d] p-1.5 rounded">
-                       <div className="flex items-center justify-between">
-                          <span className="text-[#e3b341] font-bold text-[10px] flex items-center gap-1"><Lightbulb size={10}/> Emissive</span>
-                          <input type="checkbox" className="accent-[#e3b341]" defaultChecked />
-                       </div>
-                       <div className="flex items-center justify-between pl-4">
-                          <span className="text-[#8b949e] text-[9px]">Intensity</span>
-                          <input type="number" defaultValue="2.5" className="bg-[#21262d] border border-[#30363d] text-white px-1 py-0.5 outline-none text-[10px] rounded w-12 text-right font-mono" />
-                       </div>
-                       <div className="flex items-center justify-between pl-4">
-                          <span className="text-[#8b949e] text-[9px]">Color</span>
-                          <input type="color" defaultValue="#e3b341" className="w-6 h-4 p-0 border-0 bg-transparent rounded cursor-pointer" />
-                       </div>
-                    </div>
-                 </div>
-              </div>
-
-              <div>
-                 <div className="font-bold text-[#58a6ff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4">Linked Assets</div>
-                <div className="space-y-2">
-                   <div className="flex items-center gap-2">
-                      <button onClick={() => setActiveTool && setActiveTool('Material')} className="flex-1 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#c9d1d9] py-1.5 rounded flex justify-center items-center gap-1.5 transition-colors text-[10px] font-bold">
-                         <Hexagon size={12} className="text-[#e3b341]" /> Material
-                      </button>
-                      <button onClick={() => {
-                         sessionStorage.setItem('editInstanceContext', 'true');
-                         sessionStorage.setItem('editInstanceName', 'Instance_Override_Script');
-                         if (setActiveTool) setActiveTool('ScriptEditor');
-                      }} className="flex-1 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#c9d1d9] py-1.5 rounded flex justify-center items-center gap-1.5 transition-colors text-[10px] font-bold">
-                         <ScrollText size={12} className="text-[#ff7b72]" /> Script
-                      </button>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <button onClick={() => {
-                         sessionStorage.setItem('editInstanceContext', 'true');
-                         sessionStorage.setItem('editInstanceName', 'Instance_Override_Physics');
-                         if (setActiveTool) setActiveTool('PhysicsEngine');
-                      }} className="w-full bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#c9d1d9] py-1.5 rounded flex justify-center items-center gap-1.5 transition-colors text-[10px] font-bold">
-                         <Wind size={12} className="text-[#58a6ff]" /> Edit Physics Object
-                      </button>
-                   </div>
-                </div>
-              </div>
-
-              {/* Instance Overrides Management */}
-              {['Select', 'NPC', 'Destruction', 'Biology', 'AI_Assist'].includes(mode) && (
-                <div className="mt-4 border border-[#bc8cff]/30 rounded bg-[#bc8cff]/5 overflow-hidden">
-                   <div className="p-1.5 bg-[#bc8cff]/10 text-[#bc8cff] font-bold text-[10px] uppercase tracking-wider flex items-center justify-between">
-                     <div className="flex items-center gap-1"><Layers size={12}/> Instance Overrides Active</div>
-                     <span className="bg-[#bc8cff]/20 px-1 rounded">2</span>
-                   </div>
-                   <div className="p-2 space-y-1.5">
-                      <div className="flex justify-between items-center bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                         <span className="text-[10px] text-[#8b949e] font-bold flex items-center gap-1"><ScrollText size={10} className="text-[#ff7b72]"/> Custom_Logic.cs</span>
-                         <button className="text-[10px] text-[#f85149] hover:bg-[#f85149]/20 p-0.5 rounded transition-colors" title="Revert to Base"><Trash2 size={10}/></button>
-                      </div>
-                      <div className="flex justify-between items-center bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                         <span className="text-[10px] text-[#8b949e] font-bold flex items-center gap-1"><Orbit size={10} className="text-[#58a6ff]"/> Physics: Bouncy</span>
-                         <button className="text-[10px] text-[#f85149] hover:bg-[#f85149]/20 p-0.5 rounded transition-colors" title="Revert to Base"><Trash2 size={10}/></button>
-                      </div>
-                      <button className="w-full mt-2 py-1 bg-[#58a6ff]/10 hover:bg-[#58a6ff]/20 text-[#58a6ff] border border-[#58a6ff]/30 rounded text-[10px] font-bold transition-colors flex justify-center items-center gap-1">
-                         <Save size={10}/> Apply All to Base Blueprint
-                      </button>
-                   </div>
-                </div>
-              )}
-
-              {mode === 'Volumes' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#58a6ff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Environment Physics</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Env Type</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-24">
-                          <option>Gale Wind</option>
-                          <option>Submerged Water</option>
-                          <option>Hurricane</option>
-                          <option>Scorching Heat</option>
-                          <option>Freezing Cold</option>
-                          <option>Slippery Ice</option>
-                          <option>Toxic Swamp</option>
-                          <option>Quicksand</option>
-                          <option>Anti-Gravity Anomaly</option>
-                          <option>Hyper-Magnetic Field</option>
-                          <option>Radioactive Zone</option>
-                          <option>Spore Forest</option>
-                          <option>Sticky Tar</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                       <span className="text-[#8b949e] font-bold">AI Gen Bounds</span>
-                       <button className="bg-[#e3b341]/20 text-[#e3b341] px-2 py-0.5 rounded text-[9px] border border-[#e3b341]/50 cursor-pointer hover:bg-[#e3b341]/40">Auto-Fit to Biome</button>
-                    </div>
-                    <div className="flex flex-col gap-1 mt-2">
-                       <span className="text-[#8b949e] font-bold">Flow / Wind Vector</span>
-                       <div className="flex gap-1">
-                          <input type="number" defaultValue="1.0" className="bg-[#0d1117] border border-[#30363d] text-[#f85149] px-1 py-1 outline-none text-[10px] rounded w-1/3 text-center font-mono" />
-                          <input type="number" defaultValue="0.0" className="bg-[#0d1117] border border-[#30363d] text-[#3fb950] px-1 py-1 outline-none text-[10px] rounded w-1/3 text-center font-mono" />
-                          <input type="number" defaultValue="0.0" className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-1/3 text-center font-mono" />
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Locomotion Override</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Fluid Drag</span>
-                       <input type="number" defaultValue="0.85" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Temp Offset (°C)</span>
-                       <input type="number" defaultValue="45.0" className="bg-[#0d1117] border border-[#30363d] text-[#e3b341] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Weight Cap (kg)</span>
-                       <input type="number" defaultValue="80.0" className="bg-[#0d1117] border border-[#30363d] text-[#e3b341] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Combat Penalty</span>
-                       <input type="number" defaultValue="0.4" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#58a6ff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Enable Wind IK Reaction</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <input type="checkbox" className="accent-[#58a6ff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Affect Projectile Aero</span>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'NPC' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">AI Adaptation Settings</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Base Mass (kg)</span>
-                       <input type="number" defaultValue="85.0" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                       <span className="text-[#8b949e] font-bold">Ecosystem Traits</span>
-                       <button className="bg-[#bc8cff]/20 text-[#bc8cff] px-2 py-0.5 rounded text-[9px] border border-[#bc8cff]/50 cursor-pointer hover:bg-[#bc8cff]/40">Manage Roles</button>
-                    </div>
-                    <div className="flex flex-col gap-1 mt-2">
-                       <span className="text-[#8b949e] font-bold">Biome Affinity</span>
-                       <div className="bg-[#0d1117] border border-[#30363d] p-1.5 rounded text-[9px] text-[#c9d1d9] flex justify-between">
-                          <span>Fire/Heat (Volcano)</span>
-                          <span className="text-[#f85149]">Vulnerable</span>
-                       </div>
-                       <div className="bg-[#0d1117] border border-[#30363d] p-1.5 rounded text-[9px] text-[#c9d1d9] flex justify-between">
-                          <span>Ice (Glacial)</span>
-                          <span className="text-[#58a6ff]">Native/Immune</span>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Target & Pathfinding</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Avoid Hazardous Volumes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">React to Slippery Ice (Ragdoll)</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Can Ambush from Quicksand</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Mutates in Spore/Radiation</span>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Landscape' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Sculpt Tools</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Brush Size</span>
-                       <input type="number" defaultValue="800" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Brush Falloff</span>
-                       <input type="number" defaultValue="0.5" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Tool Strength</span>
-                       <input type="number" defaultValue="0.3" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Terrain Resolution</div>
-                 <div className="space-y-2">
-                    <div className="bg-[#0d1117] border border-[#30363d] p-2 rounded flex items-center justify-between">
-                       <span className="text-[#c9d1d9] font-mono text-[10px]">Heightmap 4033x4033</span>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Foliage' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Paint Settings</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Brush Size</span>
-                       <input type="number" defaultValue="400" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Paint Density</span>
-                       <input type="number" defaultValue="0.5" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Type: Pine_Tree_01</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Align to Normal</span>
-                       <input type="checkbox" className="accent-[#3fb950] w-3 h-3" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Scale Min / Max</span>
-                       <div className="flex gap-1">
-                           <input type="number" defaultValue="0.8" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-12 text-right font-mono" />
-                           <input type="number" defaultValue="1.2" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-12 text-right font-mono" />
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Quests' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Quest Settings</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Trigger Radius</span>
-                       <input type="number" defaultValue="200" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Quest ID</span>
-                       <input type="text" defaultValue="Q_ReturnAm" className="bg-[#0d1117] border border-[#30363d] text-[#e3b341] px-1 py-1 outline-none text-[10px] rounded w-20 text-right font-mono" />
-                    </div>
-                    <div className="flex flex-col gap-1 mt-2">
-                       <span className="text-[#8b949e] font-bold">Objectives</span>
-                       <div className="bg-[#0d1117] border border-[#30363d] p-1.5 rounded text-[9px] text-[#c9d1d9]">1. Go to Goblin Camp</div>
-                       <div className="bg-[#0d1117] border border-[#30363d] p-1.5 rounded text-[9px] text-[#c9d1d9]">2. Retrieve Amulet</div>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Cinematic' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Camera Properties</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Lens Settings</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-[#bc8cff] px-1 py-1 outline-none text-[10px] rounded w-20">
-                          <option>50mm Prime</option>
-                          <option>35mm Wide</option>
-                          <option>85mm Port.</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Focus Method</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-20">
-                          <option>Manual</option>
-                          <option>Tracking</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Lighting' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Light Properties</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Intensity</span>
-                       <input type="number" defaultValue="10.0" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Light Color</span>
-                       <div className="flex items-center gap-2">
-                          <input type="color" defaultValue="#fff3e0" className="w-6 h-6 p-0 border-0 bg-transparent rounded" />
-                       </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Cast Shadows</span>
-                       <input type="checkbox" className="accent-[#e3b341] w-3 h-3" defaultChecked />
-                    </div>
-                 </div>
-              </div>
-              <div className="mt-4">
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 flex items-center gap-1"><Moon size={10} className="inline"/> Celestial & Time Mechanics</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Tidal Simulation</span>
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                       <span className="text-[#8b949e] font-bold">Moon Phase</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 outline-none text-[10px] rounded w-20">
-                          <option>Full Moon</option>
-                          <option>Waning</option>
-                          <option>New Moon</option>
-                          <option>Waxing</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Apply Bio-Rhythm to NPCs</span>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Physics' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Rigid Dynamics</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Mass (kg)</span>
-                       <input type="number" defaultValue="150" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Friction</span>
-                       <input type="number" defaultValue="0.7" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Bounciness</span>
-                       <input type="number" defaultValue="0.2" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Force Field (Tornado)</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Vortex Strength</span>
-                       <input type="number" defaultValue="5000" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Drag Force</span>
-                       <input type="number" defaultValue="500" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Destruction' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Procedural Fracture & Chaos</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Health / Durability</span>
-                       <input type="number" defaultValue="500.0" className="bg-[#0d1117] border border-[#30363d] text-[#e3b341] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Fracture Type</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 py-1 text-white outline-none w-20 text-[10px]">
-                          <option>Voronoi</option>
-                          <option>Slicing</option>
-                          <option>Radial</option>
-                          <option>Clustered</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                       <span className="text-[#8b949e] font-bold">Debris Lifespan</span>
-                       <input type="number" defaultValue="15.0" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4">Bio-Interaction</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Weight Cap Factor</span>
-                       <input type="number" defaultValue="120.0" className="bg-[#0d1117] border border-[#30363d] text-[#f85149] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#e3b341] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Generate Procedural Cracks</span>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Chemistry' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Chemical Reaction & Nano-Physics</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Chemical Tag</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-[#bc8cff] px-1 outline-none text-[10px] rounded w-20">
-                          <option>Sodium_Na</option>
-                          <option>Water_H2O</option>
-                          <option>Acid_HCl</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Volatility</span>
-                       <input type="number" defaultValue="0.95" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4">Granular Decay & Entropy</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Oxidation (Rust) Speed</span>
-                       <input type="number" defaultValue="5.0" className="bg-[#0d1117] border border-[#30363d] text-[#f85149] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Putrefaction Rate</span>
-                       <input type="number" defaultValue="1.5" className="bg-[#0d1117] border border-[#30363d] text-[#bc8cff] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Spawn Miasma on Decay</span>
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4">Environment Rules</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-1">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Ignites on Contact (Water)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">Produce Toxic Gas</span>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'Biology' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 flex items-center gap-1"><Mountain size={10} className="inline"/> Biome & Advanced Locomotion</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Biome Type</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-[#3fb950] px-1 outline-none text-[10px] rounded font-bold">
-                          <option>Volcanic Ash (Heat FX)</option>
-                          <option>Deep River / Rapids</option>
-                          <option>Deciduous Forest</option>
-                          <option>Toxic Swamp / Mud</option>
-                          <option>Desert</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#3fb950] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Force Biome-Specific Locomotion IK</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Entity Spawn Cap</span>
-                       <input type="number" defaultValue="250" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4">Food Chain Map</div>
-                 <div className="bg-[#0d1117] border border-[#30363d] rounded p-2 flex flex-col gap-1 mt-1">
-                    <span className="text-[#f85149] font-mono text-[9px] flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#f85149]"></div> Predator: Dire_Wolf</span>
-                    <span className="text-[#e3b341] font-mono text-[9px] ml-4 flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#e3b341]"></div> Prey: Deer_Stag</span>
-                    <span className="text-[#58a6ff] font-mono text-[9px] ml-8 flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#58a6ff]"></div> Food: Grass_Tuft</span>
-                 </div>
-              </div>
-                    ) : mode === 'Audio' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#58a6ff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 flex items-center gap-1"><Volume2 size={10} className="inline"/> Acoustic Bio-Resonance</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Base DB Level</span>
-                       <input type="number" defaultValue="75.0" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Dynamic Lowpass (Hz)</span>
-                       <input type="number" defaultValue="22000" className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Sub-bass Frequency</span>
-                       <input type="number" defaultValue="45.0" className="bg-[#0d1117] border border-[#30363d] text-[#e3b341] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Surface Footstep Type</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 py-1 text-white outline-none w-24 text-[10px]">
-                          <option>Mud / Squelch</option>
-                          <option>Deep Snow (Crunch)</option>
-                          <option>Toxic Acid Sizzle</option>
-                          <option>Hollow Wood</option>
-                          <option>Fragile Ice / Crack</option>
-                          <option>Volcanic Ash</option>
-                          <option>Flowing River</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-              
-              <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Layers size={10} className="inline"/> Multi-Layer Ambient Emitters</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between bg-[#0d1117] p-1.5 rounded border border-[#30363d]">
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Layer 1 (Foreground)</span>
-                       <select className="bg-transparent text-[#bc8cff] outline-none text-[10px] w-20">
-                           <option>Leaves Rustle</option>
-                           <option>Water Trickle</option>
-                           <option>Pebble Drops</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between bg-[#0d1117] p-1.5 rounded border border-[#30363d]">
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Layer 2 (Mid-ground)</span>
-                       <select className="bg-transparent text-[#58a6ff] outline-none text-[10px] w-20">
-                           <option>Distant Birds</option>
-                           <option>Wind Howl</option>
-                           <option>Lava Gurgling</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between bg-[#0d1117] p-1.5 rounded border border-[#30363d]">
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Layer 3 (Background)</span>
-                       <select className="bg-transparent text-[#f85149] outline-none text-[10px] w-20">
-                           <option>Deep Cave Rumble</option>
-                           <option>Distant Thunder</option>
-                           <option>Tectonic Shifts</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                       <span className="text-[#8b949e] font-bold text-[9px]">Randomize Layer Pitch (±15%)</span>
-                    </div>
-                 </div>
-              </div>
-
-              <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Brain size={10} className="inline"/>Neuro-Sensory Paranoia</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Delirium Threshold</span>
-                       <input type="number" defaultValue="0.15" className="bg-[#0d1117] border border-[#30363d] text-[#f85149] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#f85149] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Spawn Ghost Footsteps (1s Delay)</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#f85149] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Whisper-Wind Hallucination</span>
-                    </div>
-                 </div>
-              </div>
-
-              <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Waves size={10} className="inline"/> Raytraced Sound & Occlusion</div>
-                 <div className="space-y-2">
-                    <div className="flex flex-col gap-1.5">
-                       <div className="flex items-center justify-between">
-                          <span className="text-[#8b949e] font-bold">Material Absorption</span>
-                          <input type="number" defaultValue="0.85" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                       </div>
-                       <div className="flex justify-between items-center bg-[#21262d] rounded p-1">
-                          <span className="text-[#c9d1d9] text-[9px]">Ray Bounces</span>
-                          <span className="text-[#3fb950] font-mono text-[9px]">8 Max</span>
-                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#3fb950] w-3 h-3" defaultChecked />
-                       <span className="text-[#8b949e] font-bold text-[9px]">Enable Diffraction (Corners)</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#3fb950] w-3 h-3" defaultChecked />
-                       <span className="text-[#8b949e] font-bold text-[9px]">Enable Transmission (Thru walls)</span>
-                    </div>
-                 </div>
-              </div>
-
-              <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Volume2 size={10} className="inline"/> Environment Procedural Audio</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Audio Emitter Node</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 py-1 text-[#bc8cff] outline-none w-24 text-[10px] font-bold">
-                          <option>River Flow 3D</option>
-                          <option>Magma Eruption</option>
-                          <option>Lava Sizzle</option>
-                          <option>Waterfall Splash</option>
-                          <option>Creaking Glacier</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Occlusion Filter</span>
-                       <input type="number" defaultValue="0.8" className="bg-[#0d1117] border border-[#30363d] text-[#bc8cff] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex flex-col gap-1 mt-2">
-                       <span className="text-[#8b949e] font-bold text-[9px]">Event-Driven Audio Trigger Area</span>
-                       <div className="flex items-center gap-2">
-                          <input type="checkbox" className="accent-[#bc8cff] w-3 h-3" defaultChecked />
-                          <span className="text-[#c9d1d9] font-bold text-[9px]">Play "Rockfall" on Avalanche Event</span>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4 flex items-center gap-1"><Activity size={10} className="inline"/> Convolution Reverb (Spatial)</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Decay Time (s)</span>
-                       <input type="number" defaultValue="2.5" className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Multi-Bounce Echo</span>
-                       <input type="number" defaultValue="4" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                       <input type="checkbox" className="accent-[#58a6ff] w-3 h-3" defaultChecked />
-                       <span className="text-[#c9d1d9] font-bold text-[9px]">Sync Pain/Heavy Breathing Reverb</span>
-                    </div>
-                 </div>
-              </div>
-              </>         </>
-              ) : mode === 'Decals' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Decal Properties</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Alpha (Opacity)</span>
-                       <input type="number" defaultValue="0.85" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Projection Size X</span>
-                       <input type="number" defaultValue="128" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Depth Buffer Size</span>
-                       <input type="number" defaultValue="256" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode === 'PCG' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#7ee787] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Procedural Rules</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Density</span>
-                       <input type="number" defaultValue="42" className="bg-[#0d1117] border border-[#30363d] text-[#7ee787] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Seed</span>
-                       <input type="number" defaultValue="1337" className="bg-[#0d1117] border border-[#30363d] text-[#7ee787] px-1 py-1 outline-none text-[10px] rounded w-20 text-right font-mono" />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#7ee787] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Generation Actions</div>
-                 <button className="w-full py-2 bg-[#2ea043] hover:bg-[#3fb950] text-[#0d1117] font-bold text-[11px] rounded transition-colors flex items-center justify-center gap-2">
-                    <Cpu size={14}/> Generate (Local)
-                 </button>
-                 <button className="w-full py-1.5 border border-[#30363d] hover:border-[#f85149] hover:text-[#f85149] text-[#c9d1d9] font-bold text-[11px] rounded transition-colors mt-2">
-                    Clear Generated
-                 </button>
-              </div>
-              </>
-              ) : mode === 'Instance_Override' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 flex justify-between items-center">
-                    Level Instance #42 (SM_Pine)
-                    <button className="bg-[#e3b341]/20 text-[#e3b341] px-2 py-0.5 rounded">Revert All</button>
-                 </div>
-                 
-                 <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-3 bg-[#21262d] px-1 py-0.5 rounded">Transform Override</div>
-                 <div className="grid grid-cols-3 gap-1 mb-2">
-                    <div className="flex items-center text-[10px] border border-[#30363d] rounded bg-[#0d1117]"><div className="bg-[#f85149] text-white font-bold w-6 text-center border-r border-[#30363d]">X</div><input type="text" className="w-full bg-transparent outline-none pl-1 text-white" defaultValue="145.2"/></div>
-                    <div className="flex items-center text-[10px] border border-[#30363d] rounded bg-[#0d1117]"><div className="bg-[#3fb950] text-white font-bold w-6 text-center border-r border-[#30363d]">Y</div><input type="text" className="w-full bg-transparent outline-none pl-1 text-white" defaultValue="-22.0"/></div>
-                    <div className="flex items-center text-[10px] border border-[#30363d] rounded bg-[#0d1117]"><div className="bg-[#58a6ff] text-white font-bold w-6 text-center border-r border-[#30363d]">Z</div><input type="text" className="w-full bg-transparent outline-none pl-1 text-white" defaultValue="0.0"/></div>
-                 </div>
-
-                 <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-3 bg-[#21262d] px-1 py-0.5 rounded flex items-center gap-1">Material Override (Dynamic Instance)</div>
-                 <div className="space-y-2 relative">
-                    <div className="absolute -left-2 top-0 bottom-0 border-l border-[#8b949e]"></div>
-                    <div className="flex flex-col gap-1 pl-2 relative">
-                       <div className="absolute -left-2 top-1.5 w-2 border-t border-[#8b949e]"></div>
-                       <label className="text-[10px] text-[#8b949e] font-bold"><span className="text-[#3fb950] font-mono select-none">Vector Parameter:</span> ColorTint</label>
-                       <div className="flex gap-2 w-full">
-                          <input type="color" defaultValue="#ffaa00" className="w-8 h-5 border border-[#30363d] rounded bg-transparent p-0 flex-shrink-0" />
-                          <div className="flex flex-col flex-1 gap-1">
-                             <div className="flex gap-1 text-[9px] font-mono items-center"><span className="text-[#f85149]">R:</span><input type="range" className="flex-1 accent-[#f85149]" defaultValue="255"/></div>
-                             <div className="flex gap-1 text-[9px] font-mono items-center"><span className="text-[#3fb950]">G:</span><input type="range" className="flex-1 accent-[#3fb950]" defaultValue="170"/></div>
-                             <div className="flex gap-1 text-[9px] font-mono items-center"><span className="text-[#58a6ff]">B:</span><input type="range" className="flex-1 accent-[#58a6ff]" defaultValue="0"/></div>
-                          </div>
-                          <button title="Revert" className="text-[#8b949e] hover:text-[#e3b341] self-start ml-1"><RotateCcw size={10} /></button>
-                       </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-1 pl-2 relative mt-3">
-                       <div className="absolute -left-2 top-1.5 w-2 border-t border-[#8b949e]"></div>
-                       <label className="text-[10px] text-[#8b949e] font-bold"><span className="text-[#e3b341] font-mono select-none">Scalar Parameter:</span> EmissiveStrength</label>
-                       <div className="flex gap-2 w-full items-center">
-                          <input type="range" className="flex-1 accent-[#e3b341]" min="0" max="100" defaultValue="45" />
-                          <input type="number" className="w-12 bg-[#0d1117] border border-[#30363d] text-white text-[10px] outline-none rounded p-0.5 text-right font-mono" defaultValue="4.5" />
-                          <button title="Revert" className="text-[#8b949e] hover:text-[#e3b341] self-center ml-1"><RotateCcw size={10} /></button>
-                       </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 pl-2 relative mt-3">
-                       <div className="absolute -left-2 top-1.5 w-2 border-t border-[#8b949e]"></div>
-                       <label className="text-[10px] text-[#8b949e] font-bold"><span className="text-[#bc8cff] font-mono select-none">Texture Override:</span> DiffuseMap</label>
-                       <div className="flex gap-2 w-full items-center">
-                          <img src="https://picsum.photos/32/32" className="w-8 h-8 rounded border border-[#30363d] cursor-pointer hover:border-[#bc8cff]"/>
-                          <div className="text-[9px] text-[#8b949e] flex-1 truncate">T_Pine_Bark_VarC.uasset</div>
-                          <button title="Revert" className="text-[#8b949e] hover:text-[#e3b341] self-center ml-1"><RotateCcw size={10} /></button>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-4 bg-[#21262d] px-1 py-0.5 rounded flex items-center justify-between">Per-Instance Custom Data <button className="text-[#58a6ff] hover:text-white"><Plus size={10}/></button></div>
-                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center text-[10px] bg-[#161b22] border border-[#30363d] rounded p-1">
-                       <div className="text-[#8b949e] w-12 font-mono border-r border-[#30363d] flex justify-between pr-1">0 <RotateCcw size={10} className="hover:text-white cursor-pointer"/></div>
-                       <input type="number" className="w-full bg-transparent outline-none pl-2 text-[#58a6ff] font-mono" defaultValue="1.530" step="0.001" title="Data Float 0 (e.g. Wind Bending Phase)"/>
-                    </div>
-                    <div className="flex items-center text-[10px] bg-[#161b22] border border-[#30363d] rounded p-1">
-                       <div className="text-[#8b949e] w-12 font-mono border-r border-[#30363d] flex justify-between pr-1">1 <RotateCcw size={10} className="hover:text-white cursor-pointer"/></div>
-                       <input type="number" className="w-full bg-transparent outline-none pl-2 text-[#58a6ff] font-mono" defaultValue="0.000" step="0.001" title="Data Float 1"/>
-                    </div>
-                 </div>
-
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 mt-4 border-b border-[#30363d] pb-1 flex justify-between items-center gap-2"><Sparkles size={12}/> AI Variation Generator</div>
-                 <p className="text-[10px] text-[#8b949e] mb-2 leading-tight">Procedurally generate N unique overrides for selected instances using Offline AI.</p>
-                 <div className="w-full bg-[#161b22] border border-[#30363d] rounded flex flex-col p-2 space-y-2">
-                    <div className="flex items-center justify-between text-[10px]">
-                       <span className="text-[#c9d1d9] font-bold">Count</span>
-                       <input type="number" className="w-12 bg-[#0d1117] border border-[#30363d] rounded text-right px-1 text-[#e3b341] outline-none" defaultValue="10" />
-                    </div>
-                    <div className="flex items-center justify-between text-[10px]">
-                       <span className="text-[#c9d1d9] font-bold">Variance Scope</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 text-[#e3b341] outline-none w-20">
-                          <option>Color Tint</option>
-                          <option>Scale</option>
-                          <option>Both</option>
-                          <option>All Parameters</option>
-                       </select>
-                    </div>
-                    <textarea className="w-full h-12 bg-[#0d1117] border border-[#30363d] rounded p-1 text-[9px] text-[#c9d1d9] outline-none resize-none" placeholder="Prompt: e.g. Make them slightly more decayed / autumnal..." defaultValue="Make them look autumn-like, subtle browns and red tint variations."/>
-                    <button className="bg-[#e3b341] text-black w-full font-bold text-[10px] py-1 rounded shadow-[0_0_10px_rgba(227,179,65,0.4)]">Generate Variations</button>
-                 </div>
-
-               </div>
-              </>
-              ) : mode === 'World_Partition' ? (
-              <>
-               <div>
-                  <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Streaming Source</div>
-                  <button className="w-full py-1.5 border border-[#3fb950] text-[#3fb950] font-bold text-[11px] rounded transition-colors mb-2 bg-[#3fb950]/10">
-                     Build Navigation (World)
-                  </button>
-                  <label className="flex items-center gap-2 text-[11px] text-[#8b949e] cursor-pointer mb-2"><input type="checkbox" className="accent-[#e3b341]" defaultChecked/> Enable Streaming</label>
-                  <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-4 bg-[#21262d] px-1 py-0.5 rounded">HLOD (Hierarchical LOD)</div>
-                  <button className="w-full py-1.5 bg-[#e3b341] text-black font-bold text-[11px] rounded mb-2 shadow-[0_0_10px_rgba(227,179,65,0.3)]">Build HLODs</button>
-               </div>
-              </>
-              ) : mode === 'Niagara' ? (
-              <>
-               <div>
-                  <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Niagara Emitter Settings</div>
-                  <div className="space-y-2">
-                     <div className="flex items-center justify-between">
-                        <span className="text-[#8b949e] font-bold">Spawn Rate</span>
-                        <input type="number" defaultValue="250" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                     </div>
-                     <div className="flex items-center justify-between">
-                        <span className="text-[#8b949e] font-bold">Life Min/Max</span>
-                        <div className="flex gap-1 w-20">
-                           <input type="number" defaultValue="1.5" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-full text-right font-mono" />
-                           <input type="number" defaultValue="3.0" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-full text-right font-mono" />
-                        </div>
-                     </div>
-                  </div>
-                  <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-4 bg-[#21262d] px-1 py-0.5 rounded">Renderer</div>
-                  <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 py-1 text-[#bc8cff] outline-none w-full text-[10px] mb-2">
-                     <option>Sprite Renderer</option>
-                     <option>Mesh Renderer</option>
-                     <option>Ribbon Renderer</option>
-                  </select>
-               </div>
-              </>
-              ) : mode === 'Chaos_Physics' ? (
-              <>
-               <div>
-                  <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Rigid Body & Fluid Dynamics</div>
-                  <div className="space-y-2">
-                     <label className="flex items-center gap-2 text-[10px] text-[#8b949e] cursor-pointer"><input type="checkbox" className="accent-[#f85149]" defaultChecked/> Enable Gravity</label>
-                     <label className="flex items-center gap-2 text-[10px] text-[#8b949e] cursor-pointer"><input type="checkbox" className="accent-[#f85149]" defaultChecked/> Enable Micro-Aerodynamics</label>
-                     <div className="flex flex-col gap-1 mt-2">
-                        <span className="text-[#8b949e] font-bold text-[9px]">Linear Damping</span>
-                        <input type="range" min="0" max="100" defaultValue="10" className="accent-[#f85149]" />
-                     </div>
-                     <div className="flex flex-col gap-1 mt-2">
-                        <span className="text-[#8b949e] font-bold text-[9px]">Wind Tunnel / Drafting Drag</span>
-                        <input type="range" min="0" max="100" defaultValue="45" className="accent-[#f85149]" />
-                     </div>
-                  </div>
-               </div>
-               <div className="mt-4">
-                  <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Micro-Thermodynamics</div>
-                  <div className="space-y-2">
-                     <div className="flex items-center justify-between">
-                        <span className="text-[#8b949e] font-bold">Capillary Rate (Wetness)</span>
-                        <input type="number" defaultValue="2.5" className="bg-[#0d1117] border border-[#30363d] text-[#f85149] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                     </div>
-                     <div className="flex items-center justify-between">
-                        <span className="text-[#8b949e] font-bold">Heat Mirage Distortion</span>
-                        <input type="number" defaultValue="0.02" className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                     </div>
-                  </div>
-                  <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-4 bg-[#21262d] px-1 py-0.5 rounded">Fracture Tools</div>
-                  <button className="w-full py-1.5 bg-[#f85149] text-white font-bold text-[11px] rounded mb-2 shadow-[0_0_10px_rgba(248,81,73,0.3)]">Voronoi Fracture</button>
-               </div>
-              </>
-              ) : mode === 'MetaHuman' ? (
-              <>
-               <div>
-                  <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">MetaHuman Importer</div>
-                  <button className="w-full py-1.5 border border-[#bc8cff] text-[#bc8cff] font-bold text-[11px] rounded transition-colors mb-2 bg-[#bc8cff]/10">
-                     Connect to Quixel Bridge
-                  </button>
-                  <div className="font-bold text-[#c9d1d9] tracking-wider uppercase text-[9px] mb-2 mt-4 bg-[#21262d] px-1 py-0.5 rounded">LOD Settings</div>
-                  <div className="flex items-center justify-between">
-                     <span className="text-[#8b949e] font-bold text-[10px]">Min LOD</span>
-                     <select className="bg-[#0d1117] border border-[#30363d] rounded px-1 py-1 text-white outline-none w-16 text-[10px]">
-                        <option>0</option><option>1</option><option>2</option>
-                     </select>
-                  </div>
-               </div>
-              </>
-              ) : mode === 'Voxel' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Voxel Details</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Grid Scale (u)</span>
-                       <input type="number" defaultValue="1" className="bg-[#0d1117] border border-[#30363d] text-[#e3b341] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Brush Size</span>
-                       <div className="flex gap-1">
-                          <button className="bg-[#21262d] w-6 h-6 flex items-center justify-center rounded text-[10px] hover:bg-[#30363d] text-white">1</button>
-                          <button className="bg-[#21262d] w-6 h-6 flex items-center justify-center rounded text-[10px] hover:bg-[#30363d] text-white border border-[#e3b341]">2</button>
-                          <button className="bg-[#21262d] w-6 h-6 flex items-center justify-center rounded text-[10px] hover:bg-[#30363d] text-white">4</button>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-4">AI Voxel Generator</div>
-                 <textarea className="w-full bg-[#0d1117] border border-[#30363d] rounded p-1.5 text-[10px] text-[#c9d1d9] outline-none focus:border-[#e3b341] h-16 min-h-[64px] resize-none mb-1 custom-scrollbar" placeholder="e.g. Generate a small ruined tower..."></textarea>
-                 <button className="w-full py-1.5 bg-[#e3b341]/20 border border-[#e3b341]/50 hover:bg-[#e3b341]/30 hover:border-[#e3b341] text-[#e3b341] font-bold text-[10px] rounded transition-colors flex items-center justify-center gap-2">
-                    <Brain size={12}/> Generate Voxel Obj
-                 </button>
-              </div>
-              </>
-              ) : mode === 'Blueprint' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#1f6feb] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Variables & Logic</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Health Points</span>
-                       <input type="number" defaultValue="100" className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-16 text-right font-mono" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Is Interactable</span>
-                       <input type="checkbox" defaultChecked className="accent-[#1f6feb] w-3 h-3" />
-                    </div>
-                 </div>
-               </div>
-               <div>
-                  <div className="font-bold text-[#1f6feb] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Functions</div>
-                  <button className="w-full py-1.5 border border-[#30363d] hover:border-[#58a6ff] text-[#c9d1d9] font-bold text-[11px] rounded transition-colors flex items-center justify-center gap-2">
-                     <Plus size={12}/> Override Function
-                  </button>
-               </div>
-              </>
-              ) : mode === 'AI_Assist' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 flex items-center gap-1"><Globe size={10}/> Generation Engine</div>
-                 <div className="bg-[#0d1117] border border-[#e3b341]/30 rounded p-2 text-[10px] text-[#8b949e] flex flex-col gap-1">
-                    <div>Model: <span className="text-[#58a6ff] font-mono">Qwen-VL-Chat (GGUF)</span></div>
-                    <div>Mode: <span className="text-[#e3b341] font-bold">100% Core Reality</span></div>
-                    <div>Separation: <span className="text-white">Active (Destructible Prefabs)</span></div>
-                    <div>Auto-Material: <span className="text-[#3fb950] font-bold">Enabled</span></div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1 mt-3">Prompt / Instructions</div>
-                 <textarea className="w-full h-24 bg-[#0d1117] border border-[#30363d] rounded p-2 text-[#c9d1d9] text-[10px] outline-none font-mono focus:border-[#e3b341]/50 transition-colors custom-scrollbar" placeholder="e.g., Generate a small swamp outpost. Ensure the cabins use rotting wood and the roofs use rusted corrugated iron. Separate all planks for physics..."></textarea>
-                 <button className="w-full py-2 bg-gradient-to-r from-[#e3b341]/80 to-[#bc8cff]/80 hover:from-[#e3b341] hover:to-[#bc8cff] text-[#0d1117] font-bold text-[11px] rounded transition-colors flex items-center justify-center gap-2 mt-2 shadow-[0_0_15px_rgba(227,179,65,0.2)]">
-                    <Wand2 size={14}/> Generate 100% Real
-                 </button>
-              </div>
-              </>
-              ) : mode === 'Pathing' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Path Configuration</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Path Name</span>
-                       <input type="text" defaultValue="Spline_OrcCamp" className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-24 font-mono w-32" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Spline Type</span>
-                       <span className="text-[#c9d1d9] font-bold text-[10px]">{splineType}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Node Count</span>
-                       <span className="text-[#c9d1d9] font-bold text-[10px] font-mono">{splineNodes.length}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Closed Loop</span>
-                       <input type="checkbox" className="accent-[#3fb950] w-3 h-3" defaultChecked />
-                    </div>
-                    <button 
-                       onClick={() => setSplineNodes([])}
-                       className="w-full text-center px-2 py-1.5 bg-[#f85149]/10 border border-[#f85149]/30 hover:bg-[#f85149]/20 text-[#f85149] rounded text-[10px] font-bold mt-2 transition-colors uppercase tracking-wider"
-                    >
-                       Clear Path
-                    </button>
-                 </div>
-              </div>
-              <div>
-                 {activeSplineNode !== null && splineNodes[activeSplineNode] ? (
-                   <>
-                     <div className="font-bold text-[#3fb950] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Node Details (Index {activeSplineNode})</div>
-                     <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                           <span className="text-[#8b949e] font-bold">X Position</span>
-                           <input type="number" value={splineNodes[activeSplineNode].x.toFixed(2)} onChange={(e) => {
-                               const v = parseFloat(e.target.value);
-                               if(!isNaN(v)) {
-                                   setSplineNodes(prev => prev.map((n, i) => i === activeSplineNode ? {...n, x: v} : n));
-                               }
-                           }} className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-20 text-right font-mono" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                           <span className="text-[#8b949e] font-bold">Y Position</span>
-                           <input type="number" value={splineNodes[activeSplineNode].y.toFixed(2)} onChange={(e) => {
-                               const v = parseFloat(e.target.value);
-                               if(!isNaN(v)) {
-                                   setSplineNodes(prev => prev.map((n, i) => i === activeSplineNode ? {...n, y: v} : n));
-                               }
-                           }} className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-20 text-right font-mono" />
-                        </div>
-                        <button 
-                           onClick={() => {
-                               setSplineNodes(prev => prev.filter((_, i) => i !== activeSplineNode));
-                               setActiveSplineNode(null);
-                           }}
-                           className="w-full text-center px-2 py-1.5 bg-[#f85149]/10 border border-[#f85149]/30 hover:bg-[#f85149]/20 text-[#f85149] rounded text-[10px] font-bold mt-2 transition-colors uppercase tracking-wider"
-                        >
-                           Delete Node
-                        </button>
-                     </div>
-                   </>
-                 ) : (
-                    <div className="text-[10px] text-[#8b949e] italic text-center py-4">Select a node to edit details. Double-click on the map to add a node.</div>
-                 )}
-              </div>
-              </>
-              ) : mode === 'Volumes' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Volume Settings</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Volume Type</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-[#f85149] px-1 overflow-hidden outline-none text-[10px] rounded w-32 pb-0.5">
-                          <option>Blocking Volume</option>
-                          <option>Trigger Volume</option>
-                          <option>Kill Z Volume</option>
-                          <option>Audio Volume</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold" title="Visible in game debug">Hidden In Game</span>
-                       <input type="checkbox" className="accent-[#f85149] w-3 h-3" defaultChecked />
-                    </div>
-                 </div>
-              </div>
-              <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Auto-Fit Tools</div>
-                 <button className="w-full py-1.5 border border-[#30363d] hover:border-[#f85149] bg-[#0d1117] text-[#c9d1d9] font-bold text-[11px] rounded transition-colors mb-2 flex items-center justify-center gap-2"><Maximize2 size={12}/> Fit to Selected Mesh</button>
-                 <button className="w-full py-1.5 border border-[#30363d] hover:border-[#58a6ff] bg-[#0d1117] text-[#c9d1d9] font-bold text-[11px] rounded transition-colors mb-2 flex items-center justify-center gap-2"><Grid size={12}/> Snap Bounds to Grid</button>
-              </div>
-              <div>
-                 <div className="font-bold text-[#f85149] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Collision Rules</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold pt-1">Players</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 outline-none text-[9px] rounded">
-                          <option>Block</option>
-                          <option>Overlap</option>
-                          <option>Ignore</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold pt-1">NPCs / Monsters</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 outline-none text-[9px] rounded">
-                          <option>Block</option>
-                          <option>Overlap</option>
-                          <option>Ignore</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold pt-1">Projectiles</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 outline-none text-[9px] rounded">
-                          <option>Ignore</option>
-                          <option>Block</option>
-                          <option>Overlap</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : mode !== 'NPC' ? (
-              <>
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Static Mesh</div>
-                 <div className="bg-[#0d1117] border border-[#30363d] p-2 rounded flex items-center justify-between">
-                    <span className="text-[#58a6ff] font-mono">SM_Wall_02</span>
-                    <button className="text-[#8b949e] hover:text-white"><Search size={12}/></button>
-                 </div>
-              </div>
-
-               <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Materials</div>
-                 <div className="bg-[#0d1117] border border-[#30363d] p-2 rounded flex items-center justify-between">
-                    <span className="text-[#c9d1d9] font-mono text-[10px] flex items-center gap-2"><div className="w-3 h-3 bg-gray-500 rounded-sm"></div> M_Concrete_Rough</span>
-                    <button className="text-[#8b949e] hover:text-white"><Search size={12}/></button>
-                 </div>
-              </div>
-
-              <div>
-                 <div className="font-bold text-[#e3b341] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Physics</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Simulate Physics</span>
-                       <input type="checkbox" className="accent-[#58a6ff] w-3 h-3" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Generate Overlap Events</span>
-                       <input type="checkbox" className="accent-[#58a6ff] w-3 h-3" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Collision Preset</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 outline-none text-[10px] rounded">
-                          <option>BlockAll</option>
-                          <option>OverlapAll</option>
-                          <option>Custom</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-              </>
-              ) : (
-              <>
-               <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">AI Behavior & Pathing</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Behavior Tree</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-24">
-                          <option>BT_Orc_Melee</option>
-                          <option>BT_Coward</option>
-                          <option>BT_Patrol</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Patrol Route</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-[#58a6ff] px-1 py-1 outline-none text-[10px] rounded w-24 font-mono">
-                          <option>Spline_OrcCamp</option>
-                          <option>Path_River</option>
-                          <option>-- None --</option>
-                       </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Spawn Trigger Area</span>
-                       <button className="bg-[#238636] text-white px-2 py-0.5 rounded text-[9px] uppercase tracking-wide">Assign Box</button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Snap to Ground</span>
-                       <input type="checkbox" className="accent-[#58a6ff] w-3 h-3" defaultChecked title="Prevent clipping/burying inside landscape" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-[#8b949e] font-bold">Spawn VFX</span>
-                       <select className="bg-[#0d1117] border border-[#30363d] text-white px-1 py-1 outline-none text-[10px] rounded w-24 overflow-hidden text-ellipsis">
-                          <option>None (Instant)</option>
-                          <option>Emerge from Dirt (VFX_DirtBurst)</option>
-                          <option>Emerge from Water (VFX_Splash)</option>
-                          <option>Summon Portal (VFX_DarkPortal)</option>
-                          <option>Drop from Sky</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-
-               <div>
-                 <div className="font-bold text-[#bc8cff] tracking-wider uppercase text-[10px] mb-2 border-b border-[#30363d] pb-1">Stats & Faction</div>
-                 <div className="space-y-2">
-                    <div className="flex items-center justify-between bg-[#0d1117] border border-[#30363d] rounded p-1">
-                       <span className="text-[#8b949e] font-bold px-1">Health</span>
-                       <input type="number" defaultValue="250" className="w-16 bg-transparent text-right outline-none text-white font-mono pr-1" />
-                    </div>
-                    <div className="flex items-center justify-between bg-[#0d1117] border border-[#30363d] rounded p-1">
-                       <span className="text-[#8b949e] font-bold px-1">Damage Base</span>
-                       <input type="number" defaultValue="45" className="w-16 bg-transparent text-right outline-none text-[#f85149] font-mono pr-1" />
-                    </div>
-                    <div className="flex items-center justify-between bg-[#0d1117] border border-[#30363d] rounded p-1">
-                       <span className="text-[#8b949e] font-bold px-1">Faction</span>
-                       <select className="bg-transparent text-white outline-none text-[10px] flex-1 text-right">
-                          <option>Greenskins</option>
-                          <option>Undead</option>
-                          <option>Player_Allies</option>
-                       </select>
-                    </div>
-                 </div>
-              </div>
-              </>
               )}
            </div>
         </div>
 
-      </div>
-
-      {/* Content Drawer */}
-      {isContentBrowserOpen && (
-         <div className="h-64 border-t border-[#30363d] bg-[#161b22] shrink-0 flex flex-col z-40">
-            <div className="flex items-center gap-2 p-2 border-b border-[#30363d] bg-[#0d1117]">
-               <Folder size={14} className="text-[#8b949e]" />
-               <span className="text-[11px] font-bold uppercase tracking-wide">Content Drawer</span>
-               <div className="flex items-center gap-2 ml-4">
-                  <span className="text-[10px] text-[#8b949e] hover:text-white cursor-pointer px-2 border-r border-[#30363d]">All Models</span>
-                  <span className="text-[10px] text-[#58a6ff] hover:text-white cursor-pointer px-2 border-r border-[#30363d]">Architecture</span>
-                  <span className="text-[10px] text-[#8b949e] hover:text-white cursor-pointer px-2 border-r border-[#30363d]">Props</span>
-                  <span className="text-[10px] text-[#8b949e] hover:text-white cursor-pointer px-2">Materials</span>
-               </div>
-               <div className="ml-auto w-48 bg-[#0d1117] border border-[#30363d] rounded flex items-center px-2 py-0.5">
-                  <Search size={12} className="text-[#8b949e]" />
-                  <input type="text" placeholder="Search Content..." className="bg-transparent text-[10px] outline-none ml-2 flex-1 text-white" />
-               </div>
-            </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-wrap content-start gap-4">
-               {/* Architecture Content */}
-               {[
-                  { name: 'SM_Wall_01', type: 'StaticMesh', icon: Box, color: '#8b949e' },
-                  { name: 'SM_Wall_02', type: 'StaticMesh', icon: Box, color: '#8b949e' },
-                  { name: 'SM_Floor_01', type: 'StaticMesh', icon: Box, color: '#8b949e' },
-                  { name: 'BP_Door_Auto', type: 'Blueprint', icon: Workflow, color: '#1f6feb' },
-                  { name: 'Location_Camp', type: 'Prefab', icon: Flag, color: '#e3b341' },
-                  { name: 'POI_Temple', type: 'Prefab', icon: Map, color: '#bc8cff' },
-                  { name: 'Decal_Dirt', type: 'Material', icon: Stamp, color: '#bc8cff' },
-                  { name: 'Phys_Rubble', type: 'Chaos', icon: Bomb, color: '#e3b341' },
-               ].map((item, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 group cursor-grab w-24">
-                     <div className="w-full aspect-square bg-[#0d1117] border border-[#30363d] group-hover:border-[#58a6ff] rounded-lg flex items-center justify-center relative overflow-hidden transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                        <item.icon size={32} color={item.color} className="opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-transform" />
-                        <span className="absolute bottom-1 left-1.5 text-[8px] font-bold px-1 rounded bg-[#21262d]/80 text-[#8b949e] uppercase border border-[#30363d]">{item.type}</span>
+        {/* Viewport Center */}
+        <div className="flex-1 bg-[#000] relative flex flex-col overflow-hidden outline-none" tabIndex={0}>
+           
+           {/* Viewport Toolbar Overlay */}
+           <div className="absolute top-2 left-2 right-2 flex justify-between pr-4 pl-0 pointer-events-none z-10 text-[11px]">
+              
+              {/* Left Side: View modes */}
+              <div className="flex gap-2 pointer-events-auto items-start drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)]">
+                 <div className="flex bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] rounded text-white shadow-xl">
+                    <button className="px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white flex items-center gap-2 border-r border-[#30363d] font-bold tracking-wide"><Camera size={12}/> Perspective</button>
+                    <div className="relative group/view">
+                       <button className="px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white flex items-center gap-2 font-bold tracking-wide text-[#e3b341]">{viewportMode} <ChevronDown size={12}/></button>
+                    </div>
+                    <button className="px-3 py-1.5 hover:bg-[#58a6ff] hover:text-white flex items-center gap-2 border-l border-[#30363d] font-bold tracking-wide"><Eye size={12}/> Show <ChevronDown size={12}/></button>
+                 </div>
+                 
+                 {/* PCG specific viewport toggle if active */}
+                 {activeTab === 'PCG' && (
+                     <div className="flex bg-[#a371f7]/20 border border-[#a371f7]/50 rounded text-[#d6bdfb] shadow-[0_0_10px_rgba(163,113,247,0.3)] backdrop-blur">
+                        <button className="px-3 py-1.5 font-bold flex items-center justify-center"><Workflow size={12} className="mr-2"/> View PCG Debug Data</button>
                      </div>
-                     <span className="text-[10px] font-mono text-[#c9d1d9] text-center w-full truncate">{item.name}</span>
-                  </div>
-               ))}
-               
-               <div className="flex flex-col items-center gap-2 group cursor-pointer w-24">
-                  <div className="w-full aspect-square bg-[#161b22] border border-dashed border-[#58a6ff]/50 hover:border-[#58a6ff] rounded-lg flex flex-col items-center justify-center text-[#58a6ff] transition-colors relative">
-                     <Plus size={24} className="mb-1" />
-                     <span className="text-[9px] font-bold">Import</span>
-                  </div>
-                  <span className="text-[10px] text-transparent truncate">New</span>
-               </div>
-            </div>
-         </div>
-      )}
+                 )}
+              </div>
 
-      {/* Footer / Bottom Status Bar */}
-      <div className="h-7 bg-[#0d1117] border-t border-[#30363d] flex items-center px-2 justify-between shrink-0 z-50">
-        <div className="flex items-center gap-3">
+              {/* Center: Transform Tools */}
+              <div className="flex gap-1 pointer-events-auto bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] rounded p-1 shadow-xl drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)] items-center">
+                 <button onClick={()=>setTransformMode('Translate')} className={`p-1.5 rounded transition-colors ${transformMode==='Translate' ? 'bg-[#58a6ff] text-white shadow-[0_0_10px_rgba(88,166,255,0.5)]' : 'text-[#8b949e] hover:text-white hover:bg-[#30363d]'}`}><Move3D size={16}/></button>
+                 <button onClick={()=>setTransformMode('Rotate')} className={`p-1.5 rounded transition-colors ${transformMode==='Rotate' ? 'bg-[#e3b341] text-black shadow-[0_0_10px_rgba(227,179,65,0.5)]' : 'text-[#8b949e] hover:text-white hover:bg-[#30363d]'}`}><RefreshCw size={16}/></button>
+                 <button onClick={()=>setTransformMode('Scale')} className={`p-1.5 rounded transition-colors ${transformMode==='Scale' ? 'bg-[#3fb950] text-white shadow-[0_0_10px_rgba(63,185,80,0.5)]' : 'text-[#8b949e] hover:text-white hover:bg-[#30363d]'}`}><Maximize2 size={16}/></button>
+                 
+                 <div className="w-px h-5 bg-[#30363d] mx-1"></div>
+                 
+                 <button onClick={()=>setCoordSpace(coordSpace === 'World' ? 'Local' : 'World')} className="px-3 py-1 hover:bg-[#30363d] rounded text-[#c9d1d9] hover:text-white flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                    <Globe size={14} className="text-[#58a6ff]"/> {coordSpace}
+                 </button>
+
+                 <div className="w-px h-5 bg-[#30363d] mx-1"></div>
+
+                 <div className="flex items-center">
+                    <button onClick={()=>setGridSnap(!gridSnap)} className={`p-1.5 rounded-l transition-colors ${gridSnap ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-white hover:bg-[#30363d]'}`}><Grid size={14}/></button>
+                    <select value={gridSize} onChange={(e)=>setGridSize(Number(e.target.value))} className="bg-[#21262d] text-white font-mono text-[10px] outline-none hover:bg-[#30363d] py-1.5 px-1 mr-1 appearance-none w-10 text-center cursor-pointer font-bold">
+                       <option value={1}>1</option>
+                       <option value={5}>5</option>
+                       <option value={10}>10</option>
+                       <option value={50}>50</option>
+                       <option value={100}>100</option>
+                    </select>
+
+                    <button onClick={()=>setAngleSnap(!angleSnap)} className={`p-1.5 rounded-l transition-colors ${angleSnap ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-white hover:bg-[#30363d]'}`}><RotateCcw size={14}/></button>
+                     <select value={angleSize} onChange={(e)=>setAngleSize(Number(e.target.value))} className="bg-[#21262d] text-white font-mono text-[10px] outline-none hover:bg-[#30363d] rounded-r py-1.5 px-1 font-bold appearance-none w-10 text-center cursor-pointer">
+                       <option value={5}>5°</option>
+                       <option value={10}>10°</option>
+                       <option value={15}>15°</option>
+                       <option value={45}>45°</option>
+                       <option value={90}>90°</option>
+                    </select>
+                 </div>
+              </div>
+
+              {/* Right: Camera Speed */}
+              <div className="flex pointer-events-auto bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] rounded items-center px-3 py-1.5 shadow-xl drop-shadow-[0_2px_5px_rgba(0,0,0,0.5)] gap-3 text-white">
+                 <Camera size={14} className="text-[#8b949e]"/>
+                 <input type="range" min="1" max="8" value={cameraSpeed} onChange={(e)=>setCameraSpeed(Number(e.target.value))} className="w-20 accent-white h-1.5 bg-[#050505] appearance-none rounded-full"/>
+                 <span className="font-mono text-[11px] font-bold w-4">{cameraSpeed}</span>
+              </div>
+           </div>
+
+           {/* 3D Environment Mockup Render Area */}
+           <div ref={viewportRef} className={`absolute inset-0 z-0 flex items-center justify-center overflow-hidden transition-colors duration-1000 ${isDragOverViewport ? 'ring-4 ring-pink-500/50 inset-2 rounded-2xl bg-pink-500/5' : ''}`}
+                onDragOver={(e) => {
+                   e.preventDefault();
+                   setIsDragOverViewport(true);
+                }}
+                onDragLeave={() => setIsDragOverViewport(false)}
+                onDrop={(e) => {
+                   e.preventDefault();
+                   setIsDragOverViewport(false);
+                   const id = e.dataTransfer.getData('text/plain');
+                   if (id) setTerrainMaterial(id);
+                }}
+                onMouseDown={(e) => {
+                  if (activeTab === 'Smart AI' || e.button === 2) {
+                     e.preventDefault();
+                     if (!viewportRef.current) return;
+                     const rect = viewportRef.current.getBoundingClientRect();
+                     const x = e.clientX - rect.left;
+                     const y = e.clientY - rect.top;
+
+                     if (e.button === 2) {
+                        setContextMenu({ x, y });
+                        setIsMarqueeSelecting(false);
+                     } else if (e.button === 0) {
+                        setContextMenu(null);
+                        setIsMarqueeSelecting(true);
+                        setSelectionBox({ x, y, w: 0, h: 0 });
+                        setAiResultBox(null);
+                     }
+                  } else {
+                     setContextMenu(null);
+                     setAiResultBox(null);
+                     setSelectionBox(null);
+                  }
+                }}
+                onMouseMove={(e) => {
+                  if (isMarqueeSelecting && selectionBox && viewportRef.current) {
+                     const rect = viewportRef.current.getBoundingClientRect();
+                     const x = e.clientX - rect.left;
+                     const y = e.clientY - rect.top;
+                     setSelectionBox({
+                        ...selectionBox,
+                        w: x - selectionBox.x,
+                        h: y - selectionBox.y
+                     });
+                  }
+                }}
+                onMouseUp={() => {
+                  if (isMarqueeSelecting) {
+                     setIsMarqueeSelecting(false);
+                     if (selectionBox && Math.abs(selectionBox.w) > 30 && Math.abs(selectionBox.h) > 30) {
+                        setAiResultBox(selectionBox);
+                     }
+                  }
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+                style={{ 
+                   background: timeOfDay < 6 || timeOfDay > 19 ? 'linear-gradient(to bottom, #050a1f, #1a2f4c, #112233)' : 'linear-gradient(to bottom, #1a4f8c, #467fac, #9cb2a3)',
+                   // Ensure inner elements don't get the filter directly if it breaks layout tools
+                }}>
+              
+              <div className="absolute inset-0 pointer-events-none" style={{ filter: `brightness(${0.4 + (timeOfDay/24) * 1.5}) hue-rotate(${(timeOfDay - 12) * 5}deg)` }}>
+              {/* Sky Elements / Atmosphere */}
+              {timeOfDay > 6 && timeOfDay < 19 && (
+                 <div className="absolute top-[10%] left-[60%] w-[400px] h-[400px] bg-yellow-200 rounded-full blur-[120px] opacity-70 pointer-events-none mix-blend-screen" style={{transform: `translateX(${(timeOfDay-12)*100}px)`}}></div>
+              )}
+              {timeOfDay > 18 && timeOfDay < 20 && (
+                 <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-orange-600/40 to-transparent pointer-events-none mix-blend-overlay"></div>
+              )}
+              {timeOfDay < 6 || timeOfDay > 19 && (
+                 <div className="absolute top-[15%] left-[30%] w-48 h-48 bg-blue-100/30 rounded-full blur-[20px] pointer-events-none shadow-[0_0_100px_rgba(255,255,255,0.2)]"></div>
+              )}
+              {timeOfDay < 6 || timeOfDay > 19 ? (
+                 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIxIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjgiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIxNTAiIHI9IjEuNSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iMC42Ii8+PGNpcmNsZSBjeD0iMzUwIiBjeT0iODAiIHI9IjEiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuOSIvPjwvc3ZnPg==')] opacity-60 pointer-events-none mix-blend-screen"></div>
+              ): null}
+
+              {/* Landscape Grid Matrix Projection */}
+              <div className="absolute bottom-[-15%] w-[300%] h-[150%] bg-transparent perspective-[1200px] [transform-style:preserve-3d] pointer-events-none select-none">
+                 
+                 {/* Floor Grid */}
+                 <div className="w-full h-full border-[2px] [transform:rotateX(78deg)_scale(1.5)] absolute inset-0 origin-bottom transition-colors duration-1000" 
+                      style={{
+                         borderColor: currentTerrainMaterial ? currentTerrainMaterial.hex : 'rgba(34, 197, 94, 0.2)',
+                         backgroundColor: currentTerrainMaterial ? currentTerrainMaterial.hex + '1A' : 'transparent',
+                         backgroundImage: `
+                           linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 2px),
+                           linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 2px)
+                         `,
+                         backgroundSize: '120px 120px'
+                      }}>
+                    
+                    {/* Landscape Heightmap Visualizer using precise SVG overlay */}
+                    <svg className="absolute inset-0 w-full h-full overflow-visible opacity-[0.35] filter blur-[1px] transition-colors duration-1000" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                       {/* Layer 1 */}
+                       <path d="M 0,800 Q 200,500 400,700 T 800,600 T 1000,800 L 1000,1000 L 0,1000 Z" fill={currentTerrainMaterial ? currentTerrainMaterial.hex + '66' : "rgba(63,185,80,0.4)"} stroke={currentTerrainMaterial ? currentTerrainMaterial.hex : "#3fb950"} strokeWidth="4"/>
+                       {/* Layer 2 */}
+                       <path d="M 0,600 Q 300,300 600,600 T 1000,500 L 1000,1000 L 0,1000 Z" fill={currentTerrainMaterial ? currentTerrainMaterial.hex + '26' : "rgba(63,185,80,0.15)"} stroke={currentTerrainMaterial ? currentTerrainMaterial.hex : "#3fb950"} strokeWidth="2"/>
+                       {/* Volumetric Fog / Depth approximation inside grid frame */}
+                       <rect width="1000" height="1000" fill="url(#fogGrad)" opacity="0.6"/>
+                       <defs>
+                          <linearGradient id="fogGrad" x1="0" y1="1" x2="0" y2="0">
+                             <stop offset="0%" stopColor="#1a2f4c" stopOpacity="0.8"/>
+                             <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
+                          </linearGradient>
+                       </defs>
+                    </svg>
+
+                    {/* PCG Point Cloud Render Mockup (Visible in PCG mode) */}
+                    {activeTab === 'PCG' && (
+                       <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #a371f7 2px, transparent 2px)', backgroundSize: '40px 40px', opacity: 0.6, filter: 'drop-shadow(0 0 5px #a371f7)'}}></div>
+                    )}
+
+                    {/* Swarm Mode Network Overlay Matrix */}
+                    {activeTab === 'Swarm' && swarmEnabled && (
+                       <div className="absolute inset-0">
+              {/* Animated hexagon grid proxy */}
+              <div className="absolute inset-0 opacity-40 mix-blend-screen" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\\"40\\" height=\\"40\\" viewBox=\\"0 0 40 40\\" xmlns=\\"http://www.w3.org/2000/svg\\"%3E%3Cpath d=\\"M20 0l20 10v20L20 40 0 30V10z\\" fill=\\"none\\" stroke=\\"%23f97316\\" stroke-width=\\"0.5\\" stroke-opacity=\\"0.3\\"/%3E%3C/svg%3E")', backgroundSize: '60px 60px', animation: 'slide 20s linear infinite' }}></div>
+           </div>
+        )}
+
+        {/* 3D Scene Mockups (Trees / Foliage) */}
+        <div className="absolute top-[30%] left-[20%] [transform:rotateX(-80deg)_translateZ(40px)] flex items-center justify-center pointer-events-none transition-colors duration-1000">
+           <div className={`w-12 h-12 rounded-full absolute ${season === 'Autumn' ? 'bg-orange-500/50' : season === 'Winter' ? 'bg-white/50' : season === 'Spring' ? 'bg-pink-400/50' : 'bg-green-500/50'} blur-xl`}></div>
+           <svg width="40" height="40" viewBox="0 0 24 24" fill={season === 'Autumn' ? '#f97316' : season === 'Winter' ? '#f8fafc' : season === 'Spring' ? '#f472b6' : '#22c55e'} className="relative drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] transition-colors duration-1000">
+              <path d="M12 22v-6m-4-6c0-2.209 1.791-4 4-4s4 1.791 4 4c0 1.936-1.385 3.543-3.214 3.903C13.626 12.35 12.836 12 12 12c-.836 0-1.626.35-2.786 1.903C7.385 13.543 6 11.936 6 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 4c-3.314 0-6 2.686-6 6 0 2.828 1.95 5.2 4.57 5.86.38.1.78.18 1.18.23.08.79.18 1.55.25 2.25.07.72.16 1.4.25 2h.5c.09-.6.18-1.28.25-2 .07-.7.17-1.46.25-2.25.4-.05.8-.13 1.18-.23C18.05 15.2 20 12.828 20 10c0-3.314-2.686-6-6-6z" opacity="0.8"/>
+           </svg>
+        </div>
+
+        <div className="absolute top-[40%] right-[30%] [transform:rotateX(-80deg)_translateZ(30px)] flex items-center justify-center pointer-events-none transition-colors duration-1000 scale-75">
+           <div className={`w-12 h-12 rounded-full absolute ${season === 'Autumn' ? 'bg-orange-500/50' : season === 'Winter' ? 'bg-white/50' : season === 'Spring' ? 'bg-pink-400/50' : 'bg-green-500/50'} blur-xl`}></div>
+           <svg width="40" height="40" viewBox="0 0 24 24" fill={season === 'Autumn' ? '#ea580c' : season === 'Winter' ? '#e2e8f0' : season === 'Spring' ? '#f472b6' : '#16a34a'} className="relative drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] transition-colors duration-1000">
+              <path d="M12 22v-6m-4-6c0-2.209 1.791-4 4-4s4 1.791 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 4c-3.314 0-6 2.686-6 6 0 2.828 1.95 5.2 4.57 5.86C18.05 15.2 20 12.828 20 10c0-3.314-2.686-6-6-6z" opacity="0.9"/>
+           </svg>
+        </div>
+
+        {/* Snowman (Appears only in winter) */}
+        <div className={`absolute top-[45%] left-[35%] [transform:rotateX(-80deg)_translateZ(20px)] flex items-center justify-center pointer-events-none transition-all duration-1000 ${season === 'Winter' ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-50 translate-y-10'}`}>
+           <svg width="30" height="30" viewBox="0 0 24 24" fill="#f8fafc" className="drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
+              {/* Body */}
+              <circle cx="12" cy="16" r="6" />
+              <circle cx="12" cy="9" r="4" />
+              {/* Hat */}
+              <rect x="9" y="4" width="6" height="2" fill="#1e293b"/>
+              <rect x="10" y="0" width="4" height="4" fill="#1e293b"/>
+              {/* Scarf */}
+              <path d="M9 12 Q12 14 15 12 L14 15 L10 15 Z" fill="#ef4444"/>
+              {/* Nose */}
+              <polygon points="12,8 15,9 12,10" fill="#f97316"/>
+              {/* Eyes */}
+              <circle cx="10.5" cy="8" r="0.5" fill="#0f172a"/>
+              <circle cx="13.5" cy="8" r="0.5" fill="#0f172a"/>
+              {/* Buttons */}
+              <circle cx="12" cy="14" r="0.5" fill="#0f172a"/>
+              <circle cx="12" cy="17" r="0.5" fill="#0f172a"/>
+           </svg>
+        </div>
+
+        {/* Advanced detailed season overlay takes over this part now */}
+
+        {/* Water Plane Mesh Overlay */}
+                    {activeTab === 'Water' && (
+                       <svg className="absolute inset-0 w-full h-full opacity-60 transition-all duration-700" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                          <path d="M 300,500 Q 500,450 700,500 T 1000,550 L 1000,1000 L 300,1000 Z" 
+                                fill={waterTool === 'Lava' ? '#ea580c' : waterTool === 'Acid' ? '#84cc16' : waterTool === 'Swamp' ? '#4d7c0f' : '#0ea5e9'} 
+                                opacity="0.4" filter="blur(10px)"/>
+                          <path d="M 300,500 Q 500,450 700,500 T 1000,550" fill="none" 
+                                stroke={waterTool === 'Lava' ? '#f97316' : waterTool === 'Acid' ? '#bef264' : waterTool === 'Swamp' ? '#65a30d' : '#38bdf8'} 
+                                strokeWidth="6" className="animate-pulse duration-1000"/>
+                          <path d="M 350,600 Q 550,550 750,600 T 1000,650" fill="none" 
+                                stroke={waterTool === 'Lava' ? '#fb923c' : waterTool === 'Acid' ? '#d9f99d' : waterTool === 'Swamp' ? '#a3e635' : '#7dd3fc'} 
+                                strokeWidth="3" opacity="0.5"/>
+                       </svg>
+                    )}
+                    {/* Season & Weather Environment Overlays */}
+                    {season === 'Winter' && (
+                       <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden mix-blend-screen shadow-[inset_0_0_150px_rgba(255,255,255,0.2)]">
+                          {/* Deep Freeze Overlay */}
+                          <div className="absolute inset-0 bg-blue-100/5 mix-blend-color-burn"></div>
+                          {/* High intensity snow particles */}
+                          <div className="absolute inset-0 opacity-80" style={{ 
+                             backgroundImage: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48Y2lyY2xlIGN4PSI1IiBjeT0iMTAiIHI9IjEiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuOCIvPjxjaXJjbGUgY3g9IjEwNSIgY3k9IjExMCIgcj0iMS41IiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjEiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuNiIvPjwvc3ZnPg==")',
+                             backgroundSize: `${200 - weatherIntensity}px ${200 - weatherIntensity}px`,
+                             animation: `slide ${100 / windStrength}s linear infinite`,
+                             transform: `rotate(${windDirection}deg) scale(1.5)`
+                          }}></div>
+                          {/* Dense blizzard fog layer */}
+                          {weatherIntensity > 60 && (
+                             <div className="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent blur-md"></div>
+                          )}
+                          {/* Frost Vignette */}
+                          <div className="absolute inset-0 opacity-40 mix-blend-overlay" style={{ background: 'radial-gradient(circle, transparent 40%, #ffffff 100%)' }}></div>
+                       </div>
+                    )}
+                    
+                    {season === 'Autumn' && (
+                       <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden mix-blend-screen">
+                          {/* Warm sunset tonemap */}
+                          <div className="absolute inset-0 bg-orange-600/10 mix-blend-color-burn"></div>
+                          <div className="absolute inset-0 bg-yellow-500/5 mix-blend-overlay"></div>
+                          {/* Falling Autumn Leaves */}
+                          <div className="absolute inset-0 opacity-60" style={{
+                             backgroundImage: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cGF0aCBkPSJNMTAgMTBDMTUgNSAyMCAxMCAyMCAxNUMxNSAyMCAxMCAxNSAxMCAxMFoiIGZpbGw9IiNlYTU4MGMiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik01MCA1MEM1NSA0NSA2MCA1MCA2MCA1NUM1NSA2MCA1MCA1NSA1MCA1MFoiIGZpbGw9IiNiNDUzMDkiIG9wYWNpdHk9IjAu الCIvPjwvc3ZnPg==")',
+                             backgroundSize: `${150 - (weatherIntensity / 2)}px ${150 - (weatherIntensity / 2)}px`,
+                             animation: `slide ${150 / windStrength}s linear infinite`,
+                             transform: `rotate(${windDirection}deg) scale(2)`
+                          }}></div>
+                          {/* Wind Gusts */}
+                          {windStrength > 40 && (
+                             <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMTAiPjxyZWN0IHg9IjAiIHk9IjQiIHdpZHRoPSI1MCIgaGVpZ2h0PSIyIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=')] animate-pulse" style={{ transform: `rotate(${windDirection}deg)` }}></div>
+                          )}
+                       </div>
+                    )}
+                    
+                    {season === 'Summer' && (
+                       <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden mix-blend-screen">
+                          {/* Heat Haze Warp & Warmth */}
+                          <div className="absolute inset-0 bg-yellow-500/10 mix-blend-color-burn backdrop-blur-[1px]"></div>
+                          {/* Overbright Sunlight rays */}
+                          <div className="absolute -top-10 -right-10 w-64 h-64 bg-yellow-100/30 rounded-full blur-3xl opacity-60 mix-blend-screen"></div>
+                          {/* Lens flare artifact */}
+                          <div className="absolute top-[20%] right-[30%] w-32 h-2 bg-yellow-300/20 blur-md [transform:rotate(-45deg)] mix-blend-screen"></div>
+                          <div className="absolute top-[30%] right-[40%] w-8 h-8 rounded-full bg-orange-400/20 blur-sm mix-blend-screen"></div>
+                          <div className="absolute top-[50%] right-[60%] w-4 h-4 rounded-full bg-green-500/10 blur-[1px] mix-blend-screen"></div>
+                          {/* High temp distortion */}
+                          {weatherIntensity > 70 && (
+                             <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay animate-pulse [animation-duration:0.5s]"></div>
+                          )}
+                       </div>
+                    )}
+                    
+                    {season === 'Rainy' && (
+                       <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+                          {/* Gloomy sky tonemap */}
+                          <div className="absolute inset-0 bg-blue-900/30 mix-blend-multiply"></div>
+                          {/* Heavy Rain Lines */}
+                          <div className="absolute inset-0 opacity-60 mix-blend-screen" style={{
+                             backgroundImage: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PHJlY3QgeD0iMTUiIHk9IjAiIHdpZHRoPSIwLjUiIGhlaWdodD0iMjAiIGZpbGw9IiM3ZGRmZjYiIG9wYWNpdHk9IjAuOCIvPjxyZWN0IHg9IjUiIHk9IjEwIiB3aWR0aD0iMC41IiBoZWlnaHQ9IjE1IiBmaWxsPSIjN2RkZmY2IiBvcGFjaXR5PSIwLDUiLz48L3N2Zz4=")',
+                             backgroundSize: `${30 - (weatherIntensity / 10)}px ${30 - (weatherIntensity / 10)}px`,
+                             animation: `slide ${30 / windStrength}s linear infinite`,
+                             transform: `rotate(${windDirection}deg) scale(1.5)`
+                          }}></div>
+                          {/* Lightning Flashes */}
+                          {weatherIntensity > 50 && (
+                             <div className="absolute inset-0 bg-white/20 mix-blend-screen animate-pulse [animation-duration:4s] [animation-iteration-count:infinite] [animation-timing-function:steps(2,end)] opacity-0 shadow-[inset_0_0_100px_rgba(255,255,255,0.3)]" style={{ animationDelay: '2s' }}></div>
+                          )}
+                          {/* Ground splash ripples (using svg radial gradients) */}
+                          <div className="absolute bottom-0 w-full h-1/2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSIyNSI+PGVsbGlwc2UgY3g9IjI1IiBjeT0iMTIiIHJ4PSIxNCIgcnk9IjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40 [transform:rotateX(60deg)] animate-pulse [animation-duration:1s]"></div>
+                       </div>
+                    )}
+                    
+                    {season === 'Spring' && (
+                       <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden mix-blend-screen">
+                          {/* Fresh spring tonemap */}
+                          <div className="absolute inset-0 bg-emerald-500/10 mix-blend-color-burn"></div>
+                          {/* Glowing pollen & petals */}
+                          <div className="absolute inset-0 opacity-70" style={{
+                             backgroundImage: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSIyIiBmaWxsPSIjZjQ3MmI2IiBvcGFjaXR5PSIwLjgiIGZpbHRlcj0iYmx1cigxcHgpIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMSIgZmlsbD0iI2Q5Zjc5OSIgb3BhY2l0eT0iMC42Ii8+PGNpcmNsZSBjeD0iODAiIGN5PSIyMCIgcj0iMS41IiBmaWxsPSIjZWFjNTRmIiBvcGFjaXR5PSIwLjciLz48L3N2Zz4=")',
+                             backgroundSize: `${100 - (weatherIntensity / 2)}px ${100 - (weatherIntensity / 2)}px`,
+                             animation: `slide ${200 / windStrength}s ease-in-out infinite alternate`,
+                             transform: `rotate(${windDirection / 2}deg) scale(1.5)`
+                          }}></div>
+                          {/* Spring blooming lens flash */}
+                          <div className="absolute bottom-10 left-10 w-32 h-32 bg-pink-500/10 blur-3xl mix-blend-screen rounded-full animate-pulse [animation-duration:3s]"></div>
+                       </div>
+                    )}
+
+                    {/* Post Process Volume Overlay */}
+                    {bloomEnabled && (
+                       <div className="absolute inset-0 pointer-events-none z-10 mix-blend-screen shadow-[inset_0_0_150px_rgba(255,255,255,0.1)]"></div>
+                    )}
+
+                    {/* NavMesh Grid Overlay */}
+                    {activeTab === 'Navigation' && (
+                       <div className="absolute inset-0 pointer-events-none z-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgNDBoNDBWMEgwem0yMCAyMGwyMC0yMG0wIDQwbC0yMC0yMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDNmMzhjIiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PC9zdmc+')] mix-blend-screen [transform:rotateX(70deg)_scale(2)] opacity-30"></div>
+                    )}
+
+                                       {/* Object Gizmo Render */}
+                     <div className="absolute top-[55%] left-[45%] w-32 h-32 bg-[#21262d] border-4 border-gray-400 shadow-[0_50px_100px_rgba(0,0,0,0.9)] [transform:translate(-50%,-50%)_translateZ(80px)_rotateX(-80deg)_rotateZ(15deg)] flex items-center justify-center group cursor-pointer hover:border-[#e3b341] transition-colors rounded-sm">
+                        
+                       {/* Material proxy preview */}
+                       <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-30 mix-blend-overlay"></div>
+
+                       {/* Transform Widget Axis Overlay */}
+                       <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                          {transformMode === 'Translate' && (
+                             <div className="relative w-full h-full flex items-center justify-center scale-[2]">
+                                <div className="absolute w-16 h-[3px] bg-red-500 right-1/2 origin-right translate-x-full shadow-lg"></div>{/* X */}
+                                <div className="absolute w-[3px] h-16 bg-blue-500 bottom-1/2 origin-bottom translate-y-full shadow-lg"></div>{/* Y */}
+                                <div className="absolute w-[3px] h-20 bg-green-500 bottom-1/2 origin-bottom [transform:rotate(45deg)_translateY(-10px)] shadow-lg"></div>{/* Z mock projection */}
+                                <div className="w-4 h-4 bg-white rounded-full border border-gray-400 z-10 shadow-lg"></div>
+                             </div>
+                          )}
+                          {transformMode === 'Rotate' && (
+                             <div className="relative w-28 h-28 flex items-center justify-center rounded-full border-2 border-red-500/80 [transform:rotateX(60deg)] p-2 shadow-lg hover:border-red-400">
+                                <div className="w-full h-full rounded-full border-2 border-green-500/80 [transform:rotateY(60deg)] absolute shadow-lg"></div>
+                                <div className="w-full h-full rounded-full border-[3px] border-blue-500 absolute shadow-lg hover:border-blue-400"></div>
+                             </div>
+                          )}
+                          {transformMode === 'Scale' && (
+                             <div className="relative w-full h-full flex items-center justify-center scale-[2]">
+                                <div className="absolute w-16 h-[3px] bg-red-500 right-1/2 origin-right translate-x-full border-r-[8px] border-red-500 shadow-lg"></div>
+                                <div className="absolute w-[3px] h-16 bg-blue-500 bottom-1/2 origin-bottom translate-y-full border-b-[8px] border-blue-500 shadow-lg"></div>
+                                <div className="absolute w-[3px] h-20 bg-green-500 bottom-1/2 origin-bottom [transform:rotate(45deg)_translateY(-10px)] border-t-[8px] border-green-500 shadow-lg"></div>
+                                <div className="w-4 h-4 bg-white border border-gray-400 shadow-lg z-10"></div>
+                             </div>
+                          )}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              </div>
+
+              {/* Brush Overlay (Visible if in Landscape or Paint Mode) */}
+              {(activeTab === 'Landscape' || activeTab === 'Paint') && (
+                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow-[0_0_50px_rgba(88,166,255,0.4)] pointer-events-none mix-blend-screen [transform:rotateX(75deg)] transition-all ease-out duration-75 flex items-center justify-center ${activeTab==='Paint' ? 'border-pink-500/80 bg-pink-500/10' : 'border-[#58a6ff]/80 bg-[#58a6ff]/10'}`} 
+                      style={{width: brushSize*1.5, height: brushSize*1.5}}>
+                    <div className={`w-[80%] h-[80%] rounded-full border-2 absolute border-dashed rotate-45 animate-spin-slow ${activeTab==='Paint' ? 'border-pink-500/40' : 'border-[#58a6ff]/40'}`}></div>
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                 </div>
+              )}
+
+              {/* Advanced Viewport Info Watermarks */}
+              <div className="absolute top-16 left-4 flex flex-col gap-1 text-[11px] font-bold text-white/50 pointer-events-none drop-shadow-md z-10 select-none uppercase tracking-widest">
+                 <span>Preview Level: Sector_Alpha</span>
+                 <span className="text-[#3fb950]/80">Lighting: Lumen Hardware Raytracing</span>
+                 <span className="text-[#58a6ff]/80">Nanite: Active (42 Meshes)</span>
+                 <span className="text-pink-400/80 transition-colors duration-1000" style={{ color: currentTerrainMaterial ? currentTerrainMaterial.hex : undefined }}>Physical Surface: {currentTerrainMaterial ? currentTerrainMaterial.name : 'Default Proxy'}</span>
+              </div>
+
+              {/* Status Text overlay bottom left of viewport */}
+              <div className="absolute bottom-8 left-4 flex flex-col gap-1 text-[11px] font-mono text-[#c9d1d9] pointer-events-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10 bg-black/40 p-2 rounded backdrop-blur">
+                 <span><span className="text-white font-bold">FPS: </span><span className="text-[#3fb950] font-bold">119.9</span> (8.32ms)</span>
+                 <span><span className="text-white font-bold">GPU: </span>14.2ms | <span className="text-white font-bold">Draw: </span> 1.2ms | <span className="text-white font-bold">Game: </span> 0.9ms</span>
+                 <span><span className="text-white font-bold">Polys: </span> 3.2M | <span className="text-white font-bold">Draw Calls: </span> 420</span>
+                 <div className="w-full h-px bg-white/20 my-1"></div>
+                 <span><Target size={10} className="inline mr-1 text-[#58a6ff]"/> <span className="text-red-400">X: 1423.5</span> <span className="text-green-400">Y: -402.1</span> <span className="text-blue-400">Z: 204.0</span></span>
+              </div>
+
+              {/* Smart AI / Selection Overlays */}
+              {activeTab === 'Smart AI' && selectionBox && isMarqueeSelecting && (
+                 <div 
+                    className="absolute border-2 border-purple-500/80 bg-purple-500/20 pointer-events-none z-30 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all duration-75"
+                    style={{
+                       left: Math.min(selectionBox.x, selectionBox.x + selectionBox.w),
+                       top: Math.min(selectionBox.y, selectionBox.y + selectionBox.h),
+                       width: Math.abs(selectionBox.w),
+                       height: Math.abs(selectionBox.h)
+                    }}
+                 >
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMSIgZmlsbD0icmdiYSgxNjgsIDg1LCAyNDcsIDAuNCkiLz48L3N2Zz4=')] opacity-50"></div>
+                 </div>
+              )}
+
+              {activeTab === 'Smart AI' && aiResultBox && (
+                 <div 
+                    className="absolute pointer-events-auto bg-[#0d1117]/95 backdrop-blur-xl border border-purple-500/50 rounded-xl p-3 shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-40 flex flex-col gap-3 min-w-[320px] isolate"
+                    style={{
+                       left: Math.min(aiResultBox.x, aiResultBox.x + aiResultBox.w) + Math.abs(aiResultBox.w) / 2,
+                       top: Math.min(aiResultBox.y, aiResultBox.y + aiResultBox.h) + Math.abs(aiResultBox.h) + 10,
+                       transform: 'translateX(-50%)'
+                    }}
+                 >
+                    <div className="absolute inset-0 bg-purple-500/5 rounded-xl pointer-events-none -z-10"></div>
+                    <div className="flex items-center justify-between">
+                       <span className="text-[11px] font-bold text-purple-400 flex items-center gap-1.5 uppercase tracking-widest"><Sparkles size={12}/> AI Generation</span>
+                       <button onClick={() => { setAiResultBox(null); setSelectionBox(null); }} className="text-[#8b949e] hover:text-white"><X size={14}/></button>
+                    </div>
+                    
+                    {isAiGenerating ? (
+                       <div className="flex flex-col items-center justify-center py-4 gap-3">
+                          <Brain size={24} className="text-purple-400 animate-pulse" />
+                          <span className="text-[11px] text-[#8b949e] font-mono animate-pulse">Generating Area Layout...</span>
+                       </div>
+                    ) : (
+                       <>
+                          <textarea 
+                             autoFocus
+                             value={aiPrompt}
+                             onChange={(e) => setAiPrompt(e.target.value)}
+                             placeholder="E.g. generate a dense pine forest with a small cabin..."
+                             className="w-full bg-[#050505] border border-[#30363d] rounded-lg p-2 text-[12px] text-white resize-none h-16 outline-none focus:border-purple-500/50 focus:shadow-[0_0_10px_rgba(168,85,247,0.2)] transition-all custom-scrollbar"
+                          ></textarea>
+                          <div className="flex justify-end gap-2">
+                             <button onClick={() => { setAiResultBox(null); setSelectionBox(null); }} className="px-3 py-1.5 text-[11px] font-bold text-[#8b949e] hover:text-white transition-colors">Cancel</button>
+                             <button 
+                                onClick={() => {
+                                   if (!aiPrompt.trim()) return;
+                                   setIsAiGenerating(true);
+                                   setAiHistory([aiPrompt, ...aiHistory].slice(0, 5));
+                                   setTimeout(() => {
+                                      setIsAiGenerating(false);
+                                      setAiResultBox(null);
+                                      setSelectionBox(null);
+                                      setAiPrompt("");
+                                   }, 2000);
+                                }}
+                                className="px-4 py-1.5 bg-purple-500 hover:bg-purple-400 text-white text-[11px] font-bold rounded flex items-center gap-2 shadow-[0_0_10px_rgba(168,85,247,0.4)] transition-all"
+                             ><Wand2 size={12}/> Generate</button>
+                          </div>
+                       </>
+                    )}
+                 </div>
+              )}
+
+              {/* Context Menu Mockup */}
+              {contextMenu && (
+                 <div
+                    className="absolute pointer-events-auto bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] rounded-lg shadow-2xl z-50 py-1 min-w-[200px] flex flex-col"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                 >
+                    <span className="text-[9px] font-bold text-[#8b949e] px-3 py-1 uppercase tracking-widest border-b border-[#30363d] mb-1">Local AI Assist</span>
+                    <button 
+                       onClick={() => {
+                          setActiveTab('Smart AI');
+                          setAiResultBox({ x: contextMenu.x, y: contextMenu.y, w: 200, h: 50 });
+                          setContextMenu(null);
+                       }} 
+                       className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-purple-500/20 hover:text-purple-400 flex items-center gap-2 font-bold transition-all"
+                    ><Brain size={12}/> AI: Smart Select Here</button>
+                    <button onClick={() => setContextMenu(null)} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-purple-500/20 hover:text-purple-400 flex items-center gap-2 font-bold transition-all"><Database size={12}/> AI: Texture Gen (SDXL)</button>
+                    <button onClick={() => setContextMenu(null)} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-purple-500/20 hover:text-purple-400 flex items-center gap-2 font-bold transition-all"><Hammer size={12}/> AI: Auto-NavMesh Block</button>
+
+                    <div className="w-full h-px bg-[#30363d] my-1"></div>
+                    <span className="text-[9px] font-bold text-[#8b949e] px-3 py-1 uppercase tracking-widest border-b border-[#30363d] mb-1">Pro Geometry</span>
+                    <button onClick={() => { setActiveTab('Geometry'); setContextMenu(null); }} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-amber-500/20 hover:text-amber-400 flex items-center gap-2 transition-all"><BoxIcon size={12}/> Insert Primitive</button>
+                    <button onClick={() => { setActiveTab('Geometry'); setContextMenu(null); }} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-amber-500/20 hover:text-amber-400 flex items-center gap-2 transition-all"><Scissors size={12}/> Slice Tool</button>
+
+                    <div className="w-full h-px bg-[#30363d] my-1"></div>
+                    <button onClick={() => setContextMenu(null)} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-[#30363d] hover:text-white flex items-center gap-2 transition-all"><Plus size={12}/> Spawn Actor Here</button>
+                    <button onClick={() => setContextMenu(null)} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-[#30363d] hover:text-white flex items-center gap-2 transition-all"><Sun size={12}/> Place Light Probe</button>
+                    <button onClick={() => setContextMenu(null)} className="w-full text-left px-4 py-1.5 text-[11px] text-[#c9d1d9] hover:bg-[#30363d] hover:text-white flex items-center gap-2 transition-all"><Copy size={12}/> Copy Location</button>
+                 </div>
+              )}
+
+           </div>
+
+           {/* Content Drawer Button at Bottom */}
            <button 
-              onClick={() => setIsContentBrowserOpen(!isContentBrowserOpen)}
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold transition-colors ${isContentBrowserOpen ? 'bg-[#21262d] text-[#58a6ff] border border-[#30363d]' : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d]'}`}
+              onClick={() => setIsContentDrawerOpen(!isContentDrawerOpen)}
+              className="absolute bottom-0 inset-x-0 h-6 bg-[#161b22]/90 backdrop-blur border-t border-[#30363d] flex items-center justify-center text-[10px] font-bold text-[#8b949e] hover:text-white hover:bg-[#58a6ff]/20 transition-all z-40 group cursor-pointer"
            >
-              <Folder size={12} /> {isContentBrowserOpen ? 'Close Content Drawer' : 'Content Drawer'} {isContentBrowserOpen ? <ChevronDown size={12}/> : <ChevronUp size={12}/>}
+              Content Drawer <span className="ml-2 px-1 bg-[#0d1117] rounded border border-[#30363d] text-[9px] group-hover:border-[#58a6ff] shadow-inner transition-colors">Ctrl+Space</span>
            </button>
-           <div className="w-px h-3 bg-[#30363d]"></div>
-           <span className="text-[10px] text-[#8b949e] font-bold">MapEditor v1.2</span>
-           <div className="w-px h-3 bg-[#30363d]"></div>
-           <span className="text-[9px] text-[#c9d1d9] flex items-center gap-1"><Grid size={10}/> Grid: 10uu</span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-           {isPerfMinimized && (
-              <button 
-                 onClick={() => setIsPerfMinimized(false)}
-                 className="flex items-center gap-2 text-[9px] bg-[#161b22] hover:bg-[#21262d] border border-[#30363d] px-2 py-0.5 rounded transition-colors"
-              >
-                 <Activity size={10} className="text-[#8b949e]" />
-                 <span className="text-[#7ee787] font-mono">CPU:18%</span>
-                 <span className="text-[#e3b341] font-mono">RAM:4.2G</span>
-                 <span className="text-[#58a6ff] font-mono">GPU:65%</span>
-                 <Maximize2 size={10} className="text-[#8b949e] ml-1" />
-              </button>
+
+           {/* Procedural Asset Studio Modal */}
+           {isAssetStudioOpen && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in">
+                 <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl w-[800px] h-[600px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8">
+                    <div className="h-14 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-6 shrink-0 relative overflow-hidden">
+                       <div className="absolute top-0 left-0 w-32 h-full bg-[#a371f7]/20 blur-[30px] pointer-events-none"></div>
+                       <h2 className="text-[14px] font-bold text-white flex items-center gap-3 relative z-10">
+                          <Hammer size={18} className="text-[#a371f7]"/> Procedural Asset Studio (PCG Model Gen)
+                       </h2>
+                       <button onClick={() => setIsAssetStudioOpen(false)} className="text-[#8b949e] hover:text-white transition-colors"><X size={18}/></button>
+                    </div>
+                    
+                    <div className="flex-1 flex overflow-hidden">
+                       {/* Left Sidebar (Settings) */}
+                       <div className="w-[280px] bg-[#161b22] border-r border-[#30363d] p-5 flex flex-col gap-6 overflow-y-auto custom-scrollbar shrink-0">
+                          <div className="flex flex-col gap-2">
+                             <label className="text-[11px] font-bold text-[#8b949e] uppercase">Theme / Style</label>
+                             <input 
+                               type="text" 
+                               value={assetStudioTheme}
+                               onChange={(e) => setAssetStudioTheme(e.target.value)}
+                               className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2 text-white text-[12px] focus:outline-none focus:border-[#a371f7] transition-colors"
+                             />
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                             <label className="text-[11px] font-bold text-[#8b949e] uppercase">Prop Categories</label>
+                             <div className="flex flex-col gap-1.5">
+                                <label className="flex items-center gap-2 text-[12px] text-white cursor-pointer"><input type="checkbox" defaultChecked className="accent-[#a371f7]"/> Structural Ruins</label>
+                                <label className="flex items-center gap-2 text-[12px] text-white cursor-pointer"><input type="checkbox" defaultChecked className="accent-[#a371f7]"/> Debris & Rubble</label>
+                                <label className="flex items-center gap-2 text-[12px] text-white cursor-pointer"><input type="checkbox" className="accent-[#a371f7]"/> Flora Overgrowth</label>
+                             </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2 mt-auto">
+                             <button 
+                                onClick={generateProceduralAssets} 
+                                disabled={isGeneratingAssets}
+                                className="w-full bg-[#a371f7] hover:bg-[#b084f8] disabled:bg-[#30363d] disabled:text-[#8b949e] text-white py-3 rounded-xl font-bold text-[12px] shadow-[0_0_20px_rgba(163,113,247,0.3)] transition-all flex items-center justify-center gap-2 group"
+                             >
+                                {isGeneratingAssets ? (
+                                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                   <><Sparkles size={16} className="group-hover:animate-pulse"/> Generate Mesh Set</>
+                                )}
+                             </button>
+                          </div>
+                       </div>
+
+                       {/* Right Area (Results) */}
+                       <div className="flex-1 bg-[#050505] p-6 overflow-y-auto custom-scrollbar flex flex-col gap-4">
+                          <div className="flex items-center justify-between">
+                             <h3 className="text-[12px] font-bold text-[#c9d1d9]">Generated Assets</h3>
+                             {generatedProps.length > 0 && <span className="text-[11px] text-[#8b949e] bg-[#21262d] px-2 py-1 rounded-md">{generatedProps.length} Results</span>}
+                          </div>
+                          
+                          {generatedProps.length === 0 ? (
+                             <div className="flex-1 flex flex-col items-center justify-center text-[#8b949e] gap-3">
+                                {isGeneratingAssets ? (
+                                   <>
+                                      <div className="w-10 h-10 border-4 border-[#30363d] border-t-[#a371f7] rounded-full animate-spin"></div>
+                                      <span className="text-[12px] animate-pulse">Running PCG algorithms...</span>
+                                   </>
+                                ) : (
+                                   <>
+                                      <Box size={40} className="opacity-20" />
+                                      <span className="text-[12px]">Ready to generate. Click Generate to start.</span>
+                                   </>
+                                )}
+                             </div>
+                          ) : (
+                             <div className="grid grid-cols-2 gap-4">
+                                {generatedProps.map((prop) => (
+                                   <div key={prop.id} className="bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col overflow-hidden hover:border-[#a371f7] hover:shadow-[0_0_20px_rgba(163,113,247,0.2)] transition-all cursor-pointer group">
+                                      <div className={`h-32 ${prop.color}/20 flex items-center justify-center relative overflow-hidden bg-[url('https://transparenttextures.com/patterns/cubes.png')] bg-blend-soft-light`}>
+                                         <div className="absolute inset-0 bg-gradient-to-t from-[#161b22] to-transparent"></div>
+                                         <div className={`w-16 h-16 rounded-lg ${prop.color} rotate-12 shadow-2xl relative z-10 group-hover:rotate-6 transition-transform flex items-center justify-center`}>
+                                            <Box size={24} className="text-white/50" />
+                                         </div>
+                                      </div>
+                                      <div className="p-3 flex flex-col gap-2">
+                                         <span className="text-[12px] font-bold text-white truncate group-hover:text-[#a371f7] transition-colors">{prop.name}</span>
+                                         <div className="flex items-center justify-between border-t border-[#30363d] pt-2">
+                                            <span className="text-[10px] text-[#8b949e] bg-[#0d1117] px-2 py-0.5 rounded font-mono">{prop.type}</span>
+                                            <span className="text-[10px] text-[#8b949e] font-mono">{prop.polyCount} Polys</span>
+                                         </div>
+                                      </div>
+                                   </div>
+                                ))}
+                             </div>
+                          )}
+                       </div>
+                    </div>
+                 </div>
+              </div>
            )}
+
+           {/* Network Simulator Modal */}
+           {isNetSimOpen && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in">
+                 <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl w-[900px] h-[600px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8">
+                    <div className="h-14 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-6 shrink-0 relative overflow-hidden">
+                       <div className="absolute top-0 left-0 w-32 h-full bg-blue-500/20 blur-[30px] pointer-events-none"></div>
+                       <h2 className="text-[14px] font-bold text-white flex items-center gap-3 relative z-10">
+                          <Activity size={18} className="text-blue-400"/> Network Latency Debugger & Packet Loss Graph
+                       </h2>
+                       <button onClick={() => setIsNetSimOpen(false)} className="text-[#8b949e] hover:text-white transition-colors"><X size={18}/></button>
+                    </div>
+                    
+                    <div className="flex-1 flex overflow-hidden">
+                       {/* Left Sidebar (Settings) */}
+                       <div className="w-[300px] bg-[#161b22] border-r border-[#30363d] p-5 flex flex-col gap-6 overflow-y-auto custom-scrollbar shrink-0">
+                          <div className="flex flex-col gap-2">
+                             <label className="text-[11px] font-bold text-[#8b949e] uppercase">Target Environment</label>
+                             <div className="flex bg-[#0d1117] p-1 rounded-lg border border-[#30363d]">
+                                 <button className="flex-1 py-1.5 text-[11px] bg-blue-500 text-white rounded font-bold shadow-md">WAN / Cloud</button>
+                                 <button className="flex-1 py-1.5 text-[11px] text-[#8b949e] hover:text-white rounded font-bold">LAN (Swarm)</button>
+                             </div>
+                          </div>
+
+                          <div className="flex flex-col gap-3 mt-2">
+                             <label className="text-[11px] font-bold text-[#8b949e] uppercase border-b border-[#30363d] pb-2">Inject Network Faults</label>
+                             <SliderControl label="Base Latency (ms)" value={80} max={1000} color="#3b82f6" />
+                             <SliderControl label="Jitter Variance" value={45} max={200} color="#3b82f6" />
+                             <SliderControl label="Packet Loss Rate" value={15} max={100} unit="%" color="#f43f5e" />
+                          </div>
+
+                          <div className="flex flex-col gap-2 mt-auto border-t border-[#30363d] pt-4">
+                             <button 
+                                onClick={startNetworkSimulation} 
+                                disabled={isSimulatingLatency}
+                                className={`w-full py-3 rounded-xl font-bold text-[12px] transition-all flex items-center justify-center gap-2 group ${isSimulatingLatency ? 'bg-[#30363d] text-[#8b949e]' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]'}`}
+                             >
+                                {isSimulatingLatency ? (
+                                   <div className="flex items-center gap-2">
+                                      <div className="w-4 h-4 border-2 border-[#8b949e]/30 border-t-[#8b949e] rounded-full animate-spin"></div>
+                                      Monitoring Cluster...
+                                   </div>
+                                ) : (
+                                   <><Activity size={16} className="group-hover:animate-pulse"/> Run Diagnostic</>
+                                )}
+                             </button>
+                          </div>
+                       </div>
+
+                       {/* Right Area (Results) */}
+                       <div className="flex-1 bg-[#050505] p-6 overflow-y-auto custom-scrollbar flex flex-col gap-5">
+                          <div className="flex gap-4">
+                             <div className="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl p-4 flex flex-col">
+                                <span className="text-[10px] text-[#8b949e] font-bold uppercase mb-1">Avg Latency</span>
+                                <span className="text-[24px] font-black text-white">{packetLossData.length > 0 ? '124' : '--'} <span className="text-[14px] text-[#8b949e] font-normal">ms</span></span>
+                             </div>
+                             <div className="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl p-4 flex flex-col">
+                                <span className="text-[10px] text-[#8b949e] font-bold uppercase mb-1">Desync Events</span>
+                                <span className="text-[24px] font-black text-red-400">{packetLossData.length > 0 ? '12' : '--'}</span>
+                             </div>
+                             <div className="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl p-4 flex flex-col">
+                                <span className="text-[10px] text-[#8b949e] font-bold uppercase mb-1">Total Loss</span>
+                                <span className="text-[24px] font-black text-orange-400">{packetLossData.length > 0 ? '4.2' : '--'} <span className="text-[14px] text-[#8b949e] font-normal">%</span></span>
+                             </div>
+                          </div>
+
+                          <div className="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl p-5 flex flex-col gap-4">
+                             <h3 className="text-[12px] font-bold text-[#c9d1d9] flex items-center justify-between">
+                                Live Packet Latency Graph
+                                {isSimulatingLatency && <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded flex items-center gap-1"><div className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></div> Live</span>}
+                             </h3>
+                             
+                             <div className="flex-1 relative border-b border-l border-[#30363d] flex items-end pt-4 pr-2">
+                                {/* Grid Lines */}
+                                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                                   <div className="w-full h-px bg-[#8b949e]"></div>
+                                   <div className="w-full h-px bg-[#8b949e]"></div>
+                                   <div className="w-full h-px bg-[#8b949e]"></div>
+                                </div>
+                                
+                                {packetLossData.length === 0 && !isSimulatingLatency ? (
+                                   <div className="absolute inset-0 flex items-center justify-center text-[#8b949e] text-[12px]">
+                                      No diagnostic run detected.
+                                   </div>
+                                ) : (
+                                   <div className="w-full h-full flex items-end justify-between gap-1 pl-1">
+                                      {packetLossData.map((val, i) => (
+                                         <div key={i} className="relative flex-1 group" style={{ height: `${Math.min(100, (val / 150) * 100)}%` }}>
+                                            <div className={`absolute bottom-0 w-full rounded-t-sm transition-all duration-200 ${val > 80 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : val > 40 ? 'bg-orange-400' : 'bg-blue-500'}`} style={{ height: '100%' }}></div>
+                                            <div className="absolute opacity-0 group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 bg-[#0d1117] border border-[#30363d] text-white text-[10px] px-2 py-1 rounded pointer-events-none z-10 font-mono whitespace-nowrap shadow-xl">
+                                               {val.toFixed(1)} ms
+                                            </div>
+                                         </div>
+                                      ))}
+                                   </div>
+                                )}
+                             </div>
+                             <div className="flex justify-between text-[9px] font-mono text-[#8b949e]">
+                                <span>T-0s</span>
+                                <span>T-5s</span>
+                                <span>T-10s</span>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           )}
+
+           {/* Collapsible Content Drawer Panel */}
+           <div className={`absolute bottom-6 left-0 right-0 bg-[#0d1117] border-t border-[#30363d] shadow-[0_-20px_50px_rgba(0,0,0,0.9)] z-30 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col ${isContentDrawerOpen ? 'h-[380px] opacity-100' : 'h-0 opacity-0 pointer-events-none'}`}>
+              <div className="h-10 bg-[#161b22] border-b border-[#30363d] flex items-center px-4 shrink-0 justify-between shadow-sm">
+                 <div className="flex gap-6 text-[12px] font-bold pt-2 h-full">
+                    <button className="text-white border-b-2 border-[#58a6ff] pb-2 flex items-center gap-2"><Folder size={14} className="text-[#58a6ff]"/> Project Content</button>
+                    <button className="text-[#8b949e] hover:text-[#c9d1d9] pb-2 border-b-2 border-transparent hover:border-[#8b949e] transition-colors flex items-center gap-2"><MapPin size={14}/> Environment</button>
+                    <button className="text-[#8b949e] hover:text-[#c9d1d9] pb-2 border-b-2 border-transparent hover:border-[#8b949e] transition-colors flex items-center gap-2"><Layers size={14}/> Megascans Surface</button>
+                    <button className="text-[#e3b341] hover:text-white pb-2 border-b-2 border-transparent hover:border-[#e3b341] transition-colors flex items-center gap-2"><Sparkles size={14}/> AI Gen Assets</button>
+                 </div>
+                 <div className="flex gap-4 items-center text-[11px]">
+                    <div className="flex gap-2">
+                       <button className="text-[#8b949e] hover:text-white bg-[#050505] p-1.5 rounded border border-[#30363d]"><Filter size={14}/></button>
+                       <button className="text-[#8b949e] hover:text-white bg-[#050505] p-1.5 rounded border border-[#30363d]"><LayoutGrid size={14}/></button>
+                    </div>
+                    <div className="relative">
+                       <Search size={14} className="absolute left-3 top-1.5 text-[#8b949e]"/>
+                       <input type="text" placeholder="Search Assets (e.g. 'Rock_Mossy')..." className="bg-[#050505] border border-[#30363d] rounded-full pl-8 pr-4 py-1.5 outline-none focus:border-[#58a6ff] text-white w-64 transition-all shadow-inner font-mono text-[11px]"/>
+                    </div>
+                 </div>
+              </div>
+              <div className="flex-1 flex overflow-hidden">
+                 {/* Folder Tree */}
+                 <div className="w-64 bg-[#050505] border-r border-[#30363d] p-3 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-[12px] font-mono text-[#8b949e]">
+                    <div className="flex items-center gap-2 hover:bg-[#21262d] p-1.5 rounded cursor-pointer text-white font-bold uppercase"><Folder size={14} className="fill-[#58a6ff]/30 text-[#58a6ff]"/> Content</div>
+                    <div className="pl-5 flex flex-col gap-1 border-l border-[#30363d] ml-2 mt-1">
+                       <div className="flex items-center justify-between hover:bg-[#21262d] p-1.5 rounded cursor-pointer text-white bg-[#21262d]">
+                         <span className="flex items-center gap-2"><Folder size={14} className="fill-[#e3b341]/30 text-[#e3b341]"/> Architecture</span>
+                         <span className="text-[#8b949e] text-[10px]">42</span>
+                       </div>
+                       <div className="flex items-center justify-between hover:bg-[#21262d] p-1.5 rounded cursor-pointer">
+                         <span className="flex items-center gap-2"><Folder size={14} className="fill-[#3fb950]/30 text-[#3fb950]"/> Foliage</span>
+                         <span className="text-[#8b949e] text-[10px]">18</span>
+                       </div>
+                       <div className="flex items-center justify-between hover:bg-[#21262d] p-1.5 rounded cursor-pointer">
+                         <span className="flex items-center gap-2"><Folder size={14} className="fill-[#bc8cff]/30 text-[#bc8cff]"/> PCG_Rules</span>
+                         <span className="text-[#8b949e] text-[10px]">5</span>
+                       </div>
+                       <div className="flex items-center justify-between hover:bg-[#21262d] p-1.5 rounded cursor-pointer">
+                         <span className="flex items-center gap-2"><Cpu size={14} className="text-[#f85149]"/> Blueprints</span>
+                         <span className="text-[#8b949e] text-[10px]">21</span>
+                       </div>
+                       <div className="flex items-center justify-between hover:bg-[#21262d] p-1.5 rounded cursor-pointer">
+                         <span className="flex items-center gap-2"><Palette size={14} className="text-pink-400"/> Materials</span>
+                         <span className="text-[#8b949e] text-[10px]">99+</span>
+                       </div>
+                    </div>
+                 </div>
+                 {/* Grid View */}
+                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-6 content-start bg-[#0d1117]">
+                    {[1,2,3,4,5,6,7,8,9,10,11,12,13,14].map((i) => (
+                       <div key={i} className="flex flex-col gap-2 cursor-grab hover:scale-105 transition-transform group">
+                          <div className="aspect-square bg-[radial-gradient(ellipse_at_top,#21262d_0%,#161b22_100%)] border border-[#30363d] rounded-xl shadow-lg flex items-center justify-center group-hover:border-[#58a6ff] relative overflow-hidden group-hover:shadow-[0_0_25px_rgba(88,166,255,0.3)]">
+                             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent"></div>
+                             <BoxIcon size={48} className="text-[#8b949e] group-hover:text-white drop-shadow-2xl transition-colors"/>
+                             <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#58a6ff] blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                             
+                             <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-[9px] font-bold text-[#58a6ff] border border-[#58a6ff]/30 uppercase tracking-widest">Static Mesh</div>
+                          </div>
+                          <span className="text-[11px] font-bold text-center text-[#c9d1d9] group-hover:text-white truncate">SM_Wall_Modular_0{i}</span>
+                       </div>
+                    ))}
+                 </div>
+              </div>
+           </div>
         </div>
+
+        {/* Right Panel: Outline / Massively Detailed Details Console */}
+        <div className="w-[360px] border-l border-[#30363d] bg-[#161b22] flex flex-col shrink-0 z-10 shadow-[-10px_0_20px_rgba(0,0,0,0.6)]">
+           
+           {/* Section: World Outliner */}
+           <div className="h-[40%] flex flex-col border-b border-[#30363d] bg-[#0d1117] shrink-0">
+             <div className="h-10 border-b border-[#30363d] flex justify-between items-center px-4 bg-[#161b22] shrink-0 text-white font-bold text-[12px] uppercase tracking-widest shadow-sm">
+                <div className="flex items-center gap-2"><Layers size={16} className="text-[#e3b341]"/> World Outliner</div>
+                <button className="text-[#8b949e] hover:text-white"><Plus size={16}/></button>
+             </div>
+             
+             <div className="p-2 border-b border-[#30363d] shrink-0 bg-[#0d1117]">
+               <div className="relative">
+                 <Search size={14} className="absolute left-3 top-1.5 text-[#8b949e]" />
+                 <input type="text" placeholder="Search Actors..." className="w-full bg-[#050505] border border-[#30363d] rounded px-2 pl-8 py-1.5 text-[11px] font-mono outline-none focus:border-[#58a6ff] text-white transition-colors shadow-inner" />
+               </div>
+             </div>
+
+             <div className="flex-1 overflow-y-auto custom-scrollbar p-1 text-[12px] font-mono select-none">
+                {outlinerData.map(item => (
+                   <div 
+                     key={item.id} 
+                     onClick={() => setSelectedObjectId(item.id)}
+                     className={`flex justify-between items-center px-3 py-1.5 mx-1 rounded-md cursor-pointer mb-0.5 group transition-colors ${selectedObjectId === item.id ? 'bg-[#1f6feb] text-white shadow-md' : 'text-[#c9d1d9] hover:bg-[#21262d]'}`}
+                   >
+                     <div className="flex items-center gap-3 truncate">
+                        {selectedObjectId === item.id ? React.cloneElement(item.icon as any, {className: 'text-white'}) : item.icon}
+                        <span className="truncate font-bold">{item.name}</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <Eye size={12} className={`opacity-0 group-hover:opacity-100 ${selectedObjectId === item.id ? 'text-white/60 hover:text-white' : 'text-[#8b949e] hover:text-white'}`}/>
+                        <span className={`text-[9px] uppercase tracking-widest opacity-0 group-hover:opacity-100 ${selectedObjectId === item.id ? 'text-white/80' : 'text-[#8b949e]'}`}>{item.type}</span>
+                     </div>
+                   </div>
+                ))}
+             </div>
+           </div>
+
+           {/* Section: Advanced Details Panel */}
+           <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117]">
+             <div className="h-10 border-b border-[#30363d] flex justify-between items-center px-4 bg-[#161b22] shrink-0 text-white font-bold text-[12px] uppercase tracking-widest shadow-sm">
+                <div className="flex items-center gap-2"><Settings size={16} className="text-[#58a6ff]"/> Properties</div>
+                <button className="bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] px-2 py-0.5 rounded text-[10px] text-[#8b949e] hover:text-white transition-colors flex items-center gap-1">+ Add Cmpt</button>
+             </div>
+
+             {selectedObjectId ? (
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-6">
+                   
+                   {/* Header info (Actor Type) */}
+                   <div className="flex gap-4 items-center bg-[#161b22] border border-[#30363d] p-3 rounded-xl shadow-inner relative overflow-hidden">
+                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#58a6ff] blur-[40px] opacity-10 pointer-events-none"></div>
+                     <div className="w-14 h-14 bg-[#0a0a0a] rounded border border-[#30363d] flex items-center justify-center shadow-lg relative z-10">
+                        {outlinerData.find(d=>d.id===selectedObjectId)?.icon || <Box size={28} className="text-[#8b949e]"/>}
+                     </div>
+                     <div className="flex flex-col relative z-10">
+                        <span className="font-bold text-white text-[14px]">{outlinerData.find(d=>d.id===selectedObjectId)?.name}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                           <span className="bg-[#21262d] text-[#8b949e] px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-widest border border-[#30363d]">{outlinerData.find(d=>d.id===selectedObjectId)?.type}</span>
+                           <span className="text-[#8b949e] text-[9px] font-mono">ID: {selectedObjectId}</span>
+                        </div>
+                     </div>
+                   </div>
+
+                   {/* Transform */}
+                   <DetailCategory title="Transform" open={true} icon={<Move3D size={14} className="text-white"/>}>
+                      <div className="flex flex-col gap-3 mt-3">
+                         <div className="flex items-center gap-3">
+                           <span className="text-[11px] font-bold uppercase text-[#8b949e] tracking-widest w-16 text-right">Location</span>
+                           <VectorInput label="X" val="1423.5" color="text-[#ff7b72] border-[#ff7b72]/30 bg-[#ff7b72]/5" />
+                           <VectorInput label="Y" val="-402.1" color="text-[#3fb950] border-[#3fb950]/30 bg-[#3fb950]/5" />
+                           <VectorInput label="Z" val="204.0" color="text-[#58a6ff] border-[#58a6ff]/30 bg-[#58a6ff]/5" />
+                         </div>
+                         <div className="flex items-center gap-3">
+                           <span className="text-[11px] font-bold uppercase text-[#8b949e] tracking-widest w-16 text-right">Rotation</span>
+                           <VectorInput label="R" val="0.0" color="text-[#ff7b72] border-[#ff7b72]/30 bg-[#ff7b72]/5" />
+                           <VectorInput label="P" val="90.0" color="text-[#3fb950] border-[#3fb950]/30 bg-[#3fb950]/5" />
+                           <VectorInput label="Y" val="0.0" color="text-[#58a6ff] border-[#58a6ff]/30 bg-[#58a6ff]/5" />
+                         </div>
+                         <div className="flex items-center gap-3">
+                           <span className="text-[11px] font-bold uppercase text-[#8b949e] tracking-widest w-16 text-right flex items-center justify-end gap-1"><Link size={10} className="text-white"/> Scale</span>
+                           <VectorInput label="X" val="1.0" color="text-[#ff7b72] border-[#ff7b72]/30 bg-[#ff7b72]/5" />
+                           <VectorInput label="Y" val="1.0" color="text-[#3fb950] border-[#3fb950]/30 bg-[#3fb950]/5" />
+                           <VectorInput label="Z" val="1.0" color="text-[#58a6ff] border-[#58a6ff]/30 bg-[#58a6ff]/5" />
+                         </div>
+                      </div>
+                   </DetailCategory>
+
+                   <DetailCategory title="Static Mesh Component" open={true} icon={<Box size={14} className="text-white"/>}>
+                     <div className="flex items-center justify-between text-[11px] font-bold uppercase text-[#8b949e] mt-2 mb-1 tracking-widest">
+                        Static Mesh
+                     </div>
+                     <div className="p-2.5 bg-[#161b22] border border-[#30363d] rounded-lg flex items-center gap-3 cursor-pointer hover:border-[#58a6ff] shadow-inner group transition-colors">
+                        <div className="w-10 h-10 bg-black border border-[#30363d] rounded flex items-center justify-center relative overflow-hidden group-hover:border-[#58a6ff]/50">
+                           <BoxIcon size={20} className="text-[#8b949e]"/>
+                        </div>
+                        <div className="flex flex-col flex-1 truncate">
+                           <span className="text-[12px] font-bold text-white truncate">SM_AbandonedBuilding_Corner_01</span>
+                           <span className="text-[10px] text-[#3fb950] font-mono mt-0.5 flex items-center gap-1"><Cpu size={10}/> Nanite Enabled</span>
+                        </div>
+                        <Search size={14} className="text-[#8b949e] group-hover:text-white"/>
+                     </div>
+
+                     <div className="mt-4 flex items-center justify-between text-[11px] font-bold uppercase text-[#8b949e] mb-1 tracking-widest">
+                        <span>Materials</span>
+                        <div className="w-5 h-5 rounded bg-[#21262d] border border-[#30363d] flex items-center justify-center cursor-pointer hover:border-white transition-colors"><Plus size={12} className="text-white"/></div>
+                     </div>
+                     
+                     <div className="flex flex-col gap-2">
+                        {/* Material 1 */}
+                        <div className="p-2 bg-[#161b22] border border-[#30363d] rounded-lg flex items-center gap-3 cursor-pointer hover:border-[#bc8cff] shadow-inner group transition-colors">
+                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-800 border border-[#30363d] group-hover:border-[#bc8cff]/50 shadow-md"></div>
+                           <div className="flex flex-col flex-1 truncate">
+                              <span className="text-[10px] font-mono text-[#8b949e] uppercase tracking-widest">Element 0</span>
+                              <span className="text-[12px] font-bold text-white truncate">M_Concrete_Dirty_Inst</span>
+                           </div>
+                           <Search size={14} className="text-[#8b949e] group-hover:text-white"/>
+                        </div>
+                        {/* Material 2 */}
+                        <div className="p-2 bg-[#161b22] border border-[#30363d] rounded-lg flex items-center gap-3 cursor-pointer hover:border-[#bc8cff] shadow-inner group transition-colors">
+                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8a3324] to-[#5c2218] border border-[#30363d] group-hover:border-[#bc8cff]/50 shadow-md"></div>
+                           <div className="flex flex-col flex-1 truncate">
+                              <span className="text-[10px] font-mono text-[#8b949e] uppercase tracking-widest">Element 1</span>
+                              <span className="text-[12px] font-bold text-white truncate">M_RustedMetal_Inst</span>
+                           </div>
+                           <Search size={14} className="text-[#8b949e] group-hover:text-white"/>
+                        </div>
+                     </div>
+                   </DetailCategory>
+
+                   <DetailCategory title="Physics & Collision" open={false} icon={<Target size={14} className="text-white"/>}>
+                     <div className="flex flex-col gap-3 mt-3">
+                        <div className="flex items-center justify-between p-2 bg-[#161b22] border border-[#30363d] rounded-lg">
+                           <span className="text-[11px] font-bold text-white">Simulate Physics</span>
+                           <ToggleSwitch label="" active={false} color="#58a6ff" />
+                        </div>
+                        <div className="flex flex-col gap-1.5 p-3 bg-[#161b22] border border-[#30363d] rounded-lg">
+                           <span className="text-[10px] uppercase font-bold text-[#8b949e]">Collision Presets</span>
+                           <select className="bg-[#050505] border border-[#30363d] text-white text-[11px] font-bold rounded px-2 py-1.5 outline-none hover:border-[#58a6ff] cursor-pointer">
+                              <option>BlockAllDynamic</option>
+                              <option>BlockAll</option>
+                              <option>OverlapAll</option>
+                              <option>NoCollision</option>
+                              <option>Custom</option>
+                           </select>
+                        </div>
+                     </div>
+                   </DetailCategory>
+                   
+                   <DetailCategory title="Lighting & Shadows" open={false} icon={<Sun size={14} className="text-white"/>}>
+                      <div className="flex flex-col gap-3 mt-3">
+                        <div className="flex justify-between items-center text-[11px] font-bold text-[#c9d1d9]">
+                           <span>Cast Shadow</span>
+                           <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
+                        </div>
+                        <div className="flex justify-between items-center text-[11px] font-bold text-[#c9d1d9]">
+                           <span>Affect Distance Field Lighting</span>
+                           <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
+                        </div>
+                        <div className="flex justify-between items-center text-[11px] font-bold text-[#c9d1d9]">
+                           <span>Lumen Raytracing (Hardware)</span>
+                           <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
+                        </div>
+                      </div>
+                   </DetailCategory>
+
+                </div>
+             ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-[12px] text-[#8b949e] p-8 text-center bg-[url('https://transparenttextures.com/patterns/carbon-fibre.png')] opacity-80">
+                   <MonitorPlay size={32} className="mb-4 text-[#30363d]" />
+                   <p className="font-bold text-white mb-2">No Actor Selected</p>
+                   <p>Select an object in the viewport or outliner to view and modify its properties.</p>
+                </div>
+             )}
+           </div>
+
+        </div>
+
       </div>
     </div>
   );
 }
+
+// Subcomponents
+
+function TabButton({ icon, label, active, onClick, color, bgColor }: any) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`px-3 py-1.5 flex items-center gap-2 text-[11px] font-bold rounded-sm transition-all uppercase tracking-wider
+        ${active ? `${bgColor} shadow-[0_0_10px_rgba(0,0,0,0.3)] border border-white/10` : 'text-[#8b949e] hover:text-white hover:bg-[#21262d] border border-transparent'}
+      `}
+    >
+      <span className={active ? color : ''}>{icon}</span> {label}
+    </button>
+  )
+}
+
+function QuickAddBtn({ icon, label }: any) {
+  return (
+    <button className="bg-[#161b22] border border-[#30363d] p-3 rounded-lg flex flex-col items-center justify-center gap-2 text-[#8b949e] hover:text-white hover:border-[#58a6ff] hover:bg-[#58a6ff]/10 hover:shadow-[0_0_15px_rgba(88,166,255,0.2)] transition-all font-bold text-[10px] uppercase tracking-wider group shadow-sm">
+      <span className="text-[#c9d1d9] group-hover:text-[#58a6ff] group-hover:scale-110 transition-transform">{icon}</span>
+      {label}
+    </button>
+  )
+}
+
+function ToolBtn({ icon, label, active, onClick }: any) {
+  return (
+    <button 
+       onClick={onClick}
+       className={`bg-[#161b22] border p-3 rounded-xl flex flex-col items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm
+         ${active ? 'border-[#58a6ff] bg-[#58a6ff]/10 text-white shadow-[0_0_20px_rgba(88,166,255,0.3)]' : 'border-[#30363d] text-[#8b949e] hover:border-[#8b949e] hover:text-white'}
+       `}
+    >
+      <span className={`${active ? 'text-[#58a6ff] scale-110' : ''} transition-transform`}>{icon}</span>
+      {label}
+    </button>
+  )
+}
+
+function DetailCategory({ title, open, icon, children }: any) {
+   const [isOpen, setIsOpen] = useState(open);
+   return (
+      <div className="flex flex-col bg-[#050505] rounded-xl border border-[#30363d] overflow-hidden drop-shadow-md">
+         <div 
+            onClick={()=>setIsOpen(!isOpen)} 
+            className={`flex justify-between items-center p-2.5 bg-gradient-to-r ${isOpen ? 'from-[#21262d] to-[#161b22]' : 'from-[#161b22] to-[#0d1117]'} cursor-pointer hover:from-[#30363d] hover:to-[#21262d] transition-all`}
+         >
+            <div className="flex items-center gap-2">
+               {icon}
+               <span className="text-[12px] font-bold text-white uppercase tracking-widest drop-shadow-sm">{title}</span>
+            </div>
+            {isOpen ? <ChevronUp size={14} className="text-white"/> : <ChevronDown size={14} className="text-[#8b949e]"/>}
+         </div>
+         {isOpen && (
+            <div className="p-3 bg-[#0a0a0a] border-t border-[#30363d]">
+               {children}
+            </div>
+         )}
+      </div>
+   )
+}
+
+function VectorInput({ label, val, color, locked=false }: any) {
+  return (
+    <div className={`flex-1 flex border rounded-lg overflow-hidden h-7 relative focus-within:ring-1 focus-within:ring-white transition-all shadow-inner ${color}`}>
+      <div className={`w-6 h-full flex items-center justify-center text-[10px] font-bold border-r ${color}`}>{label}</div>
+      <input type="text" defaultValue={val} disabled={locked} className="w-full bg-transparent text-[11px] font-mono text-white px-2 outline-none disabled:opacity-50" />
+    </div>
+  )
+}
+
+function SliderControl({ label, value, max=100, step=1, color, unit="", onChange }: any) {
+  return (
+    <div className="flex flex-col gap-1.5">
+       <div className="flex justify-between items-center text-[11px] font-bold">
+          <span className="text-[#8b949e] uppercase tracking-wider">{label}</span>
+          <span style={{color}} className="font-mono bg-[#050505] px-1.5 py-0.5 rounded border border-[#30363d]">{value.toFixed(step<1?2:0)}{unit}</span>
+       </div>
+       <input type="range" className="w-full h-1.5 bg-[#050505] appearance-none outline-none rounded-full drop-shadow-sm cursor-pointer" style={{accentColor: color}} min="0" max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </div>
+  )
+}
+
+function RangeControl({ label, min, max, color }: any) {
+  return (
+    <div className="flex flex-col gap-1.5 p-2 bg-[#161b22] border border-[#30363d] rounded-lg">
+       <span className="text-[10px] font-bold text-[#8b949e] uppercase tracking-wider">{label} (Min/Max)</span>
+       <div className="flex gap-2">
+         <div className="flex-1 flex bg-[#050505] border border-[#30363d] rounded items-center overflow-hidden h-5">
+           <input type="text" defaultValue={min} className="w-full bg-transparent text-[10px] font-mono text-white px-1 outline-none text-center" />
+         </div>
+         <span className="text-[#8b949e]">-</span>
+         <div className="flex-1 flex bg-[#050505] border border-[#30363d] rounded items-center overflow-hidden h-5">
+           <input type="text" defaultValue={max} className="w-full bg-transparent text-[10px] font-mono text-white px-1 outline-none text-center" />
+         </div>
+       </div>
+    </div>
+  )
+}
+
+function ToggleSwitch({ label, active, color, onChange }: any) {
+  const [isOn, setIsOn] = useState(active);
+  const toggle = () => {
+     setIsOn(!isOn);
+     if (onChange) onChange(!isOn);
+  };
+  return (
+     <div className="flex items-center justify-between py-1.5 cursor-pointer group" onClick={toggle}>
+        <span className="text-[11px] font-bold text-[#c9d1d9] group-hover:text-white transition-colors uppercase tracking-wider">{label}</span>
+        <div className={`w-8 h-4.5 rounded-full flex items-center p-0.5 border transition-all drop-shadow-sm ${isOn ? 'bg-opacity-20' : 'bg-[#050505] border-[#30363d]'}`} style={{ borderColor: isOn ? color : undefined, backgroundColor: isOn ? `${color}33` : undefined }}>
+           <div className={`w-3.5 h-3.5 rounded-full transition-all shadow-md ${isOn ? 'translate-x-[14px]' : 'translate-x-0 bg-[#8b949e]'}`} style={{ backgroundColor: isOn ? color : undefined }}></div>
+        </div>
+     </div>
+  )
+}
+
+function FoliageItem({ name, active=false, color }: any) {
+   const [isOn, setIsOn] = useState(active);
+   return (
+      <div 
+        onClick={() => setIsOn(!isOn)}
+        className={`flex flex-col items-center gap-1 cursor-pointer transition-all p-1.5 rounded-lg border ${isOn ? color + ' shadow-[0_0_10px_rgba(63,185,80,0.2)]' : 'border-transparent hover:bg-[#21262d]'}`}
+      >
+         <div className="w-full aspect-square bg-[#0a0a0a] border border-[#30363d] rounded flex items-center justify-center relative overflow-hidden group">
+            <Trees size={24} className={isOn ? "text-[#3fb950]" : "text-[#8b949e] group-hover:text-white"}/>
+            {isOn && <div className="absolute top-1 right-1 w-2 h-2 bg-[#3fb950] rounded-full shadow-[0_0_5px_#3fb950]"></div>}
+         </div>
+         <span className={`text-[9px] font-bold max-w-[80px] truncate text-center ${isOn ? 'text-white' : 'text-[#8b949e]'}`}>{name}</span>
+      </div>
+   )
+}
+
+function PaintMaterialBtn({ label, active=false, color, onClick }: any) {
+  return (
+    <div 
+      onClick={onClick}
+      className={`p-2 rounded-xl border flex flex-col gap-2 cursor-pointer transition-all group hover:bg-[#30363d] ${active ? 'border-pink-500/50 bg-[#161b22] shadow-[0_0_15px_rgba(2ec4b6,0.1)]' : 'border-[#30363d] bg-[#21262d] text-[#8b949e]'}`}>
+       <div className={`w-full h-12 rounded-lg border border-white/10 relative overflow-hidden bg-[#0d1117]`}>
+          <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-overlay"></div>
+          <div className={`absolute bottom-0 left-0 w-full h-1/2 bg-[linear-gradient(to_bottom,transparent,rgba(0,0,0,0.8))]`}></div>
+          <div className={`absolute bottom-1 right-2 text-[10px] font-bold ${color}`}>● {label}</div>
+       </div>
+    </div>
+  )
+}
+
+// Helpers
+function SearchIcon(props: any) { return <Search {...props} /> }
+function Filter(props: any) { return <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> }
+function LayoutGrid(props: any) { return <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> }
+function LockWater(props: any) { return <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>}

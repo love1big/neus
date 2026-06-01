@@ -22,7 +22,7 @@ import {
   type EdgeProps
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Play, StepForward, StopCircle, TerminalSquare, AlertCircle, Variable, Search, UserSquare, Waypoints, Plus, FileCode2, Clock, GitCommit, Settings2, BoxSelect, Cpu, Layers, Bot, Sparkles, Keyboard, Grid3X3, Activity, Copy, Image, Network, Wand2, Zap, Gauge, Code2, Maximize2, Minimize2, Globe, Database, BookOpen, Undo, Redo } from 'lucide-react';
+import { Play, StepForward, StopCircle, TerminalSquare, AlertCircle, Variable, Search, UserSquare, Waypoints, Plus, FileCode2, Clock, GitCommit, Settings2, BoxSelect, Cpu, Layers, Bot, Sparkles, Keyboard, Grid3X3, Activity, Copy, Image, Network, Wand2, Zap, Gauge, Code2, Maximize2, Minimize2, Globe, Database, BookOpen, Undo, Redo, ChevronDown, Component, Camera, Video, Mail } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Custom Nodes for Blueprint ---
@@ -2546,7 +2546,27 @@ const AIAnimationGenNode = ({ data, id }: { data: any, id: string }) => {
 );
 };
 
+const MacroNode = ({ id, data, selected }: any) => {
+  const { updateNodeData } = useReactFlow();
+  return (
+  <div style={{...nodeStyle, borderColor: selected ? '#3fb950' : '#8b949e', minWidth: '200px'}}>
+    <div className="px-3 py-1.5 bg-gradient-to-r from-[#8b949e]/20 to-[#8b949e]/5 border-b border-[#30363d] rounded-t-lg text-[13px] font-bold text-white flex items-center gap-2">
+      <Layers size={14} className="text-[#c9d1d9]"/> <span>Macro: <strong className="text-[#58a6ff]">{data.name || 'Collapsed Logic'}</strong></span>
+    </div>
+    <div className="p-2 py-3 flex flex-col gap-2 w-full text-[10px] text-gray-400">
+      <div className="flex justify-between w-full">
+        <ExecHandle id="execIn" type="target" position={Position.Left} top="50%" label="In" />
+        <ExecHandle id="execOut" type="source" position={Position.Right} top="50%" label="Out" />
+      </div>
+      <div className="mt-1 px-1 flex items-center gap-1.5"><BoxSelect size={12}/> Nodes encapsulated: <span className="text-white font-mono">{data.nodeCount}</span></div>
+      <button className="bg-[#21262d] border border-[#30363d] text-white hover:bg-[#30363d] transition-colors rounded px-2 py-1.5 mt-1 text-[9px] uppercase tracking-widest font-bold w-full">Edit Macro</button>
+    </div>
+  </div>
+);
+};
+
 const nodeTypes = {
+  macro: MacroNode,
   customEvent: CustomEventNode,
   callCustomEvent: CallCustomEventNode,
   customLogic: CustomTypeScriptNode,
@@ -2871,6 +2891,7 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
   const [breakpoints, setBreakpoints] = useState<string[]>([]);
   const [executionState, setExecutionState] = useState<'idle' | 'running' | 'paused'>('idle');
   const [executingNodeId, setExecutingNodeId] = useState<string | null>(null);
+  const [leftTab, setLeftTab] = useState<'blueprint' | 'palette'>('palette');
 
   const [isProfiling, setIsProfiling] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -2951,6 +2972,66 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
   const resumeExecution = () => {
     setExecutionState('running');
   };
+
+  const onRefactor = useCallback(() => {
+    const selectedNodes = nodes.filter(n => n.selected);
+    if (selectedNodes.length < 2) {
+      return;
+    }
+
+    takeSnapshot();
+
+    const avgX = selectedNodes.reduce((sum, n) => sum + n.position.x, 0) / selectedNodes.length;
+    const avgY = selectedNodes.reduce((sum, n) => sum + n.position.y, 0) / selectedNodes.length;
+
+    const selectedIds = new Set(selectedNodes.map(n => n.id));
+    const externalEdgesToMacro: any[] = [];
+    const externalEdgesFromMacro: any[] = [];
+
+    edges.forEach(edge => {
+      const sourceIn = selectedIds.has(edge.source);
+      const targetIn = selectedIds.has(edge.target);
+      if (sourceIn && !targetIn) externalEdgesFromMacro.push(edge);
+      else if (!sourceIn && targetIn) externalEdgesToMacro.push(edge);
+    });
+
+    const macroId = `macro_${uuidv4().slice(0,5)}`;
+    const newMacroNode = {
+      id: macroId,
+      type: 'macro',
+      position: { x: avgX, y: avgY },
+      data: { name: 'Collapsed Logic Function', nodeCount: selectedNodes.length },
+    };
+
+    const newEdgesToAdd: Edge[] = [];
+    externalEdgesToMacro.forEach((e) => {
+      newEdgesToAdd.push({
+        ...e,
+        id: `e_${e.source}_${e.sourceHandle}->${macroId}_execIn`,
+        target: macroId,
+        targetHandle: 'execIn'
+      });
+    });
+
+    externalEdgesFromMacro.forEach((e) => {
+      newEdgesToAdd.push({
+        ...e,
+        id: `e_${macroId}_execOut->${e.target}_${e.targetHandle}`,
+        source: macroId,
+        sourceHandle: 'execOut'
+      });
+    });
+
+    setNodes(nds => [
+      ...nds.filter(n => !selectedIds.has(n.id)),
+      newMacroNode
+    ]);
+
+    setEdges(eds => [
+      ...eds.filter(e => !selectedIds.has(e.source) && !selectedIds.has(e.target)),
+      ...newEdgesToAdd
+    ]);
+  }, [nodes, edges, setNodes, setEdges, takeSnapshot]);
 
   const onLayout = useCallback(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
@@ -3233,6 +3314,13 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
               <button onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" className={`p-1.5 rounded transition-colors ${canRedo ? 'text-[#8b949e] hover:bg-[#21262d] hover:text-[#58a6ff]' : 'text-[#30363d] cursor-not-allowed'}`}><Redo size={14} /></button>
             </div>
             <button 
+              onClick={onRefactor}
+              className="flex items-center gap-1.5 bg-gradient-to-b from-[#222] to-[#1a1a1a] border border-[#111] hover:from-[#333] hover:to-[#222] text-[#ccc] px-3 py-1 rounded-sm text-[11px] font-bold transition-colors group"
+              title="Select 2 or more nodes to group them into a Macro"
+            >
+              <BoxSelect size={12} className="text-[#3fb950]"/> Refactor
+            </button>
+            <button 
               onClick={onLayout}
               className="flex items-center gap-1.5 bg-gradient-to-b from-[#222] to-[#1a1a1a] border border-[#111] hover:from-[#333] hover:to-[#222] text-[#ccc] px-3 py-1 rounded-sm text-[11px] font-bold transition-colors group"
             >
@@ -3255,132 +3343,271 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
       </div>
       
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Outliner */}
-        <aside className="w-[240px] bg-[#1a1a1a] border-r border-[#000] flex flex-col shrink-0">
-           <div className="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-4 text-[11px] text-[#ccc] custom-scrollbar">
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2">Game Systems & Events</div>
-                <DraggableNode type="customLogic" label="Custom Code Logic" icon={Code2} colorClass="text-[#3fb950]" shortcut="c" />
-                <DraggableNode type="beginPlay" label="Event BeginPlay" icon={Play} colorClass="text-[#f85149]" shortcut="b" />
-                <DraggableNode type="tick" label="Event Tick" icon={StepForward} colorClass="text-[#f85149]" shortcut="t" />
-                <DraggableNode type="customEvent" label="Custom Event" icon={Zap} colorClass="text-[#f85149]" shortcut="v" />
-                <DraggableNode type="callCustomEvent" label="Call Custom Event" icon={Zap} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="inputKey" label="Input Key Event" icon={Keyboard} colorClass="text-[#f85149]" shortcut="k" />
-                <DraggableNode type="inputAxis" label="Input Axis Event" icon={Keyboard} colorClass="text-[#f85149]" />
-                <DraggableNode type="onHit" label="On Component Hit" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="h" />
-                <DraggableNode type="onActorHit" label="Event On Actor Hit" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="a" />
-                <DraggableNode type="overlapBegin" label="On Overlap Begin" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="o" />
-                <DraggableNode type="overlapEnd" label="On Overlap End" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="e" />
-                <div className="mt-2" />
-                <DraggableNode type="spawn" label="Spawn Actor from Class" icon={BoxSelect} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="getPlayer" label="Get Player Character" icon={UserSquare} colorClass="text-[#3fb950]" />
-                <DraggableNode type="getLoc" label="Get Actor Location" icon={Waypoints} colorClass="text-[#3fb950]" />
-                <DraggableNode type="getRot" label="Get Actor Rotation" icon={Waypoints} colorClass="text-[#8b949e]" />
-                <DraggableNode type="setLoc" label="Set Actor Location" icon={Waypoints} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="smartDoor" label="Smart Door System" icon={BoxSelect} colorClass="text-[#e3b341]" />
-                <DraggableNode type="applyDamage" label="Apply Damage" icon={AlertCircle} colorClass="text-[#f85149]" />
-                <DraggableNode type="applyForce" label="Add Physics Force" icon={Activity} colorClass="text-[#3fb950]" />
-                <DraggableNode type="setPhysicsProps" label="Set Physics Props" icon={Settings2} colorClass="text-[#3fb950]" />
-                <DraggableNode type="addToViewport" label="Add to Viewport" icon={Layers} colorClass="text-[#58a6ff]" />
-             </div>
+        {/* Left 'My Blueprint' & Palette Panel */}
+        <aside className="w-[300px] bg-[#1a1a1a] border-r border-[#000] flex flex-col shrink-0">
+           {/* Tab Bar */}
+           <div className="flex bg-[#111] border-b border-[#222]">
+             <button 
+               onClick={() => setLeftTab('blueprint')}
+               className={`flex-1 py-1.5 text-[11px] font-bold ${leftTab === 'blueprint' ? 'text-white border-b-2 border-[#58a6ff] bg-[#1a1a1a]' : 'text-[#888] border-b-2 border-transparent hover:text-white hover:bg-[#1a1a1a]'}`}
+             >My Blueprint</button>
+             <button 
+               onClick={() => setLeftTab('palette')}
+               className={`flex-1 py-1.5 text-[11px] font-bold ${leftTab === 'palette' ? 'text-white border-b-2 border-[#58a6ff] bg-[#1a1a1a]' : 'text-[#888] border-b-2 border-transparent hover:text-white hover:bg-[#1a1a1a]'}`}
+             >Palette</button>
+           </div>
+           
+           {/* Search */}
+           <div className="p-2 border-b border-[#222] bg-[#111]">
+              <div className="flex items-center bg-[#000] border border-[#333] w-full rounded px-2">
+                 <Search size={12} className="text-[#888]"/>
+                 <input type="text" placeholder={`Search ${leftTab === 'blueprint' ? 'My Blueprint' : 'Palette'}`} className="bg-transparent border-none outline-none text-[#ccc] text-[11px] px-2 py-1 w-full" />
+              </div>
+           </div>
 
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Procedural Generation</div>
-                <DraggableNode type="pcgWorldGen" label="PCG: World Gen" icon={Globe} colorClass="text-[#3fb950]" shortcut="g" />
-             </div>
+           <div className="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-1 text-[11px] text-[#ccc] custom-scrollbar selection-bg">
+             
+             {leftTab === 'blueprint' ? (
+               <>
+                 {/* Components */}
+                 <div className="group">
+                    <div className="font-bold text-[#e1e4e8] flex items-center justify-between py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded">
+                       <div className="flex items-center gap-1.5"><ChevronDown size={14}/> <span>Components</span></div>
+                       <Plus size={14} className="text-[#888] hover:text-[#58a6ff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="pl-5 flex flex-col">
+                       <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                         <Component size={12} className="text-[#58a6ff]"/> DefaultSceneRoot
+                       </div>
+                       <div className="pl-3 flex flex-col">
+                         <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9] bg-[#222]">
+                           <UserSquare size={12} className="text-[#ff7b72]"/> SkeletalMesh (CharacterMesh0)
+                         </div>
+                         <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                           <Camera size={12} className="text-[#3fb950]"/> CapsuleComponent
+                         </div>
+                         <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                           <Video size={12} className="text-[#3fb950]"/> SpringArmComponent
+                         </div>
+                       </div>
+                    </div>
+                 </div>
 
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">AI, Models & Opt<span className="bg-[#bc8cff]/20 text-[#bc8cff] px-1 rounded text-[8px]">PRO</span></div>
-                <DraggableNode type="addInstancedMesh" label="Add Instance (HISM)" icon={Copy} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="importExternalAssets" label="Batch Import Assets" icon={Copy} colorClass="text-[#58a6ff]" shortcut="i" />
-                <DraggableNode type="hardwareOptimizer" label="Hardware Optimizer" icon={Cpu} colorClass="text-[#3fb950]" shortcut="1" />
-                <DraggableNode type="levelScript" label="Level Script (Extreme Detail)" icon={FileCode2} colorClass="text-[#bc8cff]" shortcut="6" />
-                <DraggableNode type="offlineAIAccelerator" label="Offline AI Accelerator" icon={Gauge} colorClass="text-[#e3b341]" shortcut="2" />
-                <DraggableNode type="offlineAI3DModelGen" label="Offline AI: 3D Model Master" icon={Layers} colorClass="text-[#e3b341]" shortcut="3" />
-                <DraggableNode type="offlineAI3DMapGen" label="Offline AI: 3D Map & Terrain" icon={Grid3X3} colorClass="text-[#e3b341]" shortcut="4" />
-                <DraggableNode type="offlineAIWebLearn" label="Offline AI: Deep Web Learning" icon={Network} colorClass="text-[#e3b341]" shortcut="5" />
-                <DraggableNode type="aiNovelChar" label="Offline AI: Novel Character Details" icon={Bot} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiNovelEnv" label="Offline AI: Novel Environment Details" icon={Layers} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiNovelWorld" label="Offline AI: World Builder" icon={Globe} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiLoreSystem" label="Offline AI: Lore System & DB" icon={Database} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiVerifier" label="Offline AI: Mesh Verifier System" icon={BoxSelect} colorClass="text-[#ff7b72]" />
-                <DraggableNode type="enableCulling" label="GPU Culling (Frustum/Occ)" icon={Settings2} colorClass="text-[#3fb950]" />
-                <DraggableNode type="streamLevel" label="Load Level (Async)" icon={Layers} colorClass="text-[#58a6ff]" shortcut="w" />
-                <DraggableNode type="asyncLoadAsset" label="Async Load Asset" icon={Clock} colorClass="text-[#e3b341]" />
-                <DraggableNode type="aiActor" label="Offline AI Gen Actor" icon={Sparkles} colorClass="text-[#bc8cff]" shortcut="a" />
-                <DraggableNode type="aiSceneGen" label="Offline AI Gen Scene Elements" icon={Sparkles} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiAutoRigger" label="Offline AI Auto-Rigger & IK Setup" icon={UserSquare} colorClass="text-[#ff7b72]" />
-                <DraggableNode type="aiMaterialGen" label="Offline AI PBR Material Gen" icon={Image} colorClass="text-[#e3b341]" />
-                <DraggableNode type="aiMeshOpt" label="Offline AI Mesh Optimizer & Retopo" icon={Grid3X3} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="aiVfxGen" label="Offline AI Niagara VFX Gen" icon={Zap} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="adultContent" label="Unrestricted Content (18+/20+)" icon={AlertCircle} colorClass="text-[#f85149]" />
-                <DraggableNode type="aiTexture" label="Offline AI Gen Texture" icon={Image} colorClass="text-[#bc8cff]" shortcut="x" />
-                <DraggableNode type="aiProximity" label="Offline AI Player Proximity Behavior" icon={Bot} colorClass="text-[#ff7b72]" shortcut="q" />
-                <DraggableNode type="aiMovement" label="Offline AI Gen Movement" icon={Sparkles} colorClass="text-[#bc8cff]" />
-                <DraggableNode type="aiBehaviorLogic" label="Offline AI Gen Behavior Logic" icon={Sparkles} colorClass="text-[#ff7b72]" shortcut="v" />
-                <DraggableNode type="aiMechanic" label="Offline AI Gen Mechanic" icon={Sparkles} colorClass="text-[#ff7b72]" />
-                <DraggableNode type="reflectionProbe" label="Realtime Mirror" icon={Layers} colorClass="text-[#58a6ff]" />
-             </div>
+                 {/* Graphs */}
+                 <div className="group mt-2">
+                    <div className="font-bold text-[#e1e4e8] flex items-center justify-between py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded">
+                       <div className="flex items-center gap-1.5"><ChevronDown size={14}/> <span>Graphs</span></div>
+                    </div>
+                    <div className="pl-5 flex flex-col">
+                       <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9] bg-[#2a2d32]/50">
+                         <Network size={12} className="text-[#888]"/> EventGraph
+                       </div>
+                       <div className="pl-3 flex flex-col">
+                         <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#888]">
+                           <Play size={12} className="text-[#f85149]"/> Event BeginPlay
+                         </div>
+                         <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#888]">
+                           <StepForward size={12} className="text-[#f85149]"/> Event Tick
+                         </div>
+                       </div>
+                    </div>
+                 </div>
 
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Workflow & Control</div>
-                <DraggableNode type="branch" label="Branch (If)" icon={AlertCircle} colorClass="text-[#c9d1d9]" shortcut="f" />
-                <DraggableNode type="sequence" label="Sequence" icon={GitCommit} colorClass="text-[#c9d1d9]" shortcut="s" />
-                <DraggableNode type="delay" label="Delay" icon={Clock} colorClass="text-[#e3b341]" />
-                <DraggableNode type="forLoop" label="For Loop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
-                <DraggableNode type="whileLoop" label="While Loop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
-                <DraggableNode type="doOnce" label="Do Once" icon={GitCommit} colorClass="text-[#c9d1d9]" />
-                <DraggableNode type="flipFlop" label="Flip Flop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
-                <DraggableNode type="gate" label="Gate" icon={GitCommit} colorClass="text-[#c9d1d9]" />
-                <DraggableNode type="boolAnd" label="AND Boolean" iconText="&&" colorClass="text-[#8b0000]" />
-                <DraggableNode type="boolNot" label="NOT Boolean" iconText="!" colorClass="text-[#8b0000]" />
-             </div>
+                 {/* Functions */}
+                 <div className="group mt-2">
+                    <div className="font-bold text-[#e1e4e8] flex items-center justify-between py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded">
+                       <div className="flex items-center gap-1.5"><ChevronDown size={14}/> <span>Functions (31)</span></div>
+                       <div className="flex gap-1.5 text-[#888] opacity-0 group-hover:opacity-100 transition-opacity">
+                         <span className="text-[9px] bg-[#1a1a1a] px-1 rounded border border-[#333]">Override</span>
+                         <Plus size={14} className="hover:text-[#58a6ff]"/>
+                       </div>
+                    </div>
+                    <div className="pl-5 flex flex-col">
+                       <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                         <Settings2 size={12} className="text-[#bc8cff]"/> CalculateBaseDamage
+                       </div>
+                       <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                         <Settings2 size={12} className="text-[#bc8cff]"/> UpdateMovementState
+                       </div>
+                    </div>
+                 </div>
 
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Math Library</div>
-                <DraggableNode type="mathAdd" label="Add (Float)" iconText="+" colorClass="text-[#3fb950]" />
-                <DraggableNode type="mathSub" label="Subtract (Float)" iconText="-" colorClass="text-[#3fb950]" />
-                <DraggableNode type="mathMul" label="Multiply (Float)" iconText="*" colorClass="text-[#3fb950]" />
-                <DraggableNode type="mathDivide" label="Divide (Float)" iconText="/" colorClass="text-[#3fb950]" />
-                <DraggableNode type="mathAddV" label="Add (Vector)" iconText="+" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathSubV" label="Subtract (Vector)" iconText="-" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathClamp" label="Clamp (Float)" iconText="[]" colorClass="text-[#3fb950]" />
-                <DraggableNode type="mathMapRange" label="Map Range Clamped" iconText="()" colorClass="text-[#3fb950]" />
-                <DraggableNode type="mathRandomFloat" label="Random Float In Range" iconText="?" colorClass="text-[#3fb950]" />
-                <DraggableNode type="makeRotator" label="Make Rotator" iconText="R" colorClass="text-[#8b949e]" />
-                <DraggableNode type="mathDotProduct" label="Dot Product" iconText="·" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathCrossProduct" label="Cross Product" iconText="×" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathNormalize" label="Normalize" iconText="N" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathLerp" label="Lerp (Vector)" iconText="L" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathVectorLength" label="Vector Length" iconText="|v|" colorClass="text-[#e3b341]" />
-                <DraggableNode type="mathDistance" label="Vector Distance" iconText="D" colorClass="text-[#e3b341]" />
-             </div>
+                 {/* Macros */}
+                 <div className="group mt-2">
+                    <div className="font-bold text-[#e1e4e8] flex items-center justify-between py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded">
+                       <div className="flex items-center gap-1.5"><ChevronDown size={14}/> <span>Macros</span></div>
+                       <Plus size={14} className="text-[#888] hover:text-[#58a6ff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="pl-5 flex flex-col">
+                       <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                         <Layers size={12} className="text-[#3fb950]"/> IsValidPlayer
+                       </div>
+                    </div>
+                 </div>
 
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Utilities & Debug</div>
-                <DraggableNode type="print" label="Print String" icon={TerminalSquare} colorClass="text-[#3fb950]" shortcut="p" />
-                <DraggableNode type="comment" label="Comment Box" icon={TerminalSquare} colorClass="text-[#fff]" shortcut="c" />
-                <DraggableNode type="appendString" label="Append String" icon={TerminalSquare} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="arrayAdd" label="Array Add" icon={Layers} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="getMousePos" label="Get Mouse Position" icon={UserSquare} colorClass="text-[#3fb950]" />
-                <DraggableNode type="drawDebugLine" label="Draw Debug Line" icon={Waypoints} colorClass="text-[#58a6ff]" />
-                <DraggableNode type="sphereTrace" label="Sphere Trace" icon={Waypoints} colorClass="text-[#58a6ff]" />
-             </div>
+                 {/* Variables */}
+                 <div className="group mt-2">
+                    <div className="font-bold text-[#e1e4e8] flex items-center justify-between py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded">
+                       <div className="flex items-center gap-1.5"><ChevronDown size={14}/> <span>Variables</span></div>
+                       <Plus size={14} className="text-[#888] hover:text-[#58a6ff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="pl-5 flex flex-col gap-0.5 mt-1">
+                       <div className="flex items-center gap-2 px-2 py-1 bg-[#222]/50 hover:bg-[#222] rounded cursor-pointer border border-transparent hover:border-[#333]">
+                         <div className="w-2.5 h-2.5 rounded-full bg-[#f85149] border border-[#000]"></div> <span className="flex-1 text-[#fff]">IsSprinting</span>
+                       </div>
+                       <div className="flex items-center gap-2 px-2 py-1 bg-[#222]/50 hover:bg-[#222] rounded cursor-pointer border border-transparent hover:border-[#333]">
+                         <div className="w-2.5 h-2.5 rounded-full bg-[#3fb950] border border-[#000]"></div> <span className="flex-1 text-[#fff]">Health</span>
+                       </div>
+                       <div className="flex items-center gap-2 px-2 py-1 bg-[#222]/50 hover:bg-[#222] rounded cursor-pointer border border-transparent hover:border-[#333]">
+                         <div className="w-2.5 h-2.5 rounded-full bg-[#e3b341] border border-[#000]"></div> <span className="flex-1 text-[#fff]">Velocity</span>
+                       </div>
+                       <div className="flex items-center gap-2 px-2 py-1 bg-[#222]/50 hover:bg-[#222] rounded cursor-pointer border border-transparent hover:border-[#333]">
+                         <div className="w-2.5 h-2.5 rounded-sm bg-[#58a6ff] border border-[#000]"></div> <span className="flex-1 text-[#fff]">CurrentWeapon</span>
+                       </div>
+                    </div>
+                 </div>
 
-             <div>
-                <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Variables</div>
-                <div className="flex items-center gap-2 px-2 py-1 hover:bg-[#222] rounded cursor-pointer">
-                  <div className="w-2 h-2 rounded-full bg-[#3fb950]"></div> <span className="flex-1 text-[#fff]">Speed</span> <span className="text-[#888]">Float</span>
-                </div>
-                <div className="flex items-center gap-2 px-2 py-1 hover:bg-[#222] rounded cursor-pointer">
-                  <div className="w-2 h-2 rounded-full bg-[#f85149]"></div> <span className="flex-1 text-[#fff]">Is In Air</span> <span className="text-[#888]">Boolean</span>
-                </div>
-                <div className="flex items-center gap-2 px-2 py-1 hover:bg-[#222] rounded cursor-pointer">
-                  <div className="w-2 h-2 rounded-full bg-[#3fb950]"></div> <span className="flex-1 text-[#fff]">Health</span> <span className="text-[#888]">Float</span>
-                </div>
-                <DraggableNode type="getVar" label="Get Variable" icon={Variable} colorClass="text-[#3fb950]" />
-                <DraggableNode type="setVar" label="Set Variable" icon={Variable} colorClass="text-[#3fb950]" />
-             </div>
+                 {/* Event Dispatchers */}
+                 <div className="group mt-2">
+                    <div className="font-bold text-[#e1e4e8] flex items-center justify-between py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded">
+                       <div className="flex items-center gap-1.5"><ChevronDown size={14}/> <span>Event Dispatchers</span></div>
+                       <Plus size={14} className="text-[#888] hover:text-[#58a6ff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="pl-5 flex flex-col">
+                       <div className="flex items-center gap-1.5 py-1 px-1 cursor-pointer hover:bg-[#2a2d32] rounded text-[#c9d1d9]">
+                         <Mail size={12} className="text-[#f85149]"/> OnHealthChanged
+                       </div>
+                    </div>
+                 </div>
+               </>
+             ) : (
+               <>
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2">Game Systems & Events</div>
+                    <DraggableNode type="customLogic" label="Custom Code Logic" icon={Code2} colorClass="text-[#3fb950]" shortcut="c" />
+                    <DraggableNode type="beginPlay" label="Event BeginPlay" icon={Play} colorClass="text-[#f85149]" shortcut="b" />
+                    <DraggableNode type="tick" label="Event Tick" icon={StepForward} colorClass="text-[#f85149]" shortcut="t" />
+                    <DraggableNode type="customEvent" label="Custom Event" icon={Zap} colorClass="text-[#f85149]" shortcut="v" />
+                    <DraggableNode type="callCustomEvent" label="Call Custom Event" icon={Zap} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="inputKey" label="Input Key Event" icon={Keyboard} colorClass="text-[#f85149]" shortcut="k" />
+                    <DraggableNode type="inputAxis" label="Input Axis Event" icon={Keyboard} colorClass="text-[#f85149]" />
+                    <DraggableNode type="onHit" label="On Component Hit" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="h" />
+                    <DraggableNode type="onActorHit" label="Event On Actor Hit" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="a" />
+                    <DraggableNode type="overlapBegin" label="On Overlap Begin" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="o" />
+                    <DraggableNode type="overlapEnd" label="On Overlap End" icon={AlertCircle} colorClass="text-[#f85149]" shortcut="e" />
+                    <div className="mt-2" />
+                    <DraggableNode type="spawn" label="Spawn Actor from Class" icon={BoxSelect} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="getPlayer" label="Get Player Character" icon={UserSquare} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="getLoc" label="Get Actor Location" icon={Waypoints} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="getRot" label="Get Actor Rotation" icon={Waypoints} colorClass="text-[#8b949e]" />
+                    <DraggableNode type="setLoc" label="Set Actor Location" icon={Waypoints} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="smartDoor" label="Smart Door System" icon={BoxSelect} colorClass="text-[#e3b341]" />
+                    <DraggableNode type="applyDamage" label="Apply Damage" icon={AlertCircle} colorClass="text-[#f85149]" />
+                    <DraggableNode type="applyForce" label="Add Physics Force" icon={Activity} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="setPhysicsProps" label="Set Physics Props" icon={Settings2} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="addToViewport" label="Add to Viewport" icon={Layers} colorClass="text-[#58a6ff]" />
+                 </div>
+
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Procedural Generation</div>
+                    <DraggableNode type="pcgWorldGen" label="PCG: World Gen" icon={Globe} colorClass="text-[#3fb950]" shortcut="g" />
+                 </div>
+
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">AI, Models & Opt<span className="bg-[#bc8cff]/20 text-[#bc8cff] px-1 rounded text-[8px]">PRO</span></div>
+                    <DraggableNode type="addInstancedMesh" label="Add Instance (HISM)" icon={Copy} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="importExternalAssets" label="Batch Import Assets" icon={Copy} colorClass="text-[#58a6ff]" shortcut="i" />
+                    <DraggableNode type="hardwareOptimizer" label="Hardware Optimizer" icon={Cpu} colorClass="text-[#3fb950]" shortcut="1" />
+                    <DraggableNode type="levelScript" label="Level Script (Extreme Detail)" icon={FileCode2} colorClass="text-[#bc8cff]" shortcut="6" />
+                    <DraggableNode type="offlineAIAccelerator" label="Offline AI Accelerator" icon={Gauge} colorClass="text-[#e3b341]" shortcut="2" />
+                    <DraggableNode type="offlineAI3DModelGen" label="Offline AI: 3D Model Master" icon={Layers} colorClass="text-[#e3b341]" shortcut="3" />
+                    <DraggableNode type="offlineAI3DMapGen" label="Offline AI: 3D Map & Terrain" icon={Grid3X3} colorClass="text-[#e3b341]" shortcut="4" />
+                    <DraggableNode type="offlineAIWebLearn" label="Offline AI: Deep Web Learning" icon={Network} colorClass="text-[#e3b341]" shortcut="5" />
+                    <DraggableNode type="aiNovelChar" label="Offline AI: Novel Character Details" icon={Bot} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="aiNovelEnv" label="Offline AI: Novel Environment Details" icon={Layers} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="aiNovelWorld" label="Offline AI: World Builder" icon={Globe} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="aiLoreSystem" label="Offline AI: Lore System & DB" icon={Database} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="aiVerifier" label="Offline AI: Mesh Verifier System" icon={BoxSelect} colorClass="text-[#ff7b72]" />
+                    <DraggableNode type="enableCulling" label="GPU Culling (Frustum/Occ)" icon={Settings2} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="streamLevel" label="Load Level (Async)" icon={Layers} colorClass="text-[#58a6ff]" shortcut="w" />
+                    <DraggableNode type="asyncLoadAsset" label="Async Load Asset" icon={Clock} colorClass="text-[#e3b341]" />
+                    <DraggableNode type="aiActor" label="Offline AI Gen Actor" icon={Sparkles} colorClass="text-[#bc8cff]" shortcut="a" />
+                    <DraggableNode type="aiSceneGen" label="Offline AI Gen Scene Elements" icon={Sparkles} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="aiAutoRigger" label="Offline AI Auto-Rigger & IK Setup" icon={UserSquare} colorClass="text-[#ff7b72]" />
+                    <DraggableNode type="aiMaterialGen" label="Offline AI PBR Material Gen" icon={Image} colorClass="text-[#e3b341]" />
+                    <DraggableNode type="aiMeshOpt" label="Offline AI Mesh Optimizer & Retopo" icon={Grid3X3} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="aiVfxGen" label="Offline AI Niagara VFX Gen" icon={Zap} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="adultContent" label="Unrestricted Content (18+/20+)" icon={AlertCircle} colorClass="text-[#f85149]" />
+                    <DraggableNode type="aiTexture" label="Offline AI Gen Texture" icon={Image} colorClass="text-[#bc8cff]" shortcut="x" />
+                    <DraggableNode type="aiProximity" label="Offline AI Player Proximity Behavior" icon={Bot} colorClass="text-[#ff7b72]" shortcut="q" />
+                    <DraggableNode type="aiMovement" label="Offline AI Gen Movement" icon={Sparkles} colorClass="text-[#bc8cff]" />
+                    <DraggableNode type="aiBehaviorLogic" label="Offline AI Gen Behavior Logic" icon={Sparkles} colorClass="text-[#ff7b72]" shortcut="v" />
+                    <DraggableNode type="aiMechanic" label="Offline AI Gen Mechanic" icon={Sparkles} colorClass="text-[#ff7b72]" />
+                    <DraggableNode type="reflectionProbe" label="Realtime Mirror" icon={Layers} colorClass="text-[#58a6ff]" />
+                 </div>
+
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Workflow & Control</div>
+                    <DraggableNode type="branch" label="Branch (If)" icon={AlertCircle} colorClass="text-[#c9d1d9]" shortcut="f" />
+                    <DraggableNode type="sequence" label="Sequence" icon={GitCommit} colorClass="text-[#c9d1d9]" shortcut="s" />
+                    <DraggableNode type="delay" label="Delay" icon={Clock} colorClass="text-[#e3b341]" />
+                    <DraggableNode type="forLoop" label="For Loop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                    <DraggableNode type="whileLoop" label="While Loop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                    <DraggableNode type="doOnce" label="Do Once" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                    <DraggableNode type="flipFlop" label="Flip Flop" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                    <DraggableNode type="gate" label="Gate" icon={GitCommit} colorClass="text-[#c9d1d9]" />
+                    <DraggableNode type="boolAnd" label="AND Boolean" iconText="&&" colorClass="text-[#8b0000]" />
+                    <DraggableNode type="boolNot" label="NOT Boolean" iconText="!" colorClass="text-[#8b0000]" />
+                 </div>
+
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Math Library</div>
+                    <DraggableNode type="mathAdd" label="Add (Float)" iconText="+" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="mathSub" label="Subtract (Float)" iconText="-" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="mathMul" label="Multiply (Float)" iconText="*" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="mathDivide" label="Divide (Float)" iconText="/" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="mathAddV" label="Add (Vector)" iconText="+" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathSubV" label="Subtract (Vector)" iconText="-" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathClamp" label="Clamp (Float)" iconText="[]" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="mathMapRange" label="Map Range Clamped" iconText="()" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="mathRandomFloat" label="Random Float In Range" iconText="?" colorClass="text-[#3fb950]" />
+                    <DraggableNode type="makeRotator" label="Make Rotator" iconText="R" colorClass="text-[#8b949e]" />
+                    <DraggableNode type="mathDotProduct" label="Dot Product" iconText="·" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathCrossProduct" label="Cross Product" iconText="×" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathNormalize" label="Normalize" iconText="N" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathLerp" label="Lerp (Vector)" iconText="L" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathVectorLength" label="Vector Length" iconText="|v|" colorClass="text-[#e3b341]" />
+                    <DraggableNode type="mathDistance" label="Vector Distance" iconText="D" colorClass="text-[#e3b341]" />
+                 </div>
+
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Utilities & Debug</div>
+                    <DraggableNode type="print" label="Print String" icon={TerminalSquare} colorClass="text-[#3fb950]" shortcut="p" />
+                    <DraggableNode type="comment" label="Comment Box" icon={TerminalSquare} colorClass="text-[#fff]" shortcut="c" />
+                    <DraggableNode type="appendString" label="Append String" icon={TerminalSquare} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="arrayAdd" label="Array Add" icon={Layers} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="getMousePos" label="Get Mouse Position" icon={UserSquare} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="drawDebugLine" label="Draw Debug Line" icon={Waypoints} colorClass="text-[#58a6ff]" />
+                    <DraggableNode type="sphereTrace" label="Sphere Trace" icon={Waypoints} colorClass="text-[#58a6ff]" />
+                 </div>
+
+                 <div>
+                    <div className="font-bold text-[#888] flex justify-between items-center uppercase mb-1 px-2 mt-4">Variables</div>
+                    <div className="flex items-center gap-2 px-2 py-1 hover:bg-[#222] rounded cursor-pointer">
+                      <div className="w-2 h-2 rounded-full bg-[#3fb950]"></div> <span className="flex-1 text-[#fff]">Speed</span> <span className="text-[#888]">Float</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-2 py-1 hover:bg-[#222] rounded cursor-pointer">
+                      <div className="w-2 h-2 rounded-full bg-[#f85149]"></div> <span className="flex-1 text-[#fff]">Is In Air</span> <span className="text-[#888]">Boolean</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-2 py-1 hover:bg-[#222] rounded cursor-pointer">
+                      <div className="w-2 h-2 rounded-full bg-[#3fb950]"></div> <span className="flex-1 text-[#fff]">Health</span> <span className="text-[#888]">Float</span>
+                    </div>
+                    <DraggableNode type="getVar" label="Get Variable" icon={Variable} colorClass="text-[#3fb950]" />
+                    <DraggableNode type="setVar" label="Set Variable" icon={Variable} colorClass="text-[#3fb950]" />
+                 </div>
+               </>
+             )}
+             
            </div>
         </aside>
 
@@ -3433,6 +3660,19 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
               >
                 <Background gap={40} color="#222" />
                 <Controls className="bg-[#111] border-[#333] fill-[#ccc]" />
+                <MiniMap 
+                  nodeStrokeColor={(n) => {
+                    if (n.type === 'beginPlay') return '#f85149';
+                    if (n.type === 'tick') return '#f85149';
+                    if (n.type === 'macro') return '#3fb950';
+                    return '#x888';
+                  }}
+                  nodeColor={(n) => {
+                    return '#1a1a1a';
+                  }}
+                  maskColor="rgba(0, 0, 0, 0.7)"
+                  style={{ backgroundColor: '#111', border: '1px solid #333' }}
+                />
               </ReactFlow>
               </ExecutionContext.Provider>
             </ProfilerContext.Provider>
@@ -3475,42 +3715,113 @@ export default function BlueprintEditor({ onCodeGenerated }: { onCodeGenerated?:
         </div>
 
         {/* Right Details */}
-        <aside className="w-[280px] bg-[#1a1a1a] border-l border-[#000] flex flex-col shrink-0">
-           <div className="px-3 py-2 text-[11px] uppercase tracking-[1px] text-[#fff] font-bold bg-[#111] border-b border-[#222] flex items-center gap-2">
-              <BoxSelect size={12}/> DETAILS
+        <aside className="w-[320px] bg-[#1a1a1a] border-l border-[#000] flex flex-col shrink-0 text-[#c9d1d9]">
+           {/* Details Header */}
+           <div className="px-3 py-2 text-[11px] font-bold text-[#e1e4e8] bg-[#111] border-b border-[#222] flex items-center gap-2">
+              <Settings2 size={14} className="text-[#58a6ff]"/> Details
            </div>
-           <div className="p-2 border-b border-[#222]">
-              <div className="flex items-center bg-[#111] border border-[#333] w-full rounded px-2">
+           
+           <div className="p-2 border-b border-[#222] bg-[#111]">
+              <div className="flex items-center bg-[#000] border border-[#333] w-full rounded px-2">
                  <Search size={12} className="text-[#888]"/>
                  <input type="text" placeholder="Search Details" className="bg-transparent border-none outline-none text-[#ccc] text-[11px] px-2 py-1 w-full" />
               </div>
            </div>
-           <div className="flex-1 overflow-y-auto p-2 text-[11px] flex flex-col gap-2">
-              <div className="font-bold uppercase text-[#888] mb-1">Variable</div>
-              <div className="flex items-center justify-between group">
-                <span className="text-[#ccc] w-1/3">Variable Name</span>
-                <input type="text" defaultValue="Speed" className="bg-[#111] border border-[#333] text-[#fff] px-2 py-0.5 rounded w-2/3 outline-none" />
+
+           <div className="flex-1 overflow-y-auto p-2 text-[11px] flex flex-col custom-scrollbar">
+              
+              {/* Category: Variable */}
+              <div className="mb-4">
+                 <div className="flex items-center gap-1.5 px-1 py-1 bg-[#222] border-t border-[#333] text-[#e1e4e8] font-bold cursor-pointer">
+                    <ChevronDown size={14}/> Variable
+                 </div>
+                 <div className="flex flex-col gap-1 p-2 bg-[#161b22]">
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#8b949e] w-1/3">Variable Name</span>
+                      <input type="text" defaultValue="Speed" className="bg-[#0d1117] border border-[#30363d] text-[#e1e4e8] px-2 py-1 rounded w-2/3 outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]/50" />
+                    </div>
+                    <div className="flex items-center justify-between group mt-1">
+                      <span className="text-[#8b949e] w-1/3">Variable Type</span>
+                      <div className="bg-[#010409] border border-[#30363d] text-[#c9d1d9] px-2 py-1 rounded w-2/3 cursor-pointer flex items-center justify-between">
+                         <div className="flex items-center gap-1.5">
+                           <div className="w-2.5 h-2.5 rounded-full bg-[#3fb950] border border-[#000]"></div> Float (Double-precision)
+                         </div>
+                         <ChevronDown size={12} className="text-[#8b949e]" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between group mt-2">
+                      <span className="text-[#8b949e]">Description</span>
+                      <textarea className="bg-[#0d1117] border border-[#30363d] text-[#e1e4e8] px-2 py-1 rounded w-2/3 outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]/50 min-h-[40px] resize-none" defaultValue="Current movement speed magnitude of the character." />
+                    </div>
+                 </div>
               </div>
-              <div className="flex items-center justify-between group">
-                <span className="text-[#ccc] w-1/3">Variable Type</span>
-                <div className="bg-[#111] border border-[#333] text-[#3fb950] font-bold px-2 py-0.5 rounded w-2/3 cursor-pointer flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-[#3fb950]"></div> Float
-                </div>
-              </div>
-              <div className="flex items-center justify-between group mt-2">
-                <span className="text-[#ccc]">Instance Editable</span>
-                <input type="checkbox" className="accent-[#58a6ff]" />
-              </div>
-              <div className="flex items-center justify-between group">
-                <span className="text-[#ccc]">Blueprint Read Only</span>
-                <input type="checkbox" className="accent-[#58a6ff]" />
+
+              {/* Category: Instance Editable */}
+              <div className="mb-4">
+                 <div className="flex items-center gap-1.5 px-1 py-1 bg-[#222] border-t border-[#333] text-[#e1e4e8] font-bold cursor-pointer">
+                    <ChevronDown size={14}/> Configuration
+                 </div>
+                 <div className="flex flex-col gap-1.5 p-2 bg-[#161b22]">
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#8b949e]">Instance Editable</span>
+                      <div className="w-4 h-4 bg-[#0d1117] border border-[#30363d] rounded flex items-center justify-center cursor-pointer">
+                         <div className="w-2.5 h-2.5 bg-[#58a6ff] rounded-sm"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#8b949e]">Blueprint Read Only</span>
+                      <div className="w-4 h-4 bg-[#0d1117] border border-[#30363d] rounded flex items-center justify-center cursor-pointer">
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#8b949e]">Expose on Spawn</span>
+                      <div className="w-4 h-4 bg-[#0d1117] border border-[#30363d] rounded flex items-center justify-center cursor-pointer">
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#8b949e]">Private</span>
+                      <div className="w-4 h-4 bg-[#0d1117] border border-[#30363d] rounded flex items-center justify-center cursor-pointer">
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#8b949e]">Expose to Cinematics</span>
+                      <div className="w-4 h-4 bg-[#0d1117] border border-[#30363d] rounded flex items-center justify-center cursor-pointer">
+                         <div className="w-2.5 h-2.5 bg-[#58a6ff] rounded-sm"></div>
+                      </div>
+                    </div>
+                 </div>
               </div>
               
-              <div className="border-t border-[#333] mt-2 pt-2 font-bold uppercase text-[#888] mb-1">Default Value</div>
-              <div className="flex items-center justify-between group">
-                <span className="text-[#ccc] w-1/3">Speed</span>
-                <input type="text" defaultValue="0.0" className="bg-[#111] border border-[#333] text-[#fff] px-2 py-0.5 rounded w-2/3 outline-none text-right font-mono" />
+              {/* Category: Networking */}
+              <div className="mb-4">
+                 <div className="flex items-center gap-1.5 px-1 py-1 bg-[#222] border-t border-[#333] text-[#e1e4e8] font-bold cursor-pointer">
+                    <ChevronDown size={14}/> Replication
+                 </div>
+                 <div className="flex flex-col gap-1 p-2 bg-[#161b22]">
+                    <div className="flex items-center justify-between group mt-1">
+                      <span className="text-[#8b949e] w-1/3">Replication</span>
+                      <div className="bg-[#010409] border border-[#30363d] text-[#c9d1d9] px-2 py-1 rounded w-2/3 cursor-pointer flex items-center justify-between">
+                         None
+                         <ChevronDown size={12} className="text-[#8b949e]" />
+                      </div>
+                    </div>
+                 </div>
               </div>
+
+              {/* Category: Default Value */}
+              <div className="mb-4">
+                 <div className="flex items-center gap-1.5 px-1 py-1 bg-[#222] border-t border-[#333] text-[#e1e4e8] font-bold cursor-pointer">
+                    <ChevronDown size={14}/> Default Value
+                 </div>
+                 <div className="flex flex-col gap-2 p-2 bg-[#161b22]">
+                    <div className="flex items-center justify-between group">
+                      <span className="text-[#e1e4e8] w-1/3 text-[10px] uppercase font-bold tracking-wider">Speed</span>
+                      <input type="text" defaultValue="0.0" className="bg-[#0d1117] border border-[#30363d] text-[#e1e4e8] px-2 py-1 rounded w-2/3 outline-none text-right font-mono focus:border-[#58a6ff]" />
+                    </div>
+                    <p className="text-[9px] text-[#8b949e] leading-snug">Please compile the blueprint to see default values for this variable.</p>
+                 </div>
+              </div>
+
            </div>
         </aside>
       </div>

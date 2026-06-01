@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Cpu, Car, Navigation, Brain, Box, Glasses, Database, Zap, Plus, Search, ShieldCheck, Layers } from 'lucide-react';
+import { Settings, Cpu, Car, Navigation, Brain, Box, Glasses, Database, Zap, Plus, Search, ShieldCheck, Layers, Dna, BarChart2, Activity } from 'lucide-react';
 
 export default function GameSystemsBuilder() {
   const [activeTab, setActiveTab] = useState('systems');
@@ -27,6 +27,9 @@ export default function GameSystemsBuilder() {
          </button>
          <button onClick={() => setActiveTab('vrxr')} className={`flex items-center gap-2 px-3 py-2 rounded text-[11px] font-semibold transition-colors ${activeTab === 'vrxr' ? 'bg-[#21262d] text-[#3fb950]' : 'text-[#c9d1d9] hover:bg-[#21262d]'}`}>
             <Glasses size={16}/> VR / XR Engine Config
+         </button>
+         <button onClick={() => setActiveTab('bioevo')} className={`flex items-center gap-2 px-3 py-2 rounded text-[11px] font-semibold transition-colors ${activeTab === 'bioevo' ? 'bg-[#21262d] text-[#f85149]' : 'text-[#c9d1d9] hover:bg-[#21262d]'}`}>
+            <Dna size={16}/> Bio-Evolution
          </button>
       </div>
 
@@ -316,6 +319,227 @@ export default function GameSystemsBuilder() {
                              <span className="text-white">Foveated Rendering (Variable Rate)</span>
                          </label>
                       </div>
+                  </div>
+               </div>
+            </div>
+         )}
+         {activeTab === 'bioevo' && (
+            <div className="max-w-4xl mx-auto">
+               <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Dna className="text-[#f85149]"/> Bio-Evolution Engine & Metamorphosis</h1>
+               
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                     <div className="bg-[#161b22] border border-[#f85149]/40 p-5 rounded-lg shadow-[0_0_15px_rgba(248,81,73,0.05)]">
+                        <h3 className="text-xs font-bold text-[#c9d1d9] border-b border-[#30363d] pb-2 mb-4 flex items-center gap-2"><Settings size={14}/> Active Mutation Pathways</h3>
+                        
+                        <div className="space-y-3">
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#f85149]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#f85149] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Environmental Threshold Morphing</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Entities mutate into new species when hazard stress exceeds 100%</span>
+                               </div>
+                           </label>
+                           
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#58a6ff]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Adaptive Convergence (Predation)</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Predators can consume prey to steal elemental attributes</span>
+                               </div>
+                           </label>
+
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#3fb950]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Symbiotic Mutualism</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Different species merge to survive toxic/abyssal biomes</span>
+                               </div>
+                           </label>
+                           
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#bc8cff]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#bc8cff] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Recessive Flaw Manifestation</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Mutations have a chance to yield powerful defects (e.g. Failed Necrosis)</span>
+                               </div>
+                           </label>
+                           
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#a371f7]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#a371f7] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Mechanical Crystallization</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Electromagnetic storms can convert organic tissue into bio-mech structures</span>
+                               </div>
+                           </label>
+
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#d29922]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#d29922] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Chrono-Reversal Evolution</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Chrono-radiation reverts entities back to their primordial ancestors</span>
+                               </div>
+                           </label>
+
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#4ade80]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#4ade80] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Gravitational Shift</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Localized gravitational stress alters entity mass and movement dynamics</span>
+                               </div>
+                           </label>
+
+                           <label className="flex items-center gap-3 text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer hover:border-[#e879f9]/50 transition-colors">
+                               <input type="checkbox" defaultChecked className="accent-[#e879f9] w-4 h-4"/>
+                               <div className="flex-1">
+                                  <span className="text-white font-bold block">Subatomic Resonance</span>
+                                  <span className="text-[#8b949e] mt-0.5 block">Quantum probability collapses cause phase-shifting and erratic blinking adaptations</span>
+                               </div>
+                           </label>
+                        </div>
+                     </div>
+
+                     <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg">
+                        <h3 className="text-xs font-bold text-[#c9d1d9] border-b border-[#30363d] pb-2 mb-4 flex items-center gap-2"><Activity size={14}/> Stress Accumulation Rates</h3>
+                        <div className="space-y-4">
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Thermal (Lava/Fire)</span>
+                                 <span className="text-[#f85149] font-mono">15.0 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#f85149]" style={{ width: '80%' }}></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Toxic/Radioactive</span>
+                                 <span className="text-[#3fb950] font-mono">8.5 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#3fb950]" style={{ width: '45%' }}></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Absolute Zero</span>
+                                 <span className="text-[#58a6ff] font-mono">12.0 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#58a6ff]" style={{ width: '65%' }}></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Abyssal Pressure</span>
+                                 <span className="text-[#bc8cff] font-mono">5.0 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#bc8cff]" style={{ width: '25%' }}></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Chrono-Radiation</span>
+                                 <span className="text-[#d29922] font-mono">0.8 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#d29922]" style={{ width: '12%' }}></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Localized Gravity</span>
+                                 <span className="text-[#4ade80] font-mono">7.4 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#4ade80]" style={{ width: '40%' }}></div>
+                              </div>
+                           </div>
+                           <div>
+                              <div className="flex justify-between text-[11px] mb-1">
+                                 <span className="text-[#8b949e]">Electromagnetic Storm</span>
+                                 <span className="text-[#a371f7] font-mono">4.2 / sec</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#0d1117] rounded-full overflow-hidden">
+                                 <div className="h-full bg-[#a371f7]" style={{ width: '38%' }}></div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="space-y-6">
+                     <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg flex flex-col h-full">
+                        <h3 className="text-xs font-bold text-[#c9d1d9] border-b border-[#30363d] pb-2 mb-4 flex items-center gap-2"><BarChart2 size={14}/> Probability Distributions</h3>
+                        
+                        <div className="flex-1 flex flex-col items-center justify-center py-6">
+                           <div className="relative w-48 h-48 rounded-full border-4 border-[#30363d] flex items-center justify-center shadow-[0_0_30px_rgba(248,81,73,0.15)]">
+                              {/* Mock Donut Chart Segments built with CSS conic-gradient */}
+                              <div 
+                                className="absolute inset-0 rounded-full" 
+                                style={{
+                                   background: 'conic-gradient(#58a6ff 0% 15%, #bc8cff 15% 20%, #30363d 20% 70%, #f85149 70% 100%)',
+                                   clipPath: 'circle(50% at 50% 50%)'
+                                }}
+                              >
+                                 <div className="absolute inset-4 bg-[#161b22] rounded-full flex flex-col items-center justify-center">
+                                    <span className="text-[#8b949e] text-[10px] uppercase font-bold tracking-widest mb-1">Next Cycle</span>
+                                    <span className="text-white text-2xl font-mono font-bold">142</span>
+                                    <span className="text-[#f85149] text-[10px] font-bold">Pending Morphs</span>
+                                 </div>
+                              </div>
+                           </div>
+                           
+                           <div className="grid grid-cols-2 gap-x-8 gap-y-3 mt-8 w-full">
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#30363d] rounded-sm"></div>
+                                 <span className="text-[#8b949e] flex-1">Minor Traits</span>
+                                 <span className="text-white font-mono">40%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#f85149] rounded-sm shadow-[0_0_5px_#f85149]"></div>
+                                 <span className="text-[#8b949e] flex-1">Complete Morph</span>
+                                 <span className="text-white font-mono">30%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#58a6ff] rounded-sm"></div>
+                                 <span className="text-[#8b949e] flex-1">Symbiosis</span>
+                                 <span className="text-white font-mono">15%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#a371f7] rounded-sm"></div>
+                                 <span className="text-[#8b949e] flex-1">Crystallization</span>
+                                 <span className="text-white font-mono">10%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#4ade80] rounded-sm"></div>
+                                 <span className="text-[#8b949e] flex-1">Grav. Shift</span>
+                                 <span className="text-white font-mono">8%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#e879f9] rounded-sm"></div>
+                                 <span className="text-[#8b949e] flex-1">Phase Drift</span>
+                                 <span className="text-white font-mono">4%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#bc8cff] rounded-sm shadow-[0_0_5px_#bc8cff]"></div>
+                                 <span className="text-[#8b949e] flex-1">Failed Necrosis</span>
+                                 <span className="text-white font-mono">3%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px]">
+                                 <div className="w-3 h-3 bg-[#d29922] rounded-sm shadow-[0_0_5px_#d29922]"></div>
+                                 <span className="text-[#8b949e] flex-1">Chrono-Reversal</span>
+                                 <span className="text-white font-mono">2%</span>
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-[#30363d] flex gap-3">
+                           <button className="flex-1 bg-[#21262d] hover:bg-[#30363d] text-white py-2 rounded text-[11px] font-bold border border-[#30363d] transition-colors">Force Global Trigger</button>
+                           <button className="flex-1 bg-[#f85149] hover:bg-[#ff7b72] text-[#0d1117] py-2 rounded text-[11px] font-bold transition-colors">Purge Unstable DNA</button>
+                        </div>
+                     </div>
                   </div>
                </div>
             </div>

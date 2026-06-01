@@ -1,6 +1,127 @@
 import React, { useState } from 'react';
 import { MonitorPlay, Settings2, Zap, Layers, RefreshCw, Cpu, Activity, Info, Sliders, ServerCog, Box, Maximize, Target, DatabaseZap } from 'lucide-react';
 
+function ShaderCompiler() {
+  const [compiling, setCompiling] = useState(false);
+  const [progress, setProgress] = useState(100);
+  const [variants, setVariants] = useState(4823);
+
+  const handleRecompile = () => {
+    if (compiling) return;
+    setCompiling(true);
+    setProgress(0);
+    const interval = setInterval(() => {
+      setProgress(p => {
+        if (p >= 100) {
+          clearInterval(interval);
+          setCompiling(false);
+          setVariants(Math.floor(Math.random() * 1000) + 4000);
+          return 100;
+        }
+        return p + Math.floor(Math.random() * 10) + 2;
+      });
+    }, 200);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-[#161b22] border border-[#f85149]/40 rounded-lg p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#f85149] rounded-full mix-blend-multiply filter blur-[128px] opacity-10"></div>
+        <div className="flex items-start justify-between relative z-10 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Cpu className="text-[#f85149]"/> Shader Compiler Pipeline</h2>
+            <p className="text-[#8b949e] text-sm mt-2 max-w-xl">Manage shader permutation matrix, pre-caching, and compilation logs to prevent runtime stuttering.</p>
+          </div>
+          <button 
+            onClick={handleRecompile}
+            disabled={compiling}
+            className={`font-bold px-6 py-3 rounded-lg flex items-center gap-2 shadow-[0_0_20px_rgba(248,81,73,0.3)] transition-all ${compiling ? 'bg-[#30363d] text-[#8b949e] shadow-none cursor-not-allowed' : 'bg-[#f85149] hover:bg-[#f85149]/80 text-[#0a0a0a]'}`}
+          >
+            <RefreshCw size={18} className={compiling ? 'animate-spin' : ''}/> {compiling ? 'Compiling...' : 'Recompile All'}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-6 mb-6">
+          <div className="bg-[#0d1117] border border-[#30363d] p-4 rounded-lg flex flex-col justify-center items-center">
+            <span className="text-[#8b949e] text-[11px] font-bold uppercase tracking-wider mb-2">Variant Cache Status</span>
+            <span className={compiling ? "text-[#e3b341] font-mono text-2xl font-bold" : "text-[#3fb950] font-mono text-2xl font-bold"}>{compiling ? 'REBUILDING' : 'OPTIMIZED'}</span>
+          </div>
+          <div className="bg-[#0d1117] border border-[#30363d] p-4 rounded-lg flex flex-col justify-center items-center">
+            <span className="text-[#8b949e] text-[11px] font-bold uppercase tracking-wider mb-2">Cached Permutations</span>
+            <span className="text-white font-mono text-2xl font-bold">{variants.toLocaleString()}</span>
+          </div>
+          <div className="bg-[#0d1117] border border-[#30363d] p-4 rounded-lg flex flex-col justify-center items-center">
+            <span className="text-[#8b949e] text-[11px] font-bold uppercase tracking-wider mb-2">Active Worker Threads</span>
+            <span className="text-[#58a6ff] font-mono text-2xl font-bold">{compiling ? '16' : '0'}</span>
+          </div>
+        </div>
+
+        <div className="bg-[#0d1117] border border-[#30363d] p-5 rounded-lg space-y-4 relative z-10">
+          <div className="flex justify-between items-center text-[12px]">
+            <span className="text-[#c9d1d9] font-bold flex items-center gap-2"><Zap size={14} className="text-[#e3b341]" /> Compilation Progress</span>
+            <span className="text-[#8b949e] font-mono text-[14px]">{Math.min(progress, 100)}%</span>
+          </div>
+          
+          <div className="w-full h-4 bg-[#161b22] rounded-full overflow-hidden border border-[#30363d] shadow-inner">
+            <div 
+              className="h-full bg-gradient-to-r from-[#f85149] via-[#e3b341] to-[#3fb950] transition-all duration-200" 
+              style={{ width: `${Math.min(progress, 100)}%` }}
+            ></div>
+          </div>
+          
+          {compiling && (
+            <div className="p-3 bg-[#161b22] border border-[#30363d] rounded font-mono text-[11px] text-[#8b949e] h-24 overflow-y-auto custom-scrollbar flex flex-col-reverse">
+               <div>[ShaderCompiler] Transpiling GLSL to SPIR-V...</div>
+               <div>[Worker 5] Compiled Material_PBR_Opaque_Instanced ({Math.floor((progress / 100) * variants)}/{variants})</div>
+               <div>[Worker 2] Optimizing Register Allocation for PS_AmbientOcclusion...</div>
+               <div className="text-[#58a6ff]">[System] Distributed task across 16 local threads...</div>
+            </div>
+          )}
+          {!compiling && (
+            <div className="p-3 bg-[#161b22] border border-[#30363d] rounded font-mono text-[11px] text-[#3fb950]">
+               [System] All shader variants are fully compiled and cached in the PSO (Pipeline State Object) cache.
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-6">
+         <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+           <h3 className="text-white font-bold border-b border-[#30363d] pb-2 mb-4">On-Demand Pre-Caching</h3>
+           <p className="text-[#8b949e] text-[11px] mb-4">Prevent traversal stuttering by forcing the engine to compile all potential shader permutations before rendering.</p>
+           <label className="flex items-center justify-between text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] mb-2 cursor-pointer">
+              <span className="text-[#c9d1d9] font-bold">Synchronous PSO Loading</span>
+              <input type="checkbox" defaultChecked className="accent-[#f85149] w-4 h-4"/>
+           </label>
+           <label className="flex items-center justify-between text-[11px] p-2 bg-[#0d1117] rounded border border-[#30363d] cursor-pointer">
+              <span className="text-[#c9d1d9] font-bold">Background Async Compilation</span>
+              <input type="checkbox" defaultChecked className="accent-[#f85149] w-4 h-4"/>
+           </label>
+         </div>
+
+         <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+           <h3 className="text-white font-bold border-b border-[#30363d] pb-2 mb-4">Diagnostics</h3>
+           <p className="text-[#8b949e] text-[11px] mb-4">Analyze the memory footprint and compile time of individual shader assets.</p>
+           <div className="space-y-2 text-[11px]">
+             <div className="flex justify-between items-center bg-[#0d1117] px-3 py-2 rounded">
+                <span className="text-[#c9d1d9]">M_Water_Volumetric_Instanced</span>
+                <span className="text-[#e3b341]">245ms / 1.2MB</span>
+             </div>
+             <div className="flex justify-between items-center bg-[#0d1117] px-3 py-2 rounded">
+                <span className="text-[#c9d1d9]">M_Skin_Subsurface_Profile</span>
+                <span className="text-[#e3b341]">180ms / 850KB</span>
+             </div>
+             <div className="flex justify-between items-center bg-[#0d1117] px-3 py-2 rounded">
+                <span className="text-[#c9d1d9]">PP_DeferredDecals_RayTraced</span>
+                <span className="text-[#f85149]">410ms / 2.1MB</span>
+             </div>
+           </div>
+         </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GraphicsRenderEditor() {
   const [activeTab, setActiveTab] = useState('optimization');
 
@@ -20,6 +141,7 @@ export default function GraphicsRenderEditor() {
         <button onClick={() => setActiveTab('rendering')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'rendering' ? 'text-[#58a6ff] border-b-2 border-[#58a6ff]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Layers size={14}/> Rendering Tech</button>
         <button onClick={() => setActiveTab('culling')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'culling' ? 'text-[#3fb950] border-b-2 border-[#3fb950]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Settings2 size={14}/> Culling & LOD</button>
         <button onClick={() => setActiveTab('smart-lod')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'smart-lod' ? 'text-[#a371f7] border-b-2 border-[#a371f7]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Box size={14}/> Smart LOD Pipeline</button>
+        <button onClick={() => setActiveTab('shaders')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'shaders' ? 'text-[#f85149] border-b-2 border-[#f85149]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Cpu size={14}/> Shaders & Cache</button>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
@@ -47,14 +169,14 @@ export default function GraphicsRenderEditor() {
                     <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d]">
                       <div>
                         <div className="text-white font-bold">Asynchronous Texture Streaming</div>
-                        <div className="text-[#8b949e] text-[10px] mt-0.5">Reduce initial load times and improve runtime memory efficiency by loading textures in the background.</div>
+                        <div className="text-[#8b949e] text-[10px] mt-0.5">Stream high-res textures into RAM only when proximal to the player, dynamically downscaling distant areas to prevent VRAM overflow.</div>
                       </div>
                       <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-4 h-4"/>
                     </label>
                     <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d]">
                       <div>
                         <div className="text-white font-bold">Virtual Texture Streaming</div>
-                        <div className="text-[#8b949e] text-[10px] mt-0.5">Stream high-res textures only when visible.</div>
+                        <div className="text-[#8b949e] text-[10px] mt-0.5">Segment textures into 128x128 tiles and stream only the exact tiles visible in the camera frustum, eradicating memory bottlenecks.</div>
                       </div>
                       <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-4 h-4"/>
                     </label>
@@ -128,24 +250,33 @@ export default function GraphicsRenderEditor() {
                    <div className="p-3 bg-[#bc8cff]/10 rounded-lg text-[#bc8cff]"><MonitorPlay size={24}/></div>
                    <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                         <h3 className="text-white font-bold text-[14px]">AI Upscaling (DLSS / FSR / XeSS)</h3>
+                         <h3 className="text-white font-bold text-[14px]">AI Upscaling & Frame Generation</h3>
                          <label className="relative inline-flex items-center cursor-pointer">
                            <input type="checkbox" defaultChecked className="sr-only peer" />
                            <div className="w-9 h-5 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8b949e] peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#bc8cff]"></div>
                          </label>
                       </div>
-                      <p className="text-[#8b949e] text-[11px] mb-3">Render at lower internal resolution and use AI to reconstruct high-quality images. Massive FPS boost.</p>
-                      <div className="flex gap-2">
-                        <select className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9]">
-                           <option>DLSS (NVIDIA)</option>
-                           <option selected>FSR 3.0 (AMD/Universal)</option>
-                           <option>XeSS (Intel)</option>
-                        </select>
-                        <select className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9]">
-                           <option>Quality</option>
-                           <option selected>Balanced</option>
-                           <option>Performance</option>
-                        </select>
+                      <p className="text-[#8b949e] text-[11px] mb-3">Render at lower internal resolution and use AI to reconstruct high-quality images, plus insert AI-generated artificial frames to multiply FPS.</p>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex gap-2">
+                           <select className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9] flex-1">
+                              <option>DLSS (NVIDIA)</option>
+                              <option selected>FSR 3.0 (AMD/Universal)</option>
+                              <option>XeSS (Intel)</option>
+                           </select>
+                           <select className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9] flex-1">
+                              <option>Quality</option>
+                              <option selected>Balanced</option>
+                              <option>Performance</option>
+                           </select>
+                        </div>
+                        <label className="flex items-center justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d]">
+                           <div className="flex-[0.9]">
+                              <span className="text-[#c9d1d9] font-bold">Enable AI Frame Generation</span>
+                              <div className="text-[9px] text-[#8b949e]">Synthesizes intermediate frames to essentially double your framerate for extreme smoothness.</div>
+                           </div>
+                           <input type="checkbox" defaultChecked className="accent-[#bc8cff] w-4 h-4"/>
+                        </label>
                       </div>
                    </div>
                 </div>
@@ -154,26 +285,145 @@ export default function GraphicsRenderEditor() {
                    <div className="p-3 bg-[#e3b341]/10 rounded-lg text-[#e3b341]"><ServerCog size={24}/></div>
                    <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                         <h3 className="text-white font-bold text-[14px]">Real-Time Global Illumination (GI)</h3>
+                         <h3 className="text-white font-bold text-[14px]">Lighting Calculation Mode (GI & Reflections)</h3>
                          <label className="relative inline-flex items-center cursor-pointer">
                            <input type="checkbox" defaultChecked className="sr-only peer" />
                            <div className="w-9 h-5 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8b949e] peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#e3b341]"></div>
                          </label>
                       </div>
-                      <p className="text-[#8b949e] text-[11px] mb-3">Bounced lighting and reflections. Software Ray-Traced (SDF) provides high quality with low-spec requirements.</p>
-                      <div className="flex gap-4 items-center">
-                         <label className="flex items-center gap-2 text-[11px] text-[#c9d1d9]">
-                            <input type="radio" name="gi-mode" className="accent-[#e3b341]"/>
-                            Hardware Raytracing (RTX)
-                         </label>
+                      <p className="text-[#8b949e] text-[11px] mb-3">Balance between dynamic real-time computations and pre-calculated memory structures to maximize GPU performance.</p>
+                      <div className="flex gap-4 items-center flex-wrap mb-4">
                          <label className="flex items-center gap-2 text-[11px] text-[#c9d1d9]">
                             <input type="radio" name="gi-mode" defaultChecked className="accent-[#e3b341]"/>
-                            Software Tracing (SDF) - Fast
+                            Hardware RT (Dynamic)
                          </label>
                          <label className="flex items-center gap-2 text-[11px] text-[#c9d1d9]">
                             <input type="radio" name="gi-mode" className="accent-[#e3b341]"/>
-                            Baked Lightmaps (Mobile)
+                            Screen-Space (SSGI)
                          </label>
+                      </div>
+
+                      <div className="bg-[#0a0a0a] p-3 rounded border border-[#30363d] mb-4">
+                         <div className="flex justify-between items-center mb-2">
+                           <h4 className="text-[12px] text-[#58a6ff] font-bold">Dynamic RT Quality Scaling (VRAM Aware)</h4>
+                           <span className="text-[10px] bg-[#58a6ff]/20 text-[#58a6ff] px-2 py-0.5 rounded border border-[#58a6ff]/30">Target: 60+ FPS</span>
+                         </div>
+                         <p className="text-[11px] text-[#8b949e] mb-3">Automatically modulates hardware-accelerated ray limits and denoising algorithms on the fly based on VRAM capacity and frame-time thresholds.</p>
+                         <div className="space-y-3">
+                           <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-[#c9d1d9]">Max Bounce Depth Limit</span>
+                              <select className="bg-[#161b22] border border-[#30363d] text-[11px] text-white rounded px-2 py-1 outline-none min-w-[170px]">
+                                <option>Conservative (1 Bounce)</option>
+                                <option>Balanced (Auto 1-2 Bounces)</option>
+                                <option selected>Progressive (Auto 1-4 Bounces)</option>
+                                <option>Cinematic (8 Bounces - High Cost)</option>
+                              </select>
+                           </div>
+                           <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-[#c9d1d9]">Denoising Execution Pass</span>
+                              <select className="bg-[#161b22] border border-[#30363d] text-[11px] text-white rounded px-2 py-1 outline-none min-w-[170px]">
+                                <option>Spatial Filter Only (Fast)</option>
+                                <option selected>Temporal Reprojection (Medium)</option>
+                                <option>AI-Accelerated Engine (DLSS/XeSS)</option>
+                              </select>
+                           </div>
+                           <label className="flex items-start justify-between border-t border-[#30363d] pt-3 mt-1">
+                             <div className="flex-[0.9]">
+                               <span className="text-[11px] text-[#c9d1d9]">Half-Resolution Fallback (OOM Protection)</span>
+                               <div className="text-[9px] text-[#8b949e]">Traces rays at exactly 50% internal resolution and uses motion vectors to interpolate gaps during extreme VRAM starvation.</div>
+                             </div>
+                             <input type="checkbox" defaultChecked className="accent-[#e3b341] w-4 h-4"/>
+                           </label>
+                         </div>
+                      </div>
+
+                      <div className="border-t border-[#30363d] pt-3 mt-1 space-y-2">
+                         <h4 className="text-[11px] text-white font-bold mb-2">Screen Space Optimizations</h4>
+                         <label className="flex items-start justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d] mb-2">
+                           <div className="flex-[0.9]">
+                              <span className="text-[#c9d1d9] font-bold">Screen Space Reflection (SSR)</span>
+                              <div className="text-[9px] text-[#8b949e]">Calculates beautiful water and metallic reflections purely by sampling the pixels already rendered on-screen, ignoring out-of-bounds geometry. Dramatically outperforms Ray Tracing.</div>
+                           </div>
+                           <input type="checkbox" defaultChecked className="accent-[#e3b341] w-4 h-4"/>
+                         </label>
+
+                         <h4 className="text-[11px] text-white font-bold mb-2 mt-4">Static Optimization Strategies (Zero Runtime Cost)</h4>
+                         <label className="flex items-start justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d] mb-2">
+                           <div className="flex-[0.9]">
+                              <span className="text-[#c9d1d9] font-bold">Texture Baking</span>
+                              <div className="text-[9px] text-[#8b949e]">Fuse complex lighting, shadows, and ambient occlusion directly into surface texture maps offline. Negates the need for real-time calculation completely.</div>
+                           </div>
+                           <input type="checkbox" defaultChecked className="accent-[#e3b341] w-4 h-4"/>
+                         </label>
+                         <label className="flex items-start justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d]">
+                           <div className="flex-[0.9]">
+                              <span className="text-[#c9d1d9] font-bold">Precomputed Lightmapping</span>
+                              <div className="text-[9px] text-[#8b949e]">Store static directional light and shadow data for immobile objects (i.e. terrain, buildings) into a separate low-res coordinate map, severely reducing rendering burdens.</div>
+                           </div>
+                           <input type="checkbox" defaultChecked className="accent-[#e3b341] w-4 h-4"/>
+                         </label>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg flex items-start gap-4">
+                   <div className="p-3 bg-[#3fb950]/10 rounded-lg text-[#3fb950]"><Layers size={24}/></div>
+                   <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                         <h3 className="text-white font-bold text-[14px]">Object Rendering & Batching</h3>
+                         <label className="relative inline-flex items-center cursor-pointer">
+                           <input type="checkbox" defaultChecked className="sr-only peer" />
+                           <div className="w-9 h-5 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8b949e] peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3fb950]"></div>
+                         </label>
+                      </div>
+                      <p className="text-[#8b949e] text-[11px] mb-3">Group operations to relieve CPU bottlenecking when sending massive amounts of draw calls to the GPU.</p>
+                      <div className="space-y-3">
+                        <label className="flex items-start justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d]">
+                           <div className="flex-[0.9]">
+                              <span className="text-[#c9d1d9] font-bold">Instanced Rendering (GPU Instancing)</span>
+                              <div className="text-[9px] text-[#8b949e]">Draws thousands of identical objects (like grass blades, trees, or crowds) in a single GPU command by passing transform matrices to the shader, effectively erasing CPU processing constraints.</div>
+                           </div>
+                           <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
+                        </label>
+                        <label className="flex items-start justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d]">
+                           <div className="flex-[0.9]">
+                              <span className="text-[#c9d1d9] font-bold">Draw Call Batching</span>
+                           <div className="text-[9px] text-[#8b949e]">Merges multiple separate objects sharing the exact same Material/Texture into a single coherent mesh just before rendering, keeping GPU command queues short.</div>
+                           </div>
+                           <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
+                        </label>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg flex items-start gap-4">
+                   <div className="p-3 bg-[#f85149]/10 rounded-lg text-[#f85149]"><Zap size={24}/></div>
+                   <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                         <h3 className="text-white font-bold text-[14px]">Shadow Rendering Pipeline</h3>
+                         <label className="relative inline-flex items-center cursor-pointer">
+                           <input type="checkbox" defaultChecked className="sr-only peer" />
+                           <div className="w-9 h-5 bg-[#30363d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#8b949e] peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#f85149]"></div>
+                         </label>
+                      </div>
+                      <p className="text-[#8b949e] text-[11px] mb-3">Optimize shadow resolution and rendering methods for better performance and lighting fidelity.</p>
+                      <div className="flex gap-4 items-center mb-3">
+                         <label className="flex items-center gap-2 text-[11px] text-[#c9d1d9]" title="Divides the camera frustum into multiple cascades (LODs) to prioritize shadow resolution near the player while using low-res shadows for distant objects.">
+                            <input type="radio" name="shadow-mode" className="accent-[#f85149]"/>
+                            Cascaded Shadows (Shadow LOD)
+                         </label>
+                         <label className="flex items-center gap-2 text-[11px] text-[#c9d1d9]">
+                            <input type="radio" name="shadow-mode" defaultChecked className="accent-[#f85149]"/>
+                            Virtual Shadow Maps (VSM)
+                         </label>
+                         <label className="flex items-center gap-2 text-[11px] text-[#c9d1d9]">
+                            <input type="radio" name="shadow-mode" className="accent-[#f85149]"/>
+                            Ray-Traced Shadows
+                         </label>
+                      </div>
+                      <div className="p-2 bg-[#f85149]/10 border border-[#f85149]/20 rounded text-[11px] text-[#f85149] flex gap-2 items-start mt-2">
+                         <Info size={14} className="shrink-0 mt-0.5"/>
+                         <p><strong>VSM Memory Optimization Active:</strong> High-fidelity shadows are paged dynamically into VRAM using Sparse Virtual Textures. Static object shadows are permanently cached, eradicating cascaded draw call overhead and massively reducing active memory bandwidth footprint.</p>
                       </div>
                    </div>
                 </div>
@@ -209,27 +459,47 @@ export default function GraphicsRenderEditor() {
                      <input type="checkbox" className="accent-[#3fb950] w-4 h-4"/>
                   </div>
                   
-                  <div className="p-3 bg-[#3fb950]/10 border border-[#3fb950]/20 rounded text-[11px] text-[#3fb950] flex gap-2 items-start">
+                  <div className="p-3 bg-[#3fb950]/10 border border-[#3fb950]/20 rounded text-[11px] text-[#3fb950] flex gap-2 items-start mb-4">
                      <Info size={14} className="shrink-0 mt-0.5"/>
-                     <p>When enabled, standard LODs are ignored. Geometry is directly streamed from disk to GPU memory based on screen cluster projection.</p>
+                     <p>When enabled, standard LODs are ignored. Geometry is directly streamed from disk to GPU memory based on screen cluster projection (Nanite architecture).</p>
                   </div>
+
+                  <h3 className="text-white font-bold border-b border-[#30363d] pb-2 mt-6">Hardware Tessellation</h3>
+                  <p className="text-[#8b949e] text-[11px] mb-2">Dynamically subdivides coarse polygons into finer geometry in real-time as the camera approaches. Perfect for creating highly detailed displacements (like snow tracks or cobblestones) without heavy base meshes.</p>
+                  <label className="flex items-center justify-between text-[11px] bg-[#0d1117] p-2 rounded border border-[#30363d]">
+                     <span className="text-[12px] font-bold text-[#c9d1d9]">Enable Distance-Based Tessellation</span>
+                     <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
+                  </label>
                 </div>
 
                 <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg space-y-4">
                   <h3 className="text-white font-bold border-b border-[#30363d] pb-2">Frustum & Occlusion Culling</h3>
-                  <p className="text-[#8b949e] text-[11px]">Do not render what the camera cannot see or what is blocked by other objects. Saves massive GPU cycles.</p>
+                  <p className="text-[#8b949e] text-[11px]">Aggressively purge unviewable meshes to preserve GPU rasterization cycles.</p>
 
                   <div className="space-y-2">
                      <label className="flex items-center justify-between text-[11px]">
-                        <span className="text-[#c9d1d9]">Frustum Culling</span>
+                        <div>
+                           <span className="text-[#c9d1d9] font-bold">Frustum Culling</span>
+                           <div className="text-[9px] text-[#8b949e]">Instantly skip rendering of objects positioned outside the camera's active Field of View (FOV).</div>
+                        </div>
                         <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
                      </label>
-                     <label className="flex items-center justify-between text-[11px]">
-                        <span className="text-[#c9d1d9]">GPU Culling (Compute Shader)</span>
+                     <label className="flex items-center justify-between text-[11px] mt-2">
+                        <div>
+                           <span className="text-[#c9d1d9] font-bold">Occlusion Culling (HZB)</span>
+                           <div className="text-[9px] text-[#8b949e]">Avoid processing objects completely obscured by other solid objects (e.g., hidden behind walls) using Hierarchical Z-Buffer depth testing.</div>
+                        </div>
                         <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
                      </label>
+                  </div>
+
+                  <h3 className="text-white font-bold border-b border-[#30363d] pb-2 pt-4">Animation & Simulation Culling</h3>
+                  <div className="space-y-2">
                      <label className="flex items-center justify-between text-[11px]">
-                        <span className="text-[#c9d1d9]">Hierarchical Z-Buffer Occlusion</span>
+                        <div>
+                           <span className="text-[#c9d1d9] font-bold">Animation Culling / Tick Suppression</span>
+                           <div className="text-[9px] text-[#8b949e]">Halt complex bone calculations and IK logic for distant or off-screen NPCs, liberating the CPU.</div>
+                        </div>
                         <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
                      </label>
                   </div>
@@ -248,111 +518,206 @@ export default function GraphicsRenderEditor() {
 
           {activeTab === 'smart-lod' && (
             <div className="space-y-6">
+
               <div className="bg-[#161b22] border border-[#a371f7]/40 rounded-lg p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[#a371f7] rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-pulse"></div>
+                <div className="absolute top-0 right-0 w-96 h-96 bg-[#a371f7] rounded-full mix-blend-multiply filter blur-[140px] opacity-20 animate-pulse"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#58a6ff] rounded-full mix-blend-multiply filter blur-[120px] opacity-10"></div>
+                
                 <div className="flex items-start justify-between relative z-10">
                   <div>
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2"><Box className="text-[#a371f7]"/> Intelligent LOD & Virtual Geometry Pipeline</h2>
-                    <p className="text-[#8b949e] text-sm mt-2 max-w-2xl leading-relaxed">A Deterministic (Non-AI) system engineered for hyper-realistic graphics on minimal hardware. Streams millions of polygons by strictly aligning geometry data with screen-space pixel projection, bypassing CPU bottlenecks.</p>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2"><Box className="text-[#a371f7]"/> Infinite Polygon Scaling (Micro-Mesh Engine) <span className="ml-2 bg-[#3fb950]/20 text-[#3fb950] text-[10px] uppercase font-bold py-1 px-2 rounded-full border border-[#3fb950]/30 animate-pulse tracking-widest hidden sm:flex items-center gap-1"><Zap size={10} className="fill-[#3fb950] text-[#3fb950]"/> Fully Autonomous</span></h2>
+                    <p className="text-[#8b949e] text-sm mt-3 max-w-3xl leading-relaxed">
+                       A deterministic, next-generation geometric virtualization system engineered for hyper-realistic graphics on minimal hardware constraints. Whether rendering a dense game world, a full-scale architectural CAD model, or a high-fidelity cinematic scene containing over <strong className="text-[#a371f7]">10,000,000,000,000 (10 Trillion+) polygons</strong>, the engine natively collapses the geometry DAG (Directed Acyclic Graph) in real-time. 
+                       <br/><br/>
+                       Crucially, <strong className="text-white">original model files are NEVER reduced, decimated, or altered</strong>. The engine rigorously evaluates continuous screen-space error bounds to guarantee pixel-perfect representation, dynamically filtering the geometry to enforce a strict rendering budget of exactly <strong className="text-[#3fb950]">100,000 triangles</strong> active in the camera frustum at any given time. 
+                       <br/><br/>
+                       <span className="text-[#c9d1d9] border-l-2 border-[#3fb950] pl-3 py-0.5 block italic bg-[#3fb950]/5">This entire pipeline is 100% autonomous both in-game and during editing. No manual LODs, no stuttering—just flawless, cinematic visual fidelity at a perfectly locked frame rate.</span>
+                    </p>
                   </div>
-                  <button className="bg-[#a371f7] hover:bg-[#a371f7]/80 text-[#0a0a0a] font-bold px-6 py-3 rounded-lg flex items-center gap-2 shadow-[0_0_20px_rgba(163,113,247,0.3)] transition-all">
-                    <DatabaseZap size={18}/> Rebuild LOD Clusters
+                  <button className="bg-[#a371f7] hover:bg-[#a371f7]/80 text-[#0a0a0a] font-bold px-6 py-3 rounded-lg flex items-center gap-2 shadow-[0_0_20px_rgba(163,113,247,0.3)] transition-all shrink-0">
+                    <DatabaseZap size={18}/> Bake DAG Hierarchy
                   </button>
+                </div>
+                
+                <div className="mt-6 relative z-10 bg-[#0d1117] border border-[#30363d] rounded-lg p-5 flex flex-col items-center">
+                    <div className="w-full flex flex-col md:flex-row gap-8 items-center h-full">
+                       
+                       {/* Source Complexity */}
+                       <div className="flex-1 w-full space-y-3">
+                           <div className="flex justify-between items-center text-[11px] font-bold">
+                               <span className="text-[#c9d1d9] uppercase tracking-wider flex items-center gap-2"><Layers size={14} className="text-[#a371f7]"/> Uncompressed Scene Complexity</span>
+                               <span className="text-[#a371f7] font-mono text-[16px] drop-shadow-[0_0_8px_rgba(163,113,247,0.8)]">10,000,000,000,000+ Triangles</span>
+                           </div>
+                           <div className="w-full h-3 bg-[#111] rounded overflow-hidden shadow-inner border border-[#30363d]/50 relative">
+                              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zOSA0MHYtNDBoMXY0MEgzOXptLTQtNDBoMXY0MGgtMXYtNDB6IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4=')]"></div>
+                              <div className="h-full bg-gradient-to-r from-[#a371f7] via-[#bc8cff] to-[#f85149] w-[98%] transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(163,113,247,0.5)]"></div>
+                           </div>
+                           <div className="text-[10px] text-[#8b949e]">Original unoptimized geometry (e.g. ZBrush sculpts, raw LiDAR point clouds, unoptimized CAD engineering parts) taking petabytes if loaded to RAM.</div>
+                           
+                           <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#30363d] to-transparent my-4"></div>
+
+                           {/* Render Budget */}
+                           <div className="flex justify-between items-center text-[11px] font-bold">
+                               <span className="text-[#c9d1d9] uppercase tracking-wider flex items-center gap-2"><Target size={14} className="text-[#3fb950]"/> Filtered Frustum Render Budget</span>
+                               <span className="text-[#3fb950] font-mono text-[16px] drop-shadow-[0_0_8px_rgba(63,185,80,0.8)]">100,000 Triangles</span>
+                           </div>
+                           <div className="w-full h-3 bg-[#111] rounded overflow-hidden shadow-inner border border-[#30363d]/50">
+                              <div className="h-full bg-[#3fb950] w-[1%] shadow-[0_0_10px_rgba(63,185,80,0.8)] relative">
+                                 <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                              </div>
+                           </div>
+                           <div className="text-[10px] text-[#3fb950]">Memory footprint dynamically capped. Sub-pixel triangles merged via BVH node evaluation. Invisible to the naked eye.</div>
+                       </div>
+
+                       <div className="w-[1px] h-32 bg-[#30363d] hidden md:block"></div>
+
+                       {/* Stats */}
+                       <div className="flex flex-row md:flex-col items-center justify-center gap-6 md:w-48 shrink-0">
+                           <div className="text-center w-full bg-[#161b22] border border-[#30363d] rounded-lg p-3">
+                               <div className="text-[10px] text-[#8b949e] uppercase font-bold mb-1">Guaranteed Output</div>
+                               <div className="text-4xl font-mono font-bold text-[#3fb950]">120<span className="text-[14px]">FPS</span></div>
+                           </div>
+                           <div className="text-center w-full bg-[#161b22] border border-[#30363d] rounded-lg p-3">
+                               <div className="text-[10px] text-[#8b949e] uppercase font-bold mb-1">Perceived Fidelity</div>
+                               <div className="text-4xl font-mono font-bold text-[#58a6ff]">100<span className="text-[14px]">%</span></div>
+                           </div>
+                       </div>
+                    </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* 1. Micro-Polygon */}
-                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5">
+                {/* 1. BVH Cluster Partitioning */}
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5 hover:border-[#a371f7]/50 transition-colors">
                   <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
                      <div className="p-2 bg-[#a371f7]/10 rounded-lg text-[#a371f7]"><Target size={18}/></div>
-                     <h3 className="text-white font-bold text-[13px]">1. Micro-Polygon Virtualized Geometry</h3>
+                     <h3 className="text-white font-bold text-[13px]">1. BVH Cluster Partitioning (DAG)</h3>
                   </div>
                   <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
-                     Groups dense triangles into clusters. Strictly streams and renders clusters resolving only to the screen's pixel size. Unloads unseen clusters from VRAM instantly.
+                     Trillions of source triangles are grouped into hierarchical bounding volume clusters (max 128 triangles each). The engine evaluates the screen-space error of every cluster node. If a detailed cluster occupies less than a pixel on screen, it mathematically collapses to a simplified parent node seamlessly without any visible LOD "popping".
                   </p>
-                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d]">
-                     <span className="text-white font-bold">Enable Cluster Streaming</span>
+                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d] cursor-pointer hover:bg-[#21262d] transition-colors">
+                     <span className="text-white font-bold">Continuous Screen-Space Error Bound</span>
                      <input type="checkbox" defaultChecked className="accent-[#a371f7] w-4 h-4"/>
                   </label>
                 </div>
 
-                {/* 2. Hardware Instancing */}
-                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5">
+                {/* 2. Direct NVMe Streaming */}
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5 hover:border-[#58a6ff]/50 transition-colors">
                   <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
-                     <div className="p-2 bg-[#3fb950]/10 rounded-lg text-[#3fb950]"><Layers size={18}/></div>
-                     <h3 className="text-white font-bold text-[13px]">2. Hardware Instancing & GPU Culling</h3>
+                     <div className="p-2 bg-[#58a6ff]/10 rounded-lg text-[#58a6ff]"><ServerCog size={18}/></div>
+                     <h3 className="text-white font-bold text-[13px]">2. Direct NVMe-to-VRAM Paging</h3>
                   </div>
                   <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
-                     Dispatches bounding boxes directly to Compute Shaders for hardware frustum culling. Render 100,000 dense actors (like trees or crowds) with massive draw call reduction.
+                     Storing trillions of polygons in RAM is physically impossible. This engine bypasses the CPU and System RAM entirely by utilizing DirectStorage, directly paging required cluster data blocks from the NVMe SSD into a fixed-size 512MB VRAM ring buffer exactly when the camera looks at them.
                   </p>
-                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d]">
-                     <span className="text-white font-bold">Strict GPU Compute Culling</span>
+                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d] cursor-pointer hover:bg-[#21262d] transition-colors">
+                     <span className="text-white font-bold">On-Demand Cluster Streaming (Zero-Copy)</span>
+                     <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-4 h-4"/>
+                  </label>
+                </div>
+
+                {/* 3. Compute Shader Software Rasterization */}
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5 hover:border-[#3fb950]/50 transition-colors">
+                  <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
+                     <div className="p-2 bg-[#3fb950]/10 rounded-lg text-[#3fb950]"><Cpu size={18}/></div>
+                     <h3 className="text-white font-bold text-[13px]">3. Hybrid Hardware/Software Rasterization</h3>
+                  </div>
+                  <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
+                     Traditional hardware rasterizers choke on microscopic triangles. When virtual triangles shrink to sub-pixel sizes (≤ 1 pixel), the pipeline automatically redirects them to highly parallelized software rasterizer Compute Shaders, avoiding the fixed-function quad-rasterization bottlenecks altogether.
+                  </p>
+                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d] cursor-pointer hover:bg-[#21262d] transition-colors">
+                     <span className="text-white font-bold">Asynchronous Compute Rasterization</span>
                      <input type="checkbox" defaultChecked className="accent-[#3fb950] w-4 h-4"/>
                   </label>
                 </div>
 
-                {/* 3. VSM & SSGI */}
-                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5">
-                  <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
-                     <div className="p-2 bg-[#e3b341]/10 rounded-lg text-[#e3b341]"><Zap size={18}/></div>
-                     <h3 className="text-white font-bold text-[13px]">3. Virtual Shadow Maps (VSM) & SSGI</h3>
-                  </div>
-                  <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
-                     Virtualizes shadow maps strictly where shadow fidelity is needed based on screen projection. Fused with Screen-Space Global Illumination for light bounce.
-                  </p>
-                  <div className="flex items-center gap-3 bg-[#161b22] p-3 rounded border border-[#30363d]">
-                     <span className="text-[11px] font-bold text-white whitespace-nowrap">VSM Resolution</span>
-                     <input type="range" className="flex-1 accent-[#e3b341]" min="1" max="4" defaultValue="2" />
-                     <span className="text-[11px] text-[#e3b341] font-mono">Dynamic</span>
-                  </div>
-                </div>
-
-                {/* 4. HZB Occlusion */}
-                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5">
+                {/* 4. HZB Occlusion Culling */}
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5 hover:border-[#f85149]/50 transition-colors">
                   <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
                      <div className="p-2 bg-[#f85149]/10 rounded-lg text-[#f85149]"><Maximize size={18}/></div>
-                     <h3 className="text-white font-bold text-[13px]">4. HZB Occlusion Culling</h3>
+                     <h3 className="text-white font-bold text-[13px]">4. 100% Granular GPU Culling</h3>
                   </div>
                   <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
-                     Hierarchical Z-Buffer tests depth before the main render pass. Objects entirely occluded by closer solid walls are aggressively discarded to save VRAM and Cycles.
+                     Leverages Two-Pass Hierarchical Z-Buffer (HZB). Millions of clusters are evaluated against previous-frame depth buffers on the GPU. Any cluster fully blocked by a closer object (e.g., a screw inside a motor block, or an entire city behind a wall) is instantly discarded in nanoseconds before vertex processing begins.
                   </p>
-                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d]">
-                     <span className="text-white font-bold">Two-Pass Early-Z Depth</span>
+                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d] cursor-pointer hover:bg-[#21262d] transition-colors">
+                     <span className="text-white font-bold">Strict GPU HZB Occlusion Pass</span>
                      <input type="checkbox" defaultChecked className="accent-[#f85149] w-4 h-4"/>
+                  </label>
+                </div>
+
+                {/* 5. ML Predictive Frustum Prefetching */}
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5 hover:border-[#ff7b72]/50 transition-colors">
+                  <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
+                     <div className="p-2 bg-[#ff7b72]/10 rounded-lg text-[#ff7b72]"><Zap size={18}/></div>
+                     <h3 className="text-white font-bold text-[13px]">5. ML Predictive Camera Prefetching</h3>
+                  </div>
+                  <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
+                     A lightweight machine-learning agent predicts camera velocity vectors and player pathing. It actively preloads massive VRAM geometry pages milliseconds <i>before</i> they enter the frustum, completely eradicating traversal stutter and guaranteeing a smooth experience at extreme speeds.
+                  </p>
+                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d] cursor-pointer hover:bg-[#21262d] transition-colors">
+                     <span className="text-white font-bold">ML Predictive Traversal Cache</span>
+                     <input type="checkbox" defaultChecked className="accent-[#ff7b72] w-4 h-4"/>
+                  </label>
+                </div>
+
+                {/* 6. Sub-Pixel Fractional Precision */}
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5 hover:border-[#bc8cff]/50 transition-colors">
+                  <div className="flex items-center gap-3 mb-3 border-b border-[#30363d] pb-3">
+                     <div className="p-2 bg-[#bc8cff]/10 rounded-lg text-[#bc8cff]"><Target size={18}/></div>
+                     <h3 className="text-white font-bold text-[13px]">6. Sub-Pixel Fractional Precision</h3>
+                  </div>
+                  <p className="text-[#8b949e] text-[11px] leading-relaxed mb-4">
+                     Extends filtering accuracy beyond standard pixels. Geometry edges are evaluated fractionally for sub-pixel anti-aliasing during software rasterization. This generates cinematic-grade, razor-sharp silhouettes for microscopic details without the crushing performance cost of MSAA or Supersampling.
+                  </p>
+                  <label className="flex items-center justify-between text-[12px] bg-[#161b22] p-3 rounded border border-[#30363d] cursor-pointer hover:bg-[#21262d] transition-colors">
+                     <span className="text-white font-bold">Fractional Anti-Aliased Silhouettes</span>
+                     <input type="checkbox" defaultChecked className="accent-[#bc8cff] w-4 h-4"/>
                   </label>
                 </div>
                 
               </div>
 
-               {/* 5. Virtual Texturing */}
-              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6 flex flex-col md:flex-row gap-6 items-center">
+               {/* 5. Application Scope */}
+              <div className="bg-[#161b22] border border-[#e3b341]/40 rounded-lg p-6 flex flex-col md:flex-row gap-6 items-center">
                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                       <div className="p-2 bg-[#58a6ff]/10 rounded-lg text-[#58a6ff]"><ServerCog size={18}/></div>
-                       <h3 className="text-white font-bold text-[14px]">5. Sparse Virtual Texturing (SVT)</h3>
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="p-2 bg-[#e3b341]/10 rounded-lg text-[#e3b341]"><Box size={18}/></div>
+                       <h3 className="text-white font-bold text-[14px]">Universal Industry Application</h3>
                     </div>
                     <p className="text-[#8b949e] text-[12px] leading-relaxed">
-                       Shatters 8K environment textures into tiles. Only loads the exact MIP tiles actively visible by the camera into a fixed-size texture cache pool. Limits total texture VRAM overhead across vast open worlds to under 2GB, regardless of world scale.
+                       This technology extends far beyond next-generation gaming. It radically transforms how professional software handles massive datasets. Industrial designers can natively load untouched multi-billion-polygon assemblies from Solidworks or Catia. Geospatial operations can stream city-scale Drone/LiDAR point cloud scans instantly, while cinematography studios deploy film-quality unoptimized ZBrush assets directly into real-time sets.
                     </p>
                  </div>
-                 <div className="w-full md:w-64 bg-[#0d1117] p-3 border border-[#30363d] rounded space-y-3">
-                    <div className="flex justify-between items-center text-[10px]">
-                       <span className="text-[#c9d1d9]">Physical Memory Cache</span>
-                       <span className="text-[#58a6ff] font-bold">512 MB</span>
+                 <div className="w-full md:w-72 bg-[#0d1117] p-4 border border-[#30363d] rounded-lg space-y-4 shadow-lg shrink-0">
+                    <div className="text-[10px] text-[#c9d1d9] font-bold uppercase tracking-wider mb-2 border-b border-[#30363d] pb-2">Active Use-Case Targets</div>
+                    
+                    <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e] flex items-center gap-2"><div className="w-2 h-2 bg-[#a371f7] rounded-full"></div> Next-Gen Gaming</span>
+                       <span className="text-[#c9d1d9] font-bold">Enabled</span>
                     </div>
-                    <div className="w-full h-1.5 bg-[#222] rounded overflow-hidden">
-                       <div className="h-full bg-[#58a6ff] w-[45%]"></div>
+                    <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e] flex items-center gap-2"><div className="w-2 h-2 bg-[#e3b341] rounded-full"></div> CAD & Engineering</span>
+                       <span className="text-[#c9d1d9] font-bold">Enabled</span>
                     </div>
-                    <div className="flex justify-between text-[10px]">
-                       <span className="text-[#8b949e]">Tiles in Memory: 4,120</span>
-                       <span className="text-[#8b949e]">Max: 10,000</span>
+                    <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e] flex items-center gap-2"><div className="w-2 h-2 bg-[#ff7b72] rounded-full"></div> VFX & Virtual Production</span>
+                       <span className="text-[#c9d1d9] font-bold">Enabled</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                       <span className="text-[#8b949e] flex items-center gap-2"><div className="w-2 h-2 bg-[#58a6ff] rounded-full"></div> LiDAR Point Clouds</span>
+                       <span className="text-[#c9d1d9] font-bold">Enabled</span>
                     </div>
                  </div>
               </div>
 
             </div>
+          )}
+
+          {activeTab === 'shaders' && (
+            <ShaderCompiler />
           )}
 
         </div>

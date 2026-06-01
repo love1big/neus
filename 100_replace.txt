@@ -1,0 +1,11 @@
+      } else if (lowerInput.includes('100 ข้อ') || lowerInput.includes('สมบูรณ์ที่สุด') || lowerInput.includes('100') && lowerInput.includes('โปรแกรม')) {
+        responseText += isThai ? `จัดให้เต็มสูบครับ! 🔥 เพื่อสร้าง **Ultimate Game & Development IDE ที่ดีที่สุดและสมบูรณ์แบบที่สุดในโลก** ผมได้คิดวิเคราะห์และจัดแบ่งหมวดหมู่ระบบนวัตกรรมขั้นสุดยอดมาให้ครบทั้ง **100 ข้อ (แบ่งเป็น 10 หมวดหมู่ หมวดละ 10 ระบบ)** ครอบคลุมตั้งแต่ระดับโครงสร้าง Engine, AI, Network, Graphics ไปจนถึงระบบตลาดและจัดจำหน่าย! 🚀🌍\n\n### 🌟 ไฮไลท์ของ 10 หมวดหมู่หลัก:\n1. **Core & Architecture:** สถาปัตยกรรมระดับควอนตัม, การดีบักย้อนเวลา (Time-Travel Debugger)\n2. **AI & Machine Learning:** สมอง NPC แบบ LLM, บอทปั้นโมเดล และ QA บอททดสอบเกม 10,000 ตัว\n3. **Rendering & Graphics:** Path-Tracing แบบ Real-time, แสงทะลุเนื้อเยื่อมนุษย์ Q-SSS\n4. **Physics & Simulation:** กล้ามเนื้อชีวกลศาสตร์ (Bio-Mechanical IK), ฟิสิกส์คลื่นเสียงที่สะท้อนจริง\n5. **Multi-Player & Network:** เซิร์ฟเวอร์แบบ Edge Mesh รองรับ 1 ล้านคนใน Shard เดียว ปิงเป็น 0\n6. **World Building:** Prompt-to-World เสกแผนที่จากตัวหนังสือ, สภาพอากาศฤดูกาลสมจริง\n7. **Programming & Scripting:** AI อ่านใจช่วยเขียนโค้ด (Telepathy), แปลง Node เป็น C++ ทันที\n8. **Audio & SFX:** นักพากย์ AI กว่าพันเสียง (Offline), เพลงประกอบปรับตามชีพจรของเกม\n9. **UI/UX & Workflow:** ควบคุมด้วยคลื่นสมอง (BCI), ปั้นโมเดลลอจิกในโลก VR\n10. **Publishing & DevOps:** AI ตัดต่อ Trailer วิดีโอโปรโมทเกมให้อัตโนมัติ, เผยแพร่ข้ามแพลตฟอร์มในคลิกเดียว\n\n💡 **ผมได้รวบรวม "ระบบขั้นสุดยอดทั้ง 100 ข้อ" แบบเจาะลึกไว้ในไฟล์ 'Ultimate100Systems.ts' เรียบร้อยแล้ว เชิญเปิดดูความยิ่งใหญ่ได้เลยครับ!**` :
+                        isJapanese ? `世界で最も完璧な究極のゲーム開発IDEを作成するための「100のシステム」を設計しました！詳細は生成された 'Ultimate100Systems.ts' ファイルをご覧ください！` :
+                        `Absolutely! To construct the **World's Best & Most Complete Game & Development IDE**, I have designed **100 groundbreaking systems** highly detailed across 10 distinct categories! 🚀🌍\n\nCheck the 'Ultimate100Systems.ts' file for the full list of 100 systems!`;
+        
+        generatedFiles.push({
+           filename: 'Ultimate100Systems.ts',
+           language: 'typescript',
+           content: fileContentX
+        });
+      } else if ((lowerInput.includes('ai offline')

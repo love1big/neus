@@ -100,7 +100,7 @@ export default function ModelingEditor() {
         </div>
 
         {/* Viewport */}
-        <div className="flex-1 relative bg-[#050505] flex flex-col group">
+        <div className="flex-1 relative bg-[#050505] flex flex-col group overflow-hidden">
           <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
             {/* Grid */}
             <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: 'linear-gradient(#58a6ff 1px, transparent 1px), linear-gradient(90deg, #58a6ff 1px, transparent 1px)', backgroundSize: '40px 40px', transform: 'perspective(500px) rotateX(60deg) scale(2)', transformOrigin: 'center 80%' }}></div>
@@ -108,18 +108,118 @@ export default function ModelingEditor() {
             <div className="absolute w-[2px] h-[50%] bg-[#3fb950] blur-[1px] top-1/4"></div>
             <div className="absolute w-[50%] h-[2px] bg-[#f85149] blur-[1px] left-1/4"></div>
             
-            {/* Wireframe Placeholder */}
+            {/* Detailed Wireframe Placeholder */}
             {activeTab === 'Blender' && (
-               <div className="w-48 h-48 border border-[#58a6ff] absolute shadow-[0_0_20px_rgba(88,166,255,0.2)] flex items-center justify-center" style={{ transform: 'rotateX(60deg) rotateZ(45deg)'}}>
-                  <div className="w-full h-full border border-[#58a6ff]/50 absolute rotate-45"></div>
-                  <div className="w-full h-full border border-[#58a6ff]/50 absolute -rotate-45"></div>
+               <div className="relative pointer-events-auto cursor-crosshair">
+                 <div className="w-48 h-48 border border-[#58a6ff] absolute shadow-[0_0_20px_rgba(88,166,255,0.2)] flex items-center justify-center transition-transform hover:scale-105" style={{ transform: 'rotateX(60deg) rotateZ(45deg)'}}>
+                    {/* Subdivision grid */}
+                    <div className="absolute inset-0 grid grid-cols-4 grid-rows-4">
+                      {Array.from({length: 16}).map((_, i) => (
+                         <div key={i} className={`border border-[#58a6ff]/30 ${i === 5 ? 'bg-[#e3b341]/40 border-[#e3b341] shadow-[inset_0_0_10px_#e3b341]' : 'hover:bg-[#58a6ff]/20'}`}></div>
+                      ))}
+                    </div>
+                    {/* Vertex points */}
+                    <div className="absolute -top-1 -left-1 w-2 h-2 bg-white rounded-full"></div>
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white rounded-full"></div>
+                    <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-[#e3b341] rounded-full scale-150 animate-pulse"></div>
+                 </div>
+                 
+                 {/* Extruded box representation */}
+                 <svg className="absolute inset-0 w-96 h-96 -translate-x-24 -translate-y-24 overflow-visible pointer-events-none stroke-[#58a6ff]">
+                    <line x1="85" y1="180" x2="165" y2="40" strokeWidth="1" className="opacity-40" />
+                    <line x1="165" y1="40" x2="340" y2="40" strokeWidth="1" className="opacity-40" />
+                    <line x1="280" y1="180" x2="340" y2="40" strokeWidth="1" className="opacity-40" />
+                    {/* Selected Extrusion indicator */}
+                    <polygon points="165,40 340,40 280,180" fill="rgba(227,179,65,0.1)" stroke="#e3b341" strokeWidth="2" strokeDasharray="4 4" className="animate-[dash_1s_linear_infinite]" />
+                 </svg>
                </div>
             )}
+            
+            {activeTab === 'Rigging' && (
+               <div className="relative w-full h-full flex items-center justify-center">
+                 {/* Character Mesh Ghost */}
+                 <div className="absolute w-32 h-64 border-2 border-[#58a6ff]/20 rounded-[50px] shadow-[inset_0_0_30px_rgba(88,166,255,0.1)]"></div>
+                 
+                 {/* Bone Hierarchy */}
+                 <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#e3b341] overflow-visible" style={{ transform: 'rotateY(15deg)' }}>
+                    {/* Spine */}
+                    <circle cx="50%" cy="70%" r="5" fill="#e3b341" />
+                    <path d="M 50% 70% L 50% 50%" strokeWidth="4" />
+                    <circle cx="50%" cy="50%" r="5" fill="#e3b341" />
+                    <path d="M 50% 50% L 50% 30%" strokeWidth="4" />
+                    <circle cx="50%" cy="30%" r="6" fill="#f85149" className="animate-pulse" /> {/* Selected Bone */}
+                    
+                    {/* Left Arm */}
+                    <path d="M 50% 30% L 40% 35%" strokeWidth="3" />
+                    <circle cx="40%" cy="35%" r="4" fill="#e3b341" />
+                    <path d="M 40% 35% L 35% 50%" strokeWidth="3" />
+                    <circle cx="35%" cy="50%" r="3" fill="#e3b341" />
+                    
+                    {/* Right Arm */}
+                    <path d="M 50% 30% L 60% 35%" strokeWidth="3" />
+                    <circle cx="60%" cy="35%" r="4" fill="#e3b341" />
+                    <path d="M 60% 35% L 65% 50%" strokeWidth="3" />
+                    <circle cx="65%" cy="50%" r="3" fill="#e3b341" />
+                    
+                    {/* Head */}
+                    <path d="M 50% 30% L 50% 20%" strokeWidth="2" />
+                    <circle cx="50%" cy="20%" r="5" fill="#e3b341" />
+                 </svg>
+                 
+                 {/* Inverse Kinematics Controller Mock */}
+                 <div className="absolute top-[20%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-2 border-dashed border-[#f85149] rounded-full animate-spin"></div>
+               </div>
+            )}
+            
             {activeTab === 'ZBrush' && (
-                <div className="w-56 h-56 rounded-full bg-gradient-to-tr from-[#310c0c] to-[#9e2c2c] shadow-[inset_0_0_50px_rgba(0,0,0,0.8),_0_0_30px_rgba(248,81,73,0.1)] absolute blur-[0.5px]">
-                   <div className="w-full h-full rounded-full mix-blend-overlay opacity-30 bg-[url('https://transparenttextures.com/patterns/black-scales.png')]"></div>
+                <div className="relative">
+                  <div className="w-56 h-56 rounded-full bg-gradient-to-tr from-[#310c0c] to-[#9e2c2c] shadow-[inset_0_0_50px_rgba(0,0,0,0.8),_0_0_30px_rgba(248,81,73,0.1)] absolute blur-[0.5px] -translate-x-28 -translate-y-28">
+                     <div className="w-full h-full rounded-full mix-blend-overlay opacity-30 bg-[url('https://transparenttextures.com/patterns/black-scales.png')]"></div>
+                     <div className="absolute inset-0 rounded-full" style={{ backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 40%)'}}></div>
+                  </div>
+                  {/* Viewport Sculpt Brush Cursor Effect */}
+                  <div className="absolute -translate-x-1/2 -translate-y-1/2 left-[20px] top-[-30px] w-12 h-12 border border-[#f85149] rounded-full bg-[#f85149]/10 shadow-[0_0_15px_#f85149]">
+                     <div className="absolute inset-0 flex items-center justify-center text-[8px] text-[#f85149] font-bold">Falloff</div>
+                  </div>
+                  {/* Topological Density Map */}
+                  <svg className="absolute inset-0 w-[500px] h-[500px] -translate-x-[250px] -translate-y-[250px] pointer-events-none opacity-40">
+                     <circle cx="280" cy="220" r="40" fill="url(#density)" />
+                     <defs>
+                        <radialGradient id="density">
+                           <stop offset="0%" stopColor="#bc8cff" />
+                           <stop offset="100%" stopColor="transparent" />
+                        </radialGradient>
+                     </defs>
+                  </svg>
                 </div>
             )}
+            
+            {activeTab === 'AI' && (
+               <div className="relative flex items-center justify-center w-full h-full">
+                  <div className="absolute inset-0 bg-[#bc8cff]/5"></div>
+                  {/* Point Cloud Generation Logic */}
+                  <div className="relative w-64 h-64 perspective-1000 animate-pulse">
+                     <div className="w-full h-full" style={{ transform: 'rotateX(60deg) rotateZ(45deg)', transformStyle: 'preserve-3d' }}>
+                       {Array.from({length: 100}).map((_, i) => (
+                          <div key={i} className="absolute w-1 h-1 bg-[#bc8cff] rounded-full shadow-[0_0_5px_#bc8cff]" style={{ 
+                             left: `${Math.random() * 100}%`, 
+                             top: `${Math.random() * 100}%`,
+                             transform: `translateZ(${Math.random() * 100 - 50}px)`
+                          }}></div>
+                       ))}
+                     </div>
+                  </div>
+                  {/* Bounding Box generation frame */}
+                  <div className="absolute w-64 h-64 border border-[#bc8cff]/30 box-border">
+                     <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-[#bc8cff]"></div>
+                     <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-[#bc8cff]"></div>
+                     <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-[#bc8cff]"></div>
+                     <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-[#bc8cff]"></div>
+                  </div>
+               </div>
+            )}
+            
             {activeTab === 'CAD' && (
                <div className="flex absolute items-center justify-center">
                   <svg width="400" height="400" viewBox="0 0 400 400" className="opacity-50">
@@ -129,6 +229,10 @@ export default function ModelingEditor() {
                      {/* Dimensions */}
                      <path d="M150 90 L350 90" stroke="#f85149" strokeWidth="1" />
                      <text x="250" y="85" fill="#f85149" fontSize="10" textAnchor="middle">120.00 mm</text>
+                     {/* Inner hole */}
+                     <ellipse cx="250" cy="150" rx="30" ry="15" fill="#050505" stroke="#58a6ff" strokeWidth="1" />
+                     {/* Constraints */}
+                     <text x="360" y="150" fill="#3fb950" fontSize="12" fontWeight="bold">⊥</text>
                   </svg>
                </div>
             )}

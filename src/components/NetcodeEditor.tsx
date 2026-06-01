@@ -115,48 +115,71 @@ export default function NetcodeEditor() {
                </div>
            </div>
 
-           {/* Rollback Details Visualizer */}
-           <div className="flex-1 p-4 flex flex-col bg-[#0d1117]">
-               <div className="flex justify-between items-center mb-4">
-                  <span className="font-bold text-[11px] uppercase tracking-wide text-[#e3b341] flex items-center gap-2"><Network size={14}/> Rollback Window Profiler</span>
+               {/* Rollback Details Visualizer */}
+               <div className="flex-1 p-4 flex flex-col bg-[#0d1117] overflow-y-auto custom-scrollbar">
+                   <div className="flex justify-between items-center mb-4">
+                      <span className="font-bold text-[11px] uppercase tracking-wide text-[#e3b341] flex items-center gap-2"><Network size={14}/> Rollback Window Profiler</span>
+                   </div>
+                   
+                   <div className="flex flex-col gap-2 shrink-0">
+                      <div className="flex items-center text-[10px] font-mono text-[#8b949e]">
+                         <span className="w-16">Local</span>
+                         <div className="flex-1 h-2 bg-[#21262d] rounded-full relative">
+                            <div className="absolute right-[10%] w-3 h-3 bg-[#3fb950] rounded-full -top-[2px] shadow-[0_0_5px_#3fb950]"></div>
+                         </div>
+                         <span className="w-16 text-right">Frame 1420</span>
+                      </div>
+                      <div className="flex items-center text-[10px] font-mono text-[#8b949e]">
+                         <span className="w-16">Server</span>
+                         <div className="flex-1 h-2 bg-[#21262d] rounded-full relative">
+                            <div className="absolute right-[20%] w-3 h-3 bg-[#58a6ff] rounded-full -top-[2px] shadow-[0_0_5px_#58a6ff]"></div>
+                         </div>
+                         <span className="w-16 text-right">Frame 1412</span>
+                      </div>
+                      <div className="flex items-center text-[10px] font-mono text-[#e3b341]">
+                         <span className="w-16">Remote</span>
+                         <div className="flex-1 h-2 bg-[#21262d] rounded-full relative opacity-50">
+                            <div className="absolute right-[40%] w-3 h-3 bg-[#e3b341] rounded-full -top-[2px]"></div>
+                            {/* Rollback visualization */}
+                            <div className="absolute right-[40%] text-[#e3b341] -top-6 flex items-center gap-1"><ArrowDownUp size={10}/> Rollback delta: 6 frames</div>
+                         </div>
+                         <span className="w-16 text-right">Frame 1395</span>
+                      </div>
+                   </div>
+    
+                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-8 shrink-0">
+                       {/* AI Security Box */}
+                       <div className="bg-[#3fb950]/10 border border-[#3fb950]/30 rounded-lg p-3 flex gap-3 h-full">
+                          <div className="p-2 bg-[#3fb950]/20 rounded h-min text-[#3fb950] shrink-0"><ShieldCheck size={20}/></div>
+                          <div className="flex-1 flex flex-col justify-between">
+                             <div>
+                                 <h3 className="text-[11px] font-bold text-[#3fb950] uppercase tracking-wide">Anti-Cheat Guardian Online</h3>
+                                 <p className="text-[11px] text-[#c9d1d9] mt-1 pr-4">Analyzing player input vectors for impossible physics logic. <span className="font-mono text-[#8b949e]">0</span> violations detected in this session.</p>
+                             </div>
+                             <div className="mt-2 text-[10px] text-[#8b949e] font-mono bg-[#0d1117] border border-[#30363d] p-1.5 rounded self-start">Rule DB: ApexSec_v1.4 Loaded</div>
+                          </div>
+                       </div>
+                       
+                       {/* AI Optimization Box */}
+                       <div className="bg-[#bc8cff]/10 border border-[#bc8cff]/30 rounded-lg p-3 flex gap-3 h-full">
+                          <div className="p-2 bg-[#bc8cff]/20 rounded h-min text-[#bc8cff] shrink-0"><AlertTriangle size={20}/></div>
+                          <div className="flex-1 flex flex-col justify-between">
+                             <div>
+                                 <h3 className="text-[11px] font-bold text-[#bc8cff] uppercase tracking-wide">AI Replication Graph Analysis</h3>
+                                 <p className="text-[10px] text-[#c9d1d9] mt-1 pr-2">
+                                    Bandwidth anomaly: 400 background NPCs are replicating skeletal IK at 60Hz. <strong className="text-white">Suggested Pruning Strategy:</strong>
+                                 </p>
+                                 <ul className="text-[9px] text-[#8b949e] mt-2 list-disc pl-3 space-y-1 font-mono">
+                                     <li>Enable <b>Net Dormancy</b> for NPCs outside 50m frustum.</li>
+                                     <li>Drop tick rate to <b>10Hz</b> for out-of-sight entities.</li>
+                                     <li>Prune <b>IK Transforms</b>; replicate only root motion & local state enums.</li>
+                                 </ul>
+                             </div>
+                             <button className="mt-3 px-3 py-1 bg-[#bc8cff]/20 hover:bg-[#bc8cff]/40 border border-[#bc8cff]/50 rounded text-[10px] font-bold text-white transition-colors self-start tracking-wide uppercase flex items-center gap-1"><Database size={10} /> Apply Pruning Matrix</button>
+                          </div>
+                       </div>
+                   </div>
                </div>
-               
-               <div className="flex flex-col gap-2">
-                  <div className="flex items-center text-[10px] font-mono text-[#8b949e]">
-                     <span className="w-16">Local</span>
-                     <div className="flex-1 h-2 bg-[#21262d] rounded-full relative">
-                        <div className="absolute right-[10%] w-3 h-3 bg-[#3fb950] rounded-full -top-[2px] shadow-[0_0_5px_#3fb950]"></div>
-                     </div>
-                     <span className="w-16 text-right">Frame 1420</span>
-                  </div>
-                  <div className="flex items-center text-[10px] font-mono text-[#8b949e]">
-                     <span className="w-16">Server</span>
-                     <div className="flex-1 h-2 bg-[#21262d] rounded-full relative">
-                        <div className="absolute right-[20%] w-3 h-3 bg-[#58a6ff] rounded-full -top-[2px] shadow-[0_0_5px_#58a6ff]"></div>
-                     </div>
-                     <span className="w-16 text-right">Frame 1412</span>
-                  </div>
-                  <div className="flex items-center text-[10px] font-mono text-[#e3b341]">
-                     <span className="w-16">Remote</span>
-                     <div className="flex-1 h-2 bg-[#21262d] rounded-full relative opacity-50">
-                        <div className="absolute right-[40%] w-3 h-3 bg-[#e3b341] rounded-full -top-[2px]"></div>
-                        {/* Rollback visualization */}
-                        <div className="absolute right-[40%] text-[#e3b341] -top-6 flex items-center gap-1"><ArrowDownUp size={10}/> Rollback delta: 6 frames</div>
-                     </div>
-                     <span className="w-16 text-right">Frame 1395</span>
-                  </div>
-               </div>
-
-               {/* AI Security Box */}
-               <div className="mt-8 bg-[#3fb950]/10 border border-[#3fb950]/30 rounded-lg p-3 flex gap-3">
-                  <div className="p-2 bg-[#3fb950]/20 rounded h-min text-[#3fb950]"><ShieldCheck size={20}/></div>
-                  <div className="flex-1">
-                     <h3 className="text-[11px] font-bold text-[#3fb950] uppercase tracking-wide">Anti-Cheat Guardian Online</h3>
-                     <p className="text-[11px] text-[#c9d1d9] mt-1 pr-4">Analyzing player input vectors for impossible physics logic. <span className="font-mono text-[#8b949e]">0</span> violations detected in this session.</p>
-                     <p className="text-[11px] text-[#8b949e] font-mono mt-2 bg-[#0d1117] border border-[#30363d] p-1.5 rounded inline-block">Rule DB: ApexSec_v1.4 Loaded</p>
-                  </div>
-               </div>
-           </div>
 
         </div>
 

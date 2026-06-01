@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
+@keyframes slide {
+  from { background-position: 0 0; }
+  to { background-position: -1000px 1000px; }
+}
+
 .markdown-body pre {
   background-color: #1a1a1a;
   border: 1px solid #333;

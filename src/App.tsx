@@ -7,7 +7,7 @@ import CodeEditor from './components/CodeEditor';
 import AIChat from './components/AIChat';
 import Viewport3D from './components/Viewport3D';
 import GitPanel from './components/GitPanel';
-import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords } from 'lucide-react';
+import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords, Camera } from 'lucide-react';
 import { useLanguage } from './contexts/LanguageContext';
 import MaterialEditor from './components/MaterialEditor';
 import CutsceneEditor from './components/CutsceneEditor';
@@ -22,6 +22,7 @@ import MetaHumanEditor from './components/MetaHumanEditor';
 import LogicVisualEditor from './components/LogicVisualEditor';
 import UIUXEditor from './components/UIUXEditor';
 import LocalAIStudio from './components/LocalAIStudio';
+import AIBrowser from './components/AIBrowser';
 import SkillForgeEditor from './components/SkillForgeEditor';
 
 import WorldBuilderEditor from './components/WorldBuilderEditor';
@@ -47,6 +48,7 @@ import LevelDesignEditor from './components/LevelDesignEditor';
 import QuestDirectorEditor from './components/QuestDirectorEditor';
 import AICommandCenter from './components/AICommandCenter';
 import HardwareProfilerOverlay from './components/HardwareProfilerOverlay';
+import OptimizationOverview from './components/OptimizationOverview';
 import BlueprintEditor from './components/BlueprintEditor';
 import ContentBrowser from './components/ContentBrowser';
 import DataTableEditor from './components/DataTableEditor';
@@ -65,6 +67,8 @@ import NPCEditor from './components/NPCEditor';
 import ScriptEditor from './components/ScriptEditor';
 import GraphicsRenderEditor from './components/GraphicsRenderEditor';
 import NetworkSim from './components/NetworkSim';
+import Photogrammetry3DScanner from './components/Photogrammetry3DScanner';
+import DeviceDriverConfigPanel from './components/DeviceDriverConfigPanel';
 import { IDEFile, TEMPLATES, DEFAULT_FOLDERS } from './lib/project';
 import { Settings, TerminalSquare, Globe2, History } from 'lucide-react';
 
@@ -373,6 +377,7 @@ export default function App() {
       { id: 'UIUXEdit', title: 'Apex UI/UX Builder', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'SkillForge', title: 'Ultimate Skill Forge', icon: <Swords size={20} />, activeColor: 'text-[#ff7b72]' },
       
+      { id: 'AIBrowser', title: 'AI Sandbox Browser Node', icon: <Globe size={20} />, activeColor: 'text-[#f85149]' },
       { id: 'LocalAI', title: 'Local AI Compute Studio', icon: <BrainCircuit size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'WorldBuilder', title: '🌍 Nano-to-Macro World Builder', icon: <Globe size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'SentientAI', title: '🧠 Sentient AI & NPCDirector', icon: <Brain size={20} />, activeColor: 'text-[#f85149]' },
@@ -388,6 +393,8 @@ export default function App() {
       { id: 'LiveOps', title: 'LiveOps, Analytics & Economy', icon: <TrendingUp size={20} />, activeColor: 'text-[#bc8cff]' },
       { id: 'CinematicSequencer', title: 'Timeline & Cinematic Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'AdvancedNavMesh', title: 'NavMesh & Crowd AI', icon: <Users size={20} />, activeColor: 'text-[#e3b341]' },
+      { id: 'Photogrammetry', title: '3D Photogrammetry Scanner', icon: <Camera size={20} />, activeColor: 'text-[#3fb950]' },
+      { id: 'HardwareDriver', title: 'Device Driver & HW Config', icon: <Activity size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'HD2DHybridEditor', title: '2.5D / HD-2D Hybrid Engine', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]' },
       { id: 'VoxelEngine', title: 'Voxel & Destruction Engine', icon: <Box size={20} />, activeColor: 'text-[#f85149]' },
       { id: 'VehiclePhysics', title: 'Vehicle Dynamics Configurator', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]' },
@@ -396,6 +403,7 @@ export default function App() {
       { id: 'BatchAI', title: 'Batch AI Asset Generator', icon: <Cloud size={20} />, activeColor: 'text-[#e3b341]' },
       { id: 'DevOpsBuilder', title: 'Cross-Platform Matrix & DevOps Config', icon: <Terminal size={20} />, activeColor: 'text-[#58a6ff]' },
       { id: 'ASTNodeWeaver', title: 'AST Logic Weaver (Nodes)', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]' },
+      { id: 'OptimizationOverview', title: 'Optimization Overview', icon: <Activity size={20} />, activeColor: 'text-[#3fb950]' },
     ];
 
     return (
@@ -1244,6 +1252,7 @@ export default function App() {
                {activeTool === 'VehiclePhysics' && <VehicleDynamicsEditor />}
                {activeTool === 'MLAgents' && <MLAgentsEditor />}
                {activeTool === 'VRXREngine' && <VRXREngineEditor />}
+               {activeTool === 'OptimizationOverview' && <OptimizationOverview />}
                {activeTool === 'CinematicSequencer' && <CinematicSequencerEditor />}
                {['WorldBible', 'DialogueQuest'].includes(activeTool) && (
                  <WorldLoreEditor />
@@ -1279,6 +1288,7 @@ export default function App() {
                {['PCG', 'ProceduralGen'].includes(activeTool) && <PCGEditor />}
                {activeTool === 'UIUXEdit' && <UIUXEditor />}
                {activeTool === 'SkillForge' && <SkillForgeEditor setActiveTool={setActiveTool} />}
+               {activeTool === 'AIBrowser' && <AIBrowser />}
                {activeTool === 'LocalAI' && <LocalAIStudio setActiveTool={setActiveTool} />}
                {activeTool === 'WorldBuilder' && <WorldBuilderEditor />}
                {activeTool === 'SentientAI' && <SentientAIEditor />}
@@ -1294,7 +1304,9 @@ export default function App() {
                {activeTool === 'LevelDesign' && <LevelDesignEditor />}
                {activeTool === 'QuestDirector' && <QuestDirectorEditor />}
                {activeTool === 'BatchAI' && <BatchAIImporter onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />}
-               {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'SkillForge', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping'].includes(activeTool) && (
+               {activeTool === 'Photogrammetry' && <Photogrammetry3DScanner />}
+               {activeTool === 'HardwareDriver' && <DeviceDriverConfigPanel />}
+               {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'SkillForge', 'AIBrowser', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping', 'OptimizationOverview', 'Photogrammetry', 'HardwareDriver'].includes(activeTool) && (
                  <Viewport3D activeTool={activeTool} activeFile={activeFile} />
                )}
 

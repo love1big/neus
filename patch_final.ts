@@ -1,13 +1,44 @@
 import fs from 'fs';
 
-let archCode = fs.readFileSync('src/components/ArchitectureDevOpsEditor.tsx', 'utf8');
-archCode = archCode.replace('Networking, Cpu', 'Network, Cpu');
-fs.writeFileSync('src/components/ArchitectureDevOpsEditor.tsx', archCode);
+const lines = fs.readFileSync('src/components/AIChat.tsx', 'utf8').split('\n');
 
-let worldCode = fs.readFileSync('src/components/WorldBuilderEditor.tsx', 'utf8');
-worldCode = worldCode.replace('{ timeProgression: number }', 'any');
-if (!worldCode.includes('Rewind')) {
-    worldCode = worldCode.replace('import {', 'import { Rewind,');
+let topEndIdx = -1;
+for (let i = 1380; i < lines.length; i++) {
+  if (lines[i] === "} " || lines[i] === "}") {
+     // Ensure it's the class closure.
+     if (lines[i-1].includes("  }") && lines[i-2].includes("console.log")) {
+        topEndIdx = i;
+        break;
+     }
+  }
 }
-fs.writeFileSync('src/components/WorldBuilderEditor.tsx', worldCode);
-console.log('Fixed imports and TS types');
+
+if (topEndIdx === -1) {
+    console.error("topEndIdx not found!");
+    process.exit(1);
+}
+
+let bottomStartIdx = -1;
+for (let i = topEndIdx; i < lines.length; i++) {
+  if (lines[i].includes("isJapanese ? `インターネット")) {
+     bottomStartIdx = i;
+     break;
+  }
+}
+
+if (bottomStartIdx === -1) {
+    console.error("bottomStartIdx not found!");
+    process.exit(1);
+}
+
+const topPart = lines.slice(0, topEndIdx + 1).join('\n');
+const bottomPart = lines.slice(bottomStartIdx).join('\n');
+
+const middlePart = `\`
+        });
+      } else {
+        responseText += isThai ? \`ฉันได้ทำการค้นหาข้อมูลทางอินเทอร์เน็ตและวิเคราะห์วิดีโอเกี่ยวกับ: "\${userMessage}"\\n\\nนี่คือโครงสร้างพื้นฐานตามความรู้ใหม่ที่ค้นพบ:\\n\\n\\nfunction solveTask() {\\n  console.log("Task executed locally with global web knowledge.");\\n}\` :
+`;
+
+fs.writeFileSync('src/components/AIChat.tsx', topPart + "\n" + middlePart + bottomPart);
+console.log("AIChat.tsx successfully restored and fixed!");

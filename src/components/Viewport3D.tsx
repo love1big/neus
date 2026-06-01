@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save } from 'lucide-react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { TransformControls, OrbitControls, MapControls, OrthographicCamera, PerspectiveCamera, Environment, ContactShadows, Stars, Sparkles } from '@react-three/drei';
+import { TransformControls, OrbitControls, MapControls, OrthographicCamera, PerspectiveCamera, Environment, ContactShadows, Stars, Sparkles, Line, Sphere } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider, BallCollider, interactionGroups } from '@react-three/rapier';
 import { EffectComposer, Bloom, BrightnessContrast, HueSaturation, Vignette, SSAO } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -144,6 +144,49 @@ function SceneObject({ mode, transform, material, setTransform, meshType = 'toru
   );
 }
 
+function NavMeshPathVisualization() {
+  const lineRef = useRef<any>(null);
+  
+  useFrame((state, delta) => {
+     if (lineRef.current?.material) {
+        lineRef.current.material.dashOffset -= delta * 4;
+     }
+  });
+
+  const pathPoints: [number, number, number][] = [
+     [-3, -1.9, 0],
+     [-2, -1.9, 2],
+     [1, -1.9, 3],
+     [2, -1.9, 6],
+     [5, -1.9, 7],
+     [8, -1.9, 9],
+     [10, -1.9, 12]
+  ];
+
+  return (
+     <group>
+        <Line
+           ref={lineRef}
+           points={pathPoints}
+           color="#3fb950"
+           lineWidth={4}
+           dashed={true}
+           dashScale={1}
+           dashSize={1}
+           dashOffset={0}
+        />
+        {pathPoints.map((pos, idx) => (
+           <Sphere key={idx} args={[0.25, 16, 16]} position={pos}>
+              <meshBasicMaterial color={idx === pathPoints.length - 1 ? "#e3b341" : (idx === 0 ? "#58a6ff" : "#3fb950")} />
+              {idx === pathPoints.length - 1 && (
+                 <pointLight color="#e3b341" intensity={2} distance={5} />
+              )}
+           </Sphere>
+        ))}
+     </group>
+  );
+}
+
 export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) {
   // Sky Environment
   const [skybox, setSkybox] = useState(() => localStorage.getItem('skybox') || 'Default (Dark)');
@@ -222,6 +265,7 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
   const [showDebugMenu, setShowDebugMenu] = useState(false);
   const [showPhysicsDebug, setShowPhysicsDebug] = useState(false);
   const [simulatePhysics, setSimulatePhysics] = useState(true);
+  const [showNavMeshPath, setShowNavMeshPath] = useState(true);
   
   // AI Animation State
   const [isGeneratingAnim, setIsGeneratingAnim] = useState(false);
@@ -363,6 +407,10 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
                    <button onClick={() => setShowPhysicsDebug(!showPhysicsDebug)} className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#c9d1d9] flex justify-between items-center">
                       <span>Physics Colliders</span>
                       {showPhysicsDebug && <span className="text-[#3fb950] font-bold text-[10px]">ON</span>}
+                   </button>
+                   <button onClick={() => setShowNavMeshPath(!showNavMeshPath)} className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#c9d1d9] flex justify-between items-center">
+                      <span>NavMesh Path</span>
+                      {showNavMeshPath && <span className="text-[#3fb950] font-bold text-[10px]">ON</span>}
                    </button>
                    <button className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#8b949e] flex justify-between items-center cursor-not-allowed">
                       <span>Show Contact Points</span>
@@ -566,6 +614,9 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
                     skybox === 'Clear Day' ? 'park' : 
                     'night'
                   } background={false} blur={0.8} />
+
+                  {/* NavMesh Path Visualization */}
+                  {showNavMeshPath && <NavMeshPathVisualization />}
 
                   {/* Background elements */}
                   <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
