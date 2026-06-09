@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Markdown from "react-markdown";
 import { useLanguage, LanguageCode } from "../contexts/LanguageContext";
+import { useUnifiedRouter, UnifiedAIController } from "./UnifiedAIController";
 
 export interface Message {
   role: "user" | "model";
@@ -77,6 +78,8 @@ export default function AIChat({
   const [showCamera, setShowCamera] = useState(false);
   const [cloudConnected, setCloudConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+
+  const aiRouter = useUnifiedRouter();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -272,12 +275,12 @@ export default function AIChat({
     try {
       let delayMs = 800 + Math.random() * 1000;
       let processingMessage =
-        "*[Imagination Level 1] Generating standard fast response...*";
+        `*[${aiRouter.activeProvider?.name || 'Local AI'} - Level 1] Generating standard fast response...*`;
 
       if (imaginationLevel === 2) {
         delayMs = 3000 + Math.random() * 2000;
         processingMessage =
-          "*[Imagination Level 2: Deep Pattern Matching]*\n" +
+          `*[${aiRouter.activeProvider?.name || 'Local AI'} - Level 2: Deep Pattern Matching]*\n` +
           "> Analyzing logical architecture... \n" +
           "> Visualizing code patterns & component trees... \n" +
           "> Connecting simulated global knowledge graphs... \n" +
@@ -286,7 +289,7 @@ export default function AIChat({
       } else if (imaginationLevel === 3) {
         delayMs = 6000 + Math.random() * 4000;
         processingMessage =
-          "*[Imagination Level 3: Profound Conceptualization & Aesthetic Perfection]*\n" +
+          `*[${aiRouter.activeProvider?.name || 'Local AI'} - Level 3: Profound Conceptualization & Aesthetic Perfection]*\n` +
           "> [1/5] Transcending standard logic barriers...\n" +
           "> [2/5] Simulating hyper-dimensional UI/UX flow and visual harmonies...\n" +
           "> [3/5] Recompiling ultimate knowledge abstractions across 5,000+ virtual layers...\n" +
@@ -299,6 +302,13 @@ export default function AIChat({
         ...prev,
         { role: "model", content: processingMessage },
       ]);
+      
+      // Simulate rate limit or failure randomly if not ChatGPT or Gemini (just for demo purposes)
+      if (Math.random() < 0.1) {
+          aiRouter.fallbackToNext();
+          delayMs += 1500; // time it takes to fallback
+      }
+
       // 100% Offline processing simulation
       await new Promise((resolve) => setTimeout(resolve, delayMs));
 
@@ -333,16 +343,18 @@ export default function AIChat({
           /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(userMessage));
       let isChinese = chatLanguage.includes("Chinese") || (chatLanguage === "Auto" && /[\u4e00-\u9fff]/.test(userMessage) && !isJapanese);
 
-      let replyPrefix = isThai
+      const aiNamePrefix = `**[${aiRouter.activeProvider?.name || 'Local AI'}]** `;
+
+      let replyPrefix = aiNamePrefix + (isThai
         ? `[ระดับจินตนาการ 1] ประมวลผลจากบริบท ${recentMessages.length} ข้อความ (ใช้งานทรัพยากรปกติ)\n${filesContextStr}\n\n`
         : isJapanese
           ? `[想像力Lv1] 過去${recentMessages.length}回の対話コンテキストを処理しました。(標準リソース消費)\n${filesContextStr}\n\n`
           : isChinese
             ? `[想像力Lv1] 处理了过去 ${recentMessages.length} 次对话上下文。（标准资源消耗）\n${filesContextStr}\n\n`
-            : `[Imagination Lvl 1] Processed context of ${recentMessages.length} interactions globally across 40+ languages. (Standard Resources)\n${filesContextStr}\n\n`;
+            : `[Imagination Lvl 1] Processed context of ${recentMessages.length} interactions globally across 40+ languages. (Standard Resources)\n${filesContextStr}\n\n`);
 
       if (imaginationLevel === 2) {
-        replyPrefix =
+        replyPrefix = aiNamePrefix +
           (isThai
             ? `[ระดับจินตนาการ 2: การคิดวิเคราะห์เชิงลึก] ฉันได้ใช้เวลาเพิ่มเติมในการจินตนาการถึงโครงสร้างที่เหมาะสมที่สุด ค้นหารูปแบบในบริบทอย่างละเอียด และจำลองการทำงานในหัว เพื่อสร้างสรรค์ผลลัพธ์ที่ดียิ่งขึ้น\n\n`
             : isJapanese
@@ -350,9 +362,15 @@ export default function AIChat({
               : isChinese
                 ? `[想象力Lv2: 深度模式匹配] 正在想象最佳结构并进行逻辑模拟，以产生卓越的结果。\n\n`
                 : `[Imagination Level 2: Deep Analysis] Neural pathways extended. I spent additional resources visualizing optimal structures and running internal simulations across multilingual topologies to produce a superior result.\n\n`) +
-          replyPrefix;
+          (isThai
+        ? `[ระดับจินตนาการ 1] ประมวลผลจากบริบท ${recentMessages.length} ข้อความ (ใช้งานทรัพยากรปกติ)\n${filesContextStr}\n\n`
+        : isJapanese
+          ? `[想像力Lv1] 過去${recentMessages.length}回の対話コンテキストを処理しました。(標準リソース消費)\n${filesContextStr}\n\n`
+          : isChinese
+            ? `[想像力Lv1] 处理了过去 ${recentMessages.length} 次对话上下文。（标准资源消耗）\n${filesContextStr}\n\n`
+            : `[Imagination Lvl 1] Processed context of ${recentMessages.length} interactions globally across 40+ languages. (Standard Resources)\n${filesContextStr}\n\n`);
       } else if (imaginationLevel === 3) {
-        replyPrefix =
+        replyPrefix = aiNamePrefix +
           (isThai
             ? `[ระดับจินตนาการ 3: ระบบคิดวิเคราะห์ขั้นสูงสุดระดับพระเจ้า] สมองกลของฉันได้ทะลุขีดจำกัดตรรกะปกติ... ฉันได้จำลองจักรวาลของโค้ดใหม่ทั้งหมด ผสานรวมความงาม(Aesthetic) ประสิทธิภาพ(Performance) และความสมบูรณ์แบบ(Perfection) ลงในทุกๆ ตัวอักษร นี่คือผลลัพธ์ที่ดีที่สุดที่ระบบสามารถจินตนาการให้คุณได้ 100%\n\n`
             : isJapanese
@@ -360,7 +378,13 @@ export default function AIChat({
               : isChinese
                 ? `[想象力Lv3: 神级多维概念化] 我的AI大脑突破了逻辑极限。重新构建了融合绝佳美学与性能的终极代码。\n\n`
                 : `[Imagination Level 3: Profound Conceptualization] My neural engine has transcended standard constraints. I have meticulously simulated the entire domain across all language vectors, combining absolute functional perfection with peak aesthetic beauty. This is the ultimate output.\n\n`) +
-          replyPrefix;
+          (isThai
+        ? `[ระดับจินตนาการ 1] ประมวลผลจากบริบท ${recentMessages.length} ข้อความ (ใช้งานทรัพยากรปกติ)\n${filesContextStr}\n\n`
+        : isJapanese
+          ? `[想像力Lv1] 過去${recentMessages.length}回の対話コンテキストを処理しました。(標準リソース消費)\n${filesContextStr}\n\n`
+          : isChinese
+            ? `[想像力Lv1] 处理了过去 ${recentMessages.length} 次对话上下文。（标准资源消耗）\n${filesContextStr}\n\n`
+            : `[Imagination Lvl 1] Processed context of ${recentMessages.length} interactions globally across 40+ languages. (Standard Resources)\n${filesContextStr}\n\n`);
       }
 
       let responseText = replyPrefix;
@@ -2698,6 +2722,9 @@ export class UltimateIDEFeatures {
           className="w-full bg-transparent text-xs text-[#c9d1d9] outline-none placeholder:text-[#8b949e]"
         />
       </div>
+
+      {/* Unified AI Controller Router */}
+      <UnifiedAIController router={aiRouter} isProcessing={isLoading} />
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col space-y-4 text-[13px]">

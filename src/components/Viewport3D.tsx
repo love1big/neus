@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save } from 'lucide-react';
+import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save, ExternalLink } from 'lucide-react';
+import PopOutPanel from './PopOutPanel';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { TransformControls, OrbitControls, MapControls, OrthographicCamera, PerspectiveCamera, Environment, ContactShadows, Stars, Sparkles, Line, Sphere } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider, BallCollider, interactionGroups } from '@react-three/rapier';
@@ -188,6 +189,7 @@ function NavMeshPathVisualization() {
 }
 
 export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) {
+  const [isPoppedOut, setIsPoppedOut] = useState(false);
   // Sky Environment
   const [skybox, setSkybox] = useState(() => localStorage.getItem('skybox') || 'Default (Dark)');
   const [skyboxIntensity, setSkyboxIntensity] = useState(() => parseFloat(localStorage.getItem('skyboxIntensity') || '1'));
@@ -333,7 +335,7 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
     }
   };
 
-  return (
+  const content = (
     <div className="w-full h-full bg-[#1e1e1e] relative overflow-hidden flex flex-col font-['Helvetica_Neue',Arial,sans-serif]">
       {/* Viewport Top Bar */}
       <div className="h-8 bg-[#161b22] border-b border-[#30363d] flex items-center px-4 justify-between text-[11px] text-[#8b949e] shrink-0 font-medium tracking-wide z-10">
@@ -423,6 +425,13 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
            </div>
          </div>
          <div className="flex gap-4 items-center">
+           <button
+             onClick={() => setIsPoppedOut(!isPoppedOut)}
+             className={`cursor-pointer select-none transition-colors flex items-center gap-1 px-2 py-0.5 rounded border ${isPoppedOut ? 'bg-[#58a6ff]/20 border-[#58a6ff]/50 text-[#58a6ff]' : 'bg-[#21262d] border-[#30363d] text-[#8b949e] hover:text-white'}`}
+             title={isPoppedOut ? 'Restore Viewport' : 'Pop out Viewport'}
+           >
+             <ExternalLink size={12} /> {isPoppedOut ? 'Restore' : 'Pop Out'}
+           </button>
            <span className="text-[#bc8cff] font-mono text-[9px] bg-[#bc8cff]/10 border border-[#bc8cff]/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(188,140,255,0.4)]">FSR 3.0 ACTIVE</span>
            <span className="text-[#3fb950] font-mono text-[9px] bg-[#3fb950]/10 border border-[#3fb950]/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(63,185,80,0.4)]">NANITE ON</span>
            <span className="text-[#e3b341] font-mono text-[9px] bg-[#e3b341]/10 border border-[#e3b341]/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(227,179,65,0.4)]">SDF GI ON</span>
@@ -1086,4 +1095,24 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
       </div>
     </div>
   );
+
+  if (isPoppedOut) {
+    return (
+      <>
+        <div className="w-full h-full flex flex-col items-center justify-center bg-[#0d1117] text-[#8b949e]">
+           <Box size={48} className="mb-4 text-[#30363d]" />
+           <p className="text-xl text-white font-bold tracking-widest uppercase mb-2">Viewport Detached</p>
+           <p className="text-[11px] mb-6">This panel is currently running in a separate window.</p>
+           <button onClick={() => setIsPoppedOut(false)} className="px-4 py-2 bg-[#1f6feb] text-white rounded text-xs font-bold hover:bg-[#388bfd] transition-colors shadow-lg">
+             Restore to Main Window
+           </button>
+        </div>
+        <PopOutPanel title={getToolDisplayName() + " - Engine"} onClose={() => setIsPoppedOut(false)}>
+          {content}
+        </PopOutPanel>
+      </>
+    );
+  }
+
+  return content;
 }

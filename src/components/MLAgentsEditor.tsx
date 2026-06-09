@@ -36,16 +36,16 @@ export default function MLAgentsEditor() {
              <div className="space-y-4 flex-1">
                <div>
                   <span className="text-[#8b949e] text-[11px] block mb-1">Algorithm</span>
-                  <select className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none text-[12px]">
-                    <option selected>PPO (Proximal Policy Optimization)</option>
+                  <select defaultValue="PPO (Proximal Policy Optimization)" className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none text-[12px]">
+                    <option>PPO (Proximal Policy Optimization)</option>
                     <option>SAC (Soft Actor-Critic)</option>
                     <option>DQN (Deep Q-Network)</option>
                   </select>
                </div>
                <div>
                   <span className="text-[#8b949e] text-[11px] block mb-1">Observation Space (Sensors)</span>
-                  <select className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none text-[12px]">
-                    <option selected>Raycast 3D (Vision)</option>
+                  <select defaultValue="Raycast 3D (Vision)" className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none text-[12px]">
+                    <option>Raycast 3D (Vision)</option>
                     <option>Camera Render Texture (Pixels)</option>
                     <option>Transform Vectors Only</option>
                   </select>

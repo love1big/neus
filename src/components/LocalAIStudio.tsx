@@ -178,9 +178,9 @@ function TripoSRInterface() {
                            <span>Marching Cubes Resolution (Grid Bounds)</span>
                            <span className="text-[#e3b341] font-mono">256^3</span>
                         </label>
-                        <select className="bg-[#0a0a0a] border border-[#30363d] text-[#8b949e] font-mono text-[11px] p-2 rounded outline-none focus:border-[#e3b341]">
+                        <select defaultValue="256 (LRM Native Optimized)" className="bg-[#0a0a0a] border border-[#30363d] text-[#8b949e] font-mono text-[11px] p-2 rounded outline-none focus:border-[#e3b341]">
                            <option>128 (Faster / Low Poly)</option>
-                           <option selected>256 (LRM Native Optimized)</option>
+                           <option>256 (LRM Native Optimized)</option>
                            <option>512 (High Dense / Extreme VRAM)</option>
                         </select>
                      </div>

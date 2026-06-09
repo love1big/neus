@@ -9,6 +9,17 @@
   to { background-position: -1000px 1000px; }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wiggle {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
 .markdown-body pre {
   background-color: #1a1a1a;
   border: 1px solid #333;

@@ -63,18 +63,18 @@ export default function VRXREngineEditor() {
                <div className="space-y-4 text-[12px]">
                  <div>
                    <span className="text-[#8b949e] block mb-2">Mixed Reality Passthrough Mode</span>
-                   <select className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none">
+                   <select defaultValue="AR Passthrough (Color Selective)" className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none">
                      <option>VR Only (Opaque)</option>
-                     <option selected>AR Passthrough (Color Selective)</option>
+                     <option>AR Passthrough (Color Selective)</option>
                      <option>Full MR (Masking Objects)</option>
                    </select>
                  </div>
                  <div>
                    <span className="text-[#8b949e] block mb-2">World Tracking Origin</span>
-                   <select className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none">
+                   <select defaultValue="Floor-Level (Roomscale)" className="w-full bg-[#0d1117] border border-[#30363d] rounded p-2 text-white outline-none">
                      <option>Head-locked</option>
                      <option>Eye-Level (Seated)</option>
-                     <option selected>Floor-Level (Roomscale)</option>
+                     <option>Floor-Level (Roomscale)</option>
                    </select>
                  </div>
                </div>

@@ -1,0 +1,97 @@
+351:             </div>
+352:           </div>
+357:           <div className="w-[1px] h-4 bg-[#30363d] ml-2"></div>
+367:           <div className="w-[1px] h-4 bg-[#30363d]"></div>
+376:                   <div className="px-3 py-2 text-[10px] text-[#8b949e] uppercase tracking-wider font-bold border-b border-[#30363d] mb-1">Environment Preset</div>
+382:                </div>
+384:           </div>
+386:           <div className="w-[1px] h-4 bg-[#30363d]"></div>
+396:           <div className="w-[1px] h-4 bg-[#30363d] mx-2"></div>
+404:                   <div className="px-3 py-2 text-[10px] text-[#8b949e] uppercase tracking-wider font-bold border-b border-[#30363d] mb-1">Debug Options</div>
+423:                </div>
+425:           </div>
+426:         </div>
+433:         </div>
+434:      </div>
+448:                    <div className="text-[10px] uppercase font-bold text-[#8b949e] mb-2 border-b border-[#30363d] pb-1">Unlinked Properties</div>
+455:                 </div>
+456:               </div>
+457:               <div className="w-[1px] h-3 bg-[#bc8cff]/20"></div>
+464:            </div>
+473:            </div>
+479:               <div className="w-20 h-20 border-4 border-[#30363d] border-t-[#a476ed] rounded-full animate-spin mb-6"></div>
+483:               </div>
+486:               </div>
+488:                  <div className="bg-[#a476ed] h-full transition-all duration-[4800ms] ease-out w-full" style={{ animation: 'fillBar 4.8s linear' }}></div>
+489:               </div>
+496:            </div>
+504:            <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
+509:            <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
+511:            <div className="w-full h-[1px] bg-[#30363d] my-1"></div>
+513:         </div>
+523:         </div>
+667:        </div>
+679:            </div>
+690:                    <div className="text-[11px] text-[#8b949e] capitalize font-medium">{propName}</div>
+696:                           </div>
+704:                         </div>
+706:                    </div>
+707:                  </div>
+709:              </div>
+728:                  </div>
+744:                    </div>
+749:                  </div>
+753:                  </div>
+757:                  </div>
+758:                </div>
+759:              </div>
+779:                   </div>
+792:                   </div>
+803:                     </div>
+804:                   </div>
+810:                     </div>
+818:                   </div>
+824:                     </div>
+832:                   </div>
+849:                   </div>
+850:                </div>
+851:              </div>
+871:                   </div>
+884:                   </div>
+895:                     </div>
+896:                   </div>
+902:                     </div>
+910:                   </div>
+916:                     </div>
+924:                   </div>
+925:                </div>
+926:              </div>
+950:                     </div>
+951:                   </div>
+957:                     </div>
+965:                   </div>
+971:                     </div>
+979:                   </div>
+996:                     </div>
+997:                   </div>
+1003:                     </div>
+1011:                   </div>
+1013:                </div>
+1014:              </div>
+1027:                     </div>
+1033:                     </div>
+1035:                  </div>
+1042:                     </div>
+1048:                     </div>
+1054:                     </div>
+1056:                  </div>
+1063:                     </div>
+1069:                     </div>
+1071:                  </div>
+1078:                     </div>
+1080:                  </div>
+1081:                </div>
+1084:            </div>
+1085:          </div>
+1088:      </div>
+1089:    </div>

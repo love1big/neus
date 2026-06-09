@@ -121,6 +121,55 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
     setSelectedDialogueTreeId(newDt.id);
   };
 
+  const [isGeneratingSync, setIsGeneratingSync] = useState<Record<string, boolean>>({});
+
+  const handleGenerateBehaviorSync = (npcId: string) => {
+    setIsGeneratingSync(prev => ({ ...prev, [npcId]: true }));
+    const npc = npcs.find(n => n.id === npcId);
+    if (!npc) return;
+    
+    setTimeout(() => {
+      const isMon = npc.isMonster;
+      
+      const voiceProfiles = isMon 
+        ? ['Guttural snarls, heavy sub-bass clicks', 'High-pitched screeches, erratic panting', 'Deep rumbling growls, wet breathing']
+        : ['Warm, melodious, mid-pitch. Actor Ref: Laura Bailey', 'Gruff, raspy, slow-paced. Actor Ref: Liam Neeson', 'Nasal, fast-talking, anxious. Actor Ref: Charlie Day', 'Regal, precise, RP British. Actor Ref: Charles Dance'];
+        
+      const conversationStyles = isMon
+        ? ['Primal aggressive displays', 'Cautious circling and hissing', 'Unpredictable lunges with sharp clicks']
+        : ['Sarcastic and evasive', 'Direct, polite, but distant', 'Overly friendly, verbose, uses many metaphors', 'Stoic, brief, heavily observant'];
+
+      const idles = isMon
+        ? ['Breathing (Heavy)', 'Fidgeting']
+        : ['Looking Around', 'Stretching', 'Shifting Weight', 'Weapon Inspection'];
+
+      const randomElem = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+      
+      const newVoice = randomElem(voiceProfiles);
+      const newConv = randomElem(conversationStyles);
+      const newIdle = randomElem(idles);
+      const newEmotions = `Anger: Roars/yells loudly\nJoy: Brief nod/purring\nFear: Trembling, steps back\nDisgust: Guttural scoff\nTrust: Lowers defenses`;
+      const newLines = isMon ? `["*Snarl*", "*Hiss*", "*Roar*"]` : `["What do you want?", "Careful out there.", "I have nothing for you.", "Good day."]`;
+
+      setNpcs(prev => prev.map(n => {
+        if (n.id === npcId) {
+          return {
+            ...n,
+            voiceProfile: newVoice,
+            conversationStyle: newConv,
+            proceduralIdle: newIdle,
+            emotionMatrix: newEmotions,
+            nonAiVoiceLines: newLines,
+            psychologicalTraits: n.psychologicalTraits || (isMon ? 'Predatory, territorial' : 'Pragmatic, cautious')
+          };
+        }
+        return n;
+      }));
+      
+      setIsGeneratingSync(prev => ({ ...prev, [npcId]: false }));
+    }, 2000);
+  };
+
   const handleEvolveMonster = (baseNpc: NPC, stressType: string) => {
     // Generate AI/Procedural Name based on stress type and base name
     const prefixes: Record<string, string[]> = {
@@ -622,7 +671,17 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
 
                    <div className="grid grid-cols-2 gap-6">
                      <div className="bg-[#0d1117] border border-[#bc8cff]/40 rounded-lg p-4 col-span-2 shadow-[0_0_15px_rgba(188,140,255,0.05)]">
-                       <h3 className="text-[#bc8cff] font-bold mb-4 flex items-center gap-2 border-b border-[#30363d] pb-2"><BookOpen size={16} /> Deep Profile & Generative AI Voice/Scripting Matrix</h3>
+                       <div className="flex justify-between items-center border-b border-[#30363d] pb-2 mb-4">
+                          <h3 className="text-[#bc8cff] font-bold flex items-center gap-2"><BookOpen size={16} /> Deep Profile & Generative AI Voice/Scripting Matrix</h3>
+                          <button 
+                            className="bg-[#238636] hover:bg-[#2ea043] text-white px-3 py-1.5 rounded text-[11px] font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50 shadow-[0_0_10px_rgba(35,134,54,0.3)]"
+                            onClick={() => handleGenerateBehaviorSync(npc.id)}
+                            disabled={isGeneratingSync[npc.id]}
+                          >
+                            <Wand2 size={12} className={isGeneratingSync[npc.id] ? "animate-pulse" : ""} />
+                            {isGeneratingSync[npc.id] ? "Synthesizing Core..." : "Behavioral Sync Engine"}
+                          </button>
+                       </div>
                        
                        <div className="grid grid-cols-2 gap-6 mb-4">
                          <div className="flex flex-col gap-3">
@@ -715,6 +774,58 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
                          {quests.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
                        </select>
                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-6 mt-6">
+                      <div className="bg-[#0d1117] border border-[#d29922]/40 rounded-lg p-4 col-span-2 shadow-[0_0_15px_rgba(210,153,34,0.05)]">
+                         <div className="flex justify-between items-center border-b border-[#30363d] pb-2 mb-4">
+                            <h3 className="text-[#d29922] font-bold flex items-center gap-2"><Cpu size={16} /> Deterministic Combat & Frame-Data Engine</h3>
+                            <span className="text-[10px] text-[#8b949e]">Non-AI Pure Physics/Logic Parameters</span>
+                         </div>
+                         <div className="grid grid-cols-3 gap-6">
+                            <div className="flex flex-col gap-3">
+                               <h4 className="text-[#c9d1d9] text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Move3d size={13} className="text-[#58a6ff]"/> Kinematics & Collisions</h4>
+                               <InputField label="Root Motion Translation Multiplier" value="1.0" onChange={() => {}} />
+                               <InputField label="Hitbox Active Frames (e.g. 12-24)" value="14-26" onChange={() => {}} />
+                               <div className="flex flex-col gap-1">
+                                  <label className="text-[10px] text-[#8b949e] font-bold uppercase tracking-wider">Collision Matrix Layers</label>
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                     {['WorldDynamic', 'Pawn', 'PhysicsBody', 'HitboxHurt'].map(l => (
+                                        <div key={l} className="bg-[#161b22] border border-[#58a6ff]/30 text-[#58a6ff] text-[10px] px-2 py-0.5 rounded">{l}</div>
+                                     ))}
+                                  </div>
+                               </div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                               <h4 className="text-[#c9d1d9] text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><ShieldAlert size={13} className="text-[#f85149]"/> Stat Scaling & Hyper Armor</h4>
+                               <InputField label="Base Poise / Stagger Resistance" value="120.0" onChange={() => {}} />
+                               <InputField label="Super Armor Active Frames" value="0-14" onChange={() => {}} />
+                               <div className="flex flex-col gap-1">
+                                  <label className="text-[10px] text-[#8b949e] font-bold uppercase tracking-wider">Damage Falloff Curve</label>
+                                  <div className="h-10 w-full bg-[#161b22] border border-[#30363d] rounded flex items-end p-1 gap-1">
+                                     <div className="w-1/5 bg-[#f85149] h-full rounded-sm opacity-80"></div>
+                                     <div className="w-1/5 bg-[#f85149] h-[80%] rounded-sm opacity-70"></div>
+                                     <div className="w-1/5 bg-[#f85149] h-[50%] rounded-sm opacity-60"></div>
+                                     <div className="w-1/5 bg-[#f85149] h-[30%] rounded-sm opacity-50"></div>
+                                     <div className="w-1/5 bg-[#f85149] h-[10%] rounded-sm opacity-40"></div>
+                                  </div>
+                               </div>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                               <h4 className="text-[#c9d1d9] text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Activity size={13} className="text-[#3fb950]"/> State Machine Triggers</h4>
+                               <InputField label="Animation Cancel Window (Frames)" value="30-45" onChange={() => {}} />
+                               <InputField label="NavMesh Agent Radius (cm)" value="42.5" onChange={() => {}} />
+                               <div className="flex flex-col gap-1">
+                                  <label className="text-[10px] text-[#8b949e] font-bold uppercase tracking-wider">Deterministic State Fallback</label>
+                                  <select className="bg-[#161b22] border border-[#30363d] p-1.5 rounded text-[11px] text-[#c9d1d9] outline-none">
+                                     <option>Return to Spawn Location</option>
+                                     <option>Wander in Radius (500cm)</option>
+                                     <option>Execute Action: IDLE_02</option>
+                                  </select>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
                    </div>
 
                    <div className="grid grid-cols-2 gap-6 mt-6">

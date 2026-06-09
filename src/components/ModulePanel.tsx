@@ -322,10 +322,10 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                    
                    <div className="flex flex-col gap-1.5">
                       <span className="text-[#8b949e] font-bold text-[10px]">Cloud Volumetrics (Raymarched)</span>
-                      <select className="bg-[#0d1117] border border-[#30363d] rounded p-1.5 outline-none text-[11px] text-[#c9d1d9]">
+                      <select defaultValue="Cumulonimbus (Storm Coverage)" className="bg-[#0d1117] border border-[#30363d] rounded p-1.5 outline-none text-[11px] text-[#c9d1d9]">
                          <option>Cumulus (Low Altitude)</option>
                          <option>Cirrus (High Altitude)</option>
-                         <option selected>Cumulonimbus (Storm Coverage)</option>
+                         <option>Cumulonimbus (Storm Coverage)</option>
                          <option>Overcast Stratus</option>
                       </select>
                    </div>
@@ -3064,9 +3064,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             <h4 className="font-bold text-[#58a6ff] border-b border-[#30363d] pb-2">Component Properties</h4>
                             <div className="grid grid-cols-[150px_1fr] items-center gap-2">
                                <label className="text-[#8b949e]">Inventory Type</label>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none">
+                               <select defaultValue="Slot-Based (WoW style)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none">
                                   <option>Grid-Based (Resident Evil style)</option>
-                                  <option selected>Slot-Based (WoW style)</option>
+                                  <option>Slot-Based (WoW style)</option>
                                   <option>List-Based (Skyrim style)</option>
                                </select>
                             </div>
@@ -3158,17 +3158,17 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             </div>
                             <div className="flex justify-between text-[#8b949e]">
                                <span>Thread Priority (OS Level)</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1">
+                               <select defaultValue="High (+1)" className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1">
                                   <option>Normal (0)</option>
-                                  <option selected>High (+1)</option>
+                                  <option>High (+1)</option>
                                   <option>Realtime / Time-Critical (+2)</option>
                                </select>
                             </div>
                             <div className="flex justify-between text-[#8b949e]">
                                <span>Command Buffer Size</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1">
+                               <select defaultValue="64 MB" className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1">
                                   <option>16 MB</option>
-                                  <option selected>64 MB</option>
+                                  <option>64 MB</option>
                                   <option>256 MB (Cinematic)</option>
                                </select>
                             </div>
@@ -3181,8 +3181,8 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             </div>
                             <div className="flex justify-between text-[#8b949e]">
                                <span>Job Stealing Algorithm</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1 w-24">
-                                  <option selected>Cilk-style</option>
+                               <select defaultValue="Cilk-style" className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1 w-24">
+                                  <option>Cilk-style</option>
                                   <option>Lock-free FIFO</option>
                                </select>
                             </div>
@@ -3199,17 +3199,17 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             </div>
                             <div className="flex justify-between text-[#8b949e]">
                                <span>File Decompression API</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1 w-24">
+                               <select defaultValue="DirectStorage/Oodle" className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1 w-24">
                                   <option>Zlib (Slow)</option>
                                   <option>LZ4 (Fast)</option>
-                                  <option selected>DirectStorage/Oodle</option>
+                                  <option>DirectStorage/Oodle</option>
                                </select>
                             </div>
                             <div className="flex justify-between text-[#8b949e]">
                                <span>Priority</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1 w-24">
+                               <select defaultValue="Normal (0)" className="bg-[#161b22] border border-[#30363d] rounded outline-none p-1 w-24">
                                   <option>Background (-1)</option>
-                                  <option selected>Normal (0)</option>
+                                  <option>Normal (0)</option>
                                </select>
                             </div>
                          </div>
@@ -3228,9 +3228,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             <h4 className="font-bold text-[#ff7b72] border-b border-[#30363d] pb-2 flex items-center gap-2"><Database size={14}/> Custom Memory Allocators</h4>
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e] font-bold">Garbage Collection Arch</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none text-[#ff7b72]">
+                               <select defaultValue="Incremental (Time-slicing per frame)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none text-[#ff7b72]">
                                   <option>Generational (Stop-the-world)</option>
-                                  <option selected>Incremental (Time-slicing per frame)</option>
+                                  <option>Incremental (Time-slicing per frame)</option>
                                   <option>Manual (Require explicitly freeing)</option>
                                   <option>Arena / Bump Allocators Only</option>
                                </select>
@@ -3263,17 +3263,17 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             <h4 className="font-bold text-[#e3b341] border-b border-[#30363d] pb-2 flex items-center gap-2"><Cpu size={14}/> Hardware Scalability & Legacy Targets</h4>
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e] font-bold">Instruction Set Target</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none text-[#e3b341]">
+                               <select defaultValue="Modern (AVX2, FMA3)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none text-[#e3b341]">
                                   <option>Universal (Multi-Arch binaries)</option>
-                                  <option selected>Modern (AVX2, FMA3)</option>
+                                  <option>Modern (AVX2, FMA3)</option>
                                   <option>Legacy / Potato (SSE4.2 max)</option>
                                </select>
                             </div>
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e] font-bold">Pipelined Execution Mode</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none text-[#e3b341] w-48">
+                               <select defaultValue="Staged: CPU &rarr; RAM &rarr; NPU &rarr; GPU" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none text-[#e3b341] w-48">
                                   <option>Fully Asynchronous (Stutters on Legacy)</option>
-                                  <option selected>Staged: CPU &rarr; RAM &rarr; NPU &rarr; GPU</option>
+                                  <option>Staged: CPU &rarr; RAM &rarr; NPU &rarr; GPU</option>
                                </select>
                             </div>
                             <div className="bg-[#e3b341]/10 border border-[#e3b341]/50 p-2 rounded">
@@ -3283,19 +3283,19 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             </div>
                             <div className="flex justify-between items-center mt-2 border-t border-[#30363d] pt-2">
                                <span className="text-[#8b949e] font-bold">Hard Limit System RAM</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none max-w-[120px]">
+                               <select defaultValue="8 GB (Normal Desktop)" className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none max-w-[120px]">
                                   <option>1-2 GB (Aggressive Pagefile)</option>
                                   <option>4 GB (Minimum Target)</option>
-                                  <option selected>8 GB (Normal Desktop)</option>
+                                  <option>8 GB (Normal Desktop)</option>
                                   <option>16 GB+ (Uncapped Pool)</option>
                                </select>
                             </div>
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e] font-bold">Hard Limit Direct VRAM</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none max-w-[120px]">
+                               <select defaultValue="4 GB (Standard Console)" className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none max-w-[120px]">
                                   <option>512 MB (Barebone 2D only)</option>
                                   <option>2 GB (Aggressive Texture Mips)</option>
-                                  <option selected>4 GB (Standard Console)</option>
+                                  <option>4 GB (Standard Console)</option>
                                   <option>8 GB+ (High Res Cinematic)</option>
                                </select>
                             </div>
@@ -3378,9 +3378,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             
                             <div className="grid grid-cols-[250px_1fr] items-center gap-4">
                                <label className="text-[#8b949e] font-bold">Raytracing API Framework</label>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#bc8cff]">
+                               <select defaultValue="Hardware RT (DXR 1.2 / Vulkan RT)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#bc8cff]">
                                   <option>Software RT (Compute Shaders)</option>
-                                  <option selected>Hardware RT (DXR 1.2 / Vulkan RT)</option>
+                                  <option>Hardware RT (DXR 1.2 / Vulkan RT)</option>
                                   <option>Neural Path Tracing (DLSS-RR)</option>
                                </select>
                             </div>
@@ -3416,10 +3416,10 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             
                             <div className="grid grid-cols-[250px_1fr] items-center gap-4">
                                <label className="text-[#8b949e] font-bold">Hardware Tessellation Mode</label>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#3fb950]">
+                               <select defaultValue="Continuous Virtual Geometry (Nanite-like)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#3fb950]">
                                   <option>Disabled (LODs only)</option>
                                   <option>Adaptive Distance Tessellation</option>
-                                  <option selected>Continuous Virtual Geometry (Nanite-like)</option>
+                                  <option>Continuous Virtual Geometry (Nanite-like)</option>
                                </select>
                             </div>
 
@@ -3435,10 +3435,10 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             
                             <div className="grid grid-cols-[250px_1fr] items-center gap-4">
                                <label className="text-[#8b949e] font-bold">Depth of Field (Bokeh Shape)</label>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#e3b341]">
+                               <select defaultValue="Octagonal (8-blade Anamorphic)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#e3b341]">
                                   <option>Circular (Standard)</option>
                                   <option>Hexagonal (6-blade aperture)</option>
-                                  <option selected>Octagonal (8-blade Anamorphic)</option>
+                                  <option>Octagonal (8-blade Anamorphic)</option>
                                </select>
                             </div>
 
@@ -3465,10 +3465,10 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             
                             <div className="grid grid-cols-[250px_1fr] items-center gap-4">
                                <label className="text-[#8b949e] font-bold">Volumetric Fog Voxel Grid</label>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#58a6ff]">
+                               <select defaultValue="256 x 256 x 128 (High)" className="bg-[#0d1117] border border-[#30363d] rounded p-2 outline-none w-2/3 cursor-pointer text-[#58a6ff]">
                                   <option>64 x 64 x 64</option>
                                   <option>128 x 128 x 128</option>
-                                  <option selected>256 x 256 x 128 (High)</option>
+                                  <option>256 x 256 x 128 (High)</option>
                                   <option>512 x 512 x 256 (Cinematic)</option>
                                </select>
                             </div>
@@ -4056,9 +4056,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                       <div className="flex flex-col gap-3">
                          <div className="flex justify-between items-center text-[11px] text-[#8b949e]">
                             <span>Base Archetype</span>
-                            <select className="bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] rounded p-1">
+                            <select defaultValue="Caucasian Male Early-30s" className="bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] rounded p-1">
                                <option>Asian Female Mid-20s</option>
-                               <option selected>Caucasian Male Early-30s</option>
+                               <option>Caucasian Male Early-30s</option>
                                <option>African Female 40s</option>
                                <option>Custom DNA Import</option>
                             </select>
@@ -4122,9 +4122,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             </div>
                             <div className="flex justify-between items-center mt-2">
                                <span className="text-[#8b949e]">Graphics Quality Override</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded text-[10px] p-1 text-[#ff7b72] outline-none">
+                               <select defaultValue="Half Graphics (50% Scaling)" className="bg-[#161b22] border border-[#30363d] rounded text-[10px] p-1 text-[#ff7b72] outline-none">
                                   <option>Max Engine Settings</option>
-                                  <option selected>Half Graphics (50% Scaling)</option>
+                                  <option>Half Graphics (50% Scaling)</option>
                                   <option>Potato (No Shadows/PostFX)</option>
                                </select>
                             </div>
@@ -4144,8 +4144,8 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             </div>
                             <div className="flex justify-between items-center mt-2">
                                <span className="text-[#8b949e]">Graphics Quality Override</span>
-                               <select className="bg-[#161b22] border border-[#30363d] rounded text-[10px] p-1 text-[#3fb950] outline-none border-[#3fb950]/50">
-                                  <option selected>Maximum Graphics (100%)</option>
+                               <select defaultValue="Maximum Graphics (100%)" className="bg-[#161b22] border border-[#30363d] rounded text-[10px] p-1 text-[#3fb950] outline-none border-[#3fb950]/50">
+                                  <option>Maximum Graphics (100%)</option>
                                   <option>Dynamic (DLSS/FSR)</option>
                                </select>
                             </div>
@@ -4279,9 +4279,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                          <div className="flex flex-col gap-2">
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e]">Global Auto-LOD Generation</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none">
+                               <select defaultValue="Balanced" className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none">
                                   <option>Aggressive (Saves Memory)</option>
-                                  <option selected>Balanced</option>
+                                  <option>Balanced</option>
                                   <option>Cinematic (High Poly)</option>
                                </select>
                             </div>
@@ -4315,17 +4315,17 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                             <span className="font-bold text-[#bc8cff] flex items-center gap-2"><ImageIcon size={12}/> Texture Streaming Pipeline</span>
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e]">Max Diffuse Resolution</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none text-[#bc8cff]">
+                               <select defaultValue="4096x4096 (HQ)" className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none text-[#bc8cff]">
                                   <option>1024x1024</option>
                                   <option>2048x2048 (4K downsample)</option>
-                                  <option selected>4096x4096 (HQ)</option>
+                                  <option>4096x4096 (HQ)</option>
                                   <option>8192x8192 (Film)</option>
                                </select>
                             </div>
                             <div className="flex justify-between items-center">
                                <span className="text-[#8b949e]">Texture Compression</span>
-                               <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none">
-                                  <option selected>BC7 (DX11+)</option>
+                               <select defaultValue="BC7 (DX11+)" className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none">
+                                  <option>BC7 (DX11+)</option>
                                   <option>ASTC (Mobile Target)</option>
                                </select>
                             </div>
@@ -4365,9 +4365,9 @@ export default function ModulePanel({ moduleType }: ModulePanelProps) {
                          <h4 className="font-bold text-[#bc8cff] border-b border-[#30363d] pb-2"><Settings2 size={14} className="inline mr-2"/> DSP & Acoustic Environment</h4>
                          <div className="flex justify-between items-center text-[11px] text-[#c9d1d9]">
                             <span>Global Reverb Type</span>
-                            <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none text-[#bc8cff]">
+                            <select defaultValue="Open Forest / Field" className="bg-[#0d1117] border border-[#30363d] rounded p-1 outline-none text-[#bc8cff]">
                                <option>Cave / Large Hall</option>
-                               <option selected>Open Forest / Field</option>
+                               <option>Open Forest / Field</option>
                                <option>Small Concrete Room</option>
                             </select>
                          </div>

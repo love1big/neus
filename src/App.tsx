@@ -2,12 +2,15 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
 import React, { useState, useEffect } from 'react';
+import JSZip from 'jszip';
 import CodeEditor from './components/CodeEditor';
 import AIChat from './components/AIChat';
 import Viewport3D from './components/Viewport3D';
+import PopOutPanel from './components/PopOutPanel';
 import GitPanel from './components/GitPanel';
-import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords, Camera } from 'lucide-react';
+import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords, Camera, Wand2, Wifi, Microchip, MemoryStick, Mic2, Mic, Video, GitMerge, Hash, Binary, Crosshair, Wrench, Shield, Key, Fingerprint, Anchor, Zap as Flash, Combine, Command, SearchCode, ExternalLink, Film, Sliders, Smile } from 'lucide-react';
 import { useLanguage } from './contexts/LanguageContext';
 import MaterialEditor from './components/MaterialEditor';
 import CutsceneEditor from './components/CutsceneEditor';
@@ -15,7 +18,7 @@ import SettingsModal from './components/SettingsModal';
 import TaskPanel from './components/TaskPanel';
 import PipelineEditor from './components/PipelineEditor';
 import GamePreview from './components/GamePreview';
-import ModulePanel, { PhysicsCollisionMatrix } from './components/ModulePanel';
+import ModulePanel from './components/ModulePanel';
 import PCGEditor from './components/PCGEditor';
 import NiagaraEditor from './components/NiagaraEditor';
 import MetaHumanEditor from './components/MetaHumanEditor';
@@ -34,6 +37,7 @@ import VRXREngineEditor from './components/VRXREngineEditor';
 import MLAgentsEditor from './components/MLAgentsEditor';
 import CinematicSequencerEditor from './components/CinematicSequencerEditor';
 import VFXHitboxStudio from './components/VFXHitboxStudio';
+import OfflineAIVFXStudio from './components/OfflineAIVFXStudio';
 
 
 import LiveOpsDashboard from './components/LiveOpsDashboard';
@@ -54,6 +58,18 @@ import ContentBrowser from './components/ContentBrowser';
 import DataTableEditor from './components/DataTableEditor';
 import AssetStore from './components/AssetStore';
 import StoryGraphEditor from './components/StoryGraphEditor';
+import Offline3DModeler from './components/Offline3DModeler';
+import AdvancedTerrainEditor from './components/AdvancedTerrainEditor';
+import AudioDAW from './components/AudioDAW';
+import AdvancedMapBuilder from './components/AdvancedMapBuilder';
+import UltimateMapGameBuilder from './components/UltimateMapGameBuilder';
+import BlueprintExecutionVisualizer from './components/BlueprintExecutionVisualizer';
+import MegaWorldArchitect from './components/MegaWorldArchitect';
+import RiggingAndAnimation from './components/RiggingAndAnimation';
+import AdvancedImageEditor from './components/AdvancedImageEditor';
+import VFXGraphEditor from './components/VFXGraphEditor';
+import CinematicDirector from './components/CinematicDirector';
+import GameEngineProfiler from './components/GameEngineProfiler';
 import BehaviorTreeEditor from './components/BehaviorTreeEditor';
 import BatchAIImporter from './components/BatchAIImporter';
 import ProjectSettingsEditor from './components/ProjectSettingsEditor';
@@ -69,8 +85,18 @@ import GraphicsRenderEditor from './components/GraphicsRenderEditor';
 import NetworkSim from './components/NetworkSim';
 import Photogrammetry3DScanner from './components/Photogrammetry3DScanner';
 import DeviceDriverConfigPanel from './components/DeviceDriverConfigPanel';
+import ResourceUsageTab from './components/ResourceUsageTab';
+import WorldBibleEditor from './components/WorldBibleEditor';
+import EconomicBalancer from './components/EconomicBalancer';
+import NodeGraphEditor from './components/NodeGraphEditor';
+import QuickStartDashboard from './components/QuickStartDashboard';
+import PhysicsSimulationStudio from './components/PhysicsSimulationStudio';
+import ManualSequenceRecorder from './components/ManualSequenceRecorder';
+import ActionGraphEditor from './components/ActionGraphEditor';
+import WorkflowDAGEditor from './components/WorkflowDAGEditor';
 import { IDEFile, TEMPLATES, DEFAULT_FOLDERS } from './lib/project';
-import { Settings, TerminalSquare, Globe2, History } from 'lucide-react';
+import { Settings, TerminalSquare, Globe2, History, List, Rocket, SplitSquareHorizontal, AlignLeft } from 'lucide-react';
+
 
 import GlobalSearchPanel from './components/GlobalSearchPanel';
 
@@ -84,6 +110,12 @@ import { Message as ChatMessage } from './components/AIChat';
  */
 import ChronoDebugger from './components/ChronoDebugger';
 import NodeGraphMockup from './components/NodeGraphMockup';
+import GlobalUniversalDetailsPanel from './components/GlobalUniversalDetailsPanel';
+import OmniCreatorMaster from './components/OmniCreatorMaster';
+import AITextureSynthesizer from './components/AITextureSynthesizer';
+import VoiceMusicStudio from './components/VoiceMusicStudio';
+
+import MasterNarrativeCinematicEditor from './components/MasterNarrativeCinematicEditor';
 
 export default function App() {
   const { t } = useLanguage();
@@ -93,6 +125,11 @@ export default function App() {
   ]);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [detachedWindows, setDetachedWindows] = useState({
+    viewport: false,
+    console: false,
+    codeEditor: false,
+  });
   const [terminalHistory, setTerminalHistory] = useState([
     { type: 'sys', text: 'Virtual Environment Activated: (nexus-env) python 3.10.12' },
     { type: 'cmd', text: 'npm run dev' },
@@ -125,7 +162,7 @@ export default function App() {
   ]);
   const [activeFileId, setActiveFileId] = useState('1');
   const [mobileView, setMobileView] = useState<'explorer' | 'editor' | 'chat'>('editor');
-  const [activeTool, setActiveTool] = useState('Select');
+  const [activeTool, setActiveTool] = useState('QuickStart');
   const [showEditorViewport, setShowEditorViewport] = useState(true);
   const [aiAgentMode, setAiAgentMode] = useState('developer');
   const [leftPanel, setLeftPanel] = useState<'explorer' | 'git' | 'outliner' | 'debug' | 'extensions' | 'test' | 'tasks'>('explorer');
@@ -133,7 +170,18 @@ export default function App() {
   const [showConsole, setShowConsole] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showWindowMenu, setShowWindowMenu] = useState(false);
-  const [bottomTab, setBottomTab] = useState<'log' | 'messages' | 'cmd' | 'content' | 'terminal' | 'problems' | 'output' | 'debugConsole' | 'chrono'>('log');
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+  const [isXL, setIsXL] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1280 : true);
+  const [bottomTab, setBottomTab] = useState<'log' | 'messages' | 'cmd' | 'content' | 'terminal' | 'problems' | 'output' | 'debugConsole' | 'chrono' | 'resource'>('log');
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+      setIsXL(window.innerWidth >= 1280);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   React.useEffect(() => {
     setFiles(currentFiles => {
@@ -163,21 +211,102 @@ export default function App() {
   }, []);
 
   const AGENTS = {
+    // ---- PROGRAMMING & ENGINEERING ----
     developer: { name: 'Developer Assistant', icon: '🤖', color: 'bg-[#58a6ff]', context: '32K CONTEXT', model: 'OmniCode Expert' },
     copilot: { name: 'Code Copilot', icon: '💻', color: 'bg-[#3fb950]', context: '16K CONTEXT', model: 'NexusCode Core' },
     commander: { name: 'Swarm Overlord', icon: '👑', color: 'bg-[#f85149]', context: 'PIPELINE', model: 'Nexus Prime' },
+    cpp_expert: { name: 'C++ Systems Engineer', icon: '⚙️', color: 'bg-[#e3b341]', context: 'BARE-METAL', model: 'CppNatives Engine' },
+    csharp_architect: { name: 'C# Gameplay Architect', icon: '🧩', color: 'bg-[#bc8cff]', context: 'OOP LOGIC', model: 'MonoLogic Core' },
+    python_ml: { name: 'Python ML Scientist', icon: '🐍', color: 'bg-[#58a6ff]', context: 'TENSORS', model: 'PyTensor AI' },
+    rust_safety: { name: 'Rust Netcode Dev', icon: '🦀', color: 'bg-[#ff7b72]', context: 'MEMORY-SAFE', model: 'CargoNet Engine' },
+    shader_dev: { name: 'Shader/GPU Dev', icon: '🎇', color: 'bg-[#2ea043]', context: 'GLSL/HLSL', model: 'PixelMath Pro' },
+
+    // ---- GAME DESIGN & MECHANICS ----
     game: { name: 'Game Director', icon: '🎮', color: 'bg-[#58a6ff]', context: 'SYSTEMS', model: 'GameDir Engine' },
-    story: { name: 'Lore Storyteller', icon: '📜', color: 'bg-[#e3b341]', context: 'INFINITE', model: 'LoreMaster Infinite' },
-    uiux: { name: 'UX Designer', icon: '✨', color: 'bg-[#bc8cff]', context: 'V-VISION', model: 'DesignNet-Pro' },
-    world: { name: 'World Builder', icon: '🌍', color: 'bg-[#3fb950]', context: 'PCG GEN', model: 'TerraGen' },
+    level_designer: { name: 'Level Designer', icon: '🏰', color: 'bg-[#e3b341]', context: 'SPATIAL', model: 'LevelFlow AI' },
+    combat_balancer: { name: 'Combat Balancer', icon: '⚔️', color: 'bg-[#f85149]', context: 'MATH MATRIX', model: 'EconBalance C-3' },
+    puzzle_maker: { name: 'Puzzle Architect', icon: '🧩', color: 'bg-[#bc8cff]', context: 'LOGIC GATES', model: 'RiddleGenius' },
+
+    // ---- 3D / ANIMATION / FX ----
     '3d': { name: '3D Studio AI', icon: '🧊', color: 'bg-[#58a6ff]', context: 'GPU RENDER', model: 'MeshGenius' },
+    rigger: { name: 'Skeletal Rigger', icon: '🦴', color: 'bg-[#e3b341]', context: 'KINEMATICS', model: 'RigBone Auto' },
+    animator: { name: 'MoCap Animator', icon: '🏃', color: 'bg-[#3fb950]', context: 'KEYFRAMES', model: 'MotionFlow-9' },
+    vfx_artist: { name: 'VFX Particle Artist', icon: '✨', color: 'bg-[#bc8cff]', context: 'EMITTERS', model: 'NiagaraSim Pro' },
+    lighting: { name: 'Lighting Cinematographer', icon: '💡', color: 'bg-[#e3b341]', context: 'RAYTRACING', model: 'LumenCast-X' },
+
+    // ---- 2D / UI / VISION ----
     vision: { name: 'Texture Gen', icon: '🎨', color: 'bg-[#e3b341]', context: 'DIFFUSION', model: 'TextureDiff' },
+    uiux: { name: 'UX Designer', icon: '📐', color: 'bg-[#bc8cff]', context: 'V-VISION', model: 'DesignNet-Pro' },
+    pixel_artist: { name: 'Pixel Art Gen', icon: '👾', color: 'bg-[#58a6ff]', context: 'RETRO 8-BIT', model: 'SpriteGen' },
+    concept_artist: { name: 'Concept Illustrator', icon: '🖼️', color: 'bg-[#ff7b72]', context: 'CANVAS', model: 'MidCanvas v6' },
+
+    // ---- AUDIO & MUSIC ----
     audio: { name: 'AudioFX Synth', icon: '🎵', color: 'bg-[#e3b341]', context: 'DSP ENGINE', model: 'SoundNet-7.0' },
-    security: { name: 'CyberSec AI', icon: '🛡️', color: 'bg-[#f85149]', context: '32K CONTEXT', model: 'VulnScan-Zero' }
+    composer: { name: 'Orchestral Composer', icon: '🎼', color: 'bg-[#bc8cff]', context: 'MIDI GEN', model: 'Symphony-AI' },
+    voice_actor: { name: 'Voice Actor Synth', icon: '🎙️', color: 'bg-[#58a6ff]', context: 'PHONETICS', model: 'TTS-Persona' },
+
+    // ---- STORY & LORE ----
+    story: { name: 'Lore Storyteller', icon: '📜', color: 'bg-[#e3b341]', context: 'INFINITE', model: 'LoreMaster Infinite' },
+    world: { name: 'World Builder', icon: '🌍', color: 'bg-[#3fb950]', context: 'PCG GEN', model: 'TerraGen' },
+    dialogue: { name: 'Dialogue Writer', icon: '💬', color: 'bg-[#bc8cff]', context: 'BRANCHING', model: 'ChatterTree Script' },
+    quest: { name: 'Quest Architect', icon: '🧭', color: 'bg-[#ff7b72]', context: 'STATE MACHINES', model: 'QuestFlow Node' },
+    lore_police: { name: 'Lore Consistency Checker', icon: '🔍', color: 'bg-[#58a6ff]', context: 'DATABASE', model: 'CanonGuard 9' },
+
+    // ---- SPECIALTY ----
+    security: { name: 'CyberSec AI', icon: '🛡️', color: 'bg-[#f85149]', context: '32K CONTEXT', model: 'VulnScan-Zero' },
+    devops: { name: 'DevOps & Build Engineer', icon: '🏗️', color: 'bg-[#3fb950]', context: 'CI/CD CLOUD', model: 'JenkinsBot CI' }
   };
   const currentAgent = AGENTS[aiAgentMode as keyof typeof AGENTS];
 
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
+
+  const exportProjectToNAE = async () => {
+    try {
+      const zip = new JSZip();
+
+      // System files (DLLs, configs to make it work 100% on another machine)
+      const systemFolder = zip.folder("system");
+      systemFolder?.file("EngineCore.dll", "mock_core_engine_binary_data");
+      systemFolder?.file("Physics.dll", "mock_physics_binary_data");
+      systemFolder?.file("NexusConfig.ini", "[Engine]\nVersion=1.0.0\nRenderer=Vulkan\n[Paths]\nModels=../models\nMaps=../maps\n");
+
+      // Shared models
+      const modelsFolder = zip.folder("models");
+      modelsFolder?.file("readme.txt", "Drop your .obj, .fbx, and .gltf files here.");
+
+      // Maps / Level data
+      const mapsFolder = zip.folder("maps");
+      mapsFolder?.file("DefaultMap.map", "mock_map_data");
+
+      // Assets (audio, textures)
+      const assetsFolder = zip.folder("assets");
+      assetsFolder?.file("readme.txt", "Drop textures (.png, .jpg) and sounds (.wav, .ogg) here.");
+
+      // AI Offline Data (chats, offline knowledge, generated files)
+      const aiFolder = zip.folder("ai_offline");
+      aiFolder?.file("chat_history.json", JSON.stringify(chatMessages, null, 2));
+      aiFolder?.file("knowledge_base.txt", "Local embeddings and vector DB contents placeholder.");
+
+      // Source Code files
+      const srcFolder = zip.folder("src");
+      files.forEach(f => {
+        const path = f.folder ? `${f.folder}/${f.name}` : f.name;
+        srcFolder?.file(path, f.content);
+      });
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `NexusProject.nae`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export project: ", err);
+    }
+  };
 
   const setCode = (val: string | ((prev: string) => string)) => {
     if (!activeFile) return;
@@ -256,51 +385,71 @@ export default function App() {
   // ---------------------------------------------------------------------------
 
   const renderTopNavigation = () => (
-    <nav className="h-[44px] bg-[#111] border-b border-[#000] flex items-center px-4 justify-between shrink-0 select-none text-[#ccc]">
+    <nav className="h-[36px] bg-[#0E0E0F] border-b border-[#000] flex items-center px-4 justify-between shrink-0 select-none text-[#b0b5bd]">
       <div className="flex gap-4 items-center flex-1">
-        <span className="font-bold text-[#fff] flex items-center gap-2 text-[13px] tracking-wide">
-          <Box size={16} className="text-[#a476ed] animate-pulse"/> {t('app.title')} <span className="font-medium opacity-80 text-[#a476ed]"></span>
+        <span className="font-bold text-[#fff] flex items-center gap-2 text-[12px] tracking-wide">
+          <Box size={14} className="text-[#58a6ff]"/> {t('app.title')}
         </span>
-        <div className="w-[1px] h-[16px] bg-[#333] mx-2 hidden md:block"></div>
-        <div className="hidden md:flex gap-1 text-[11px] text-[#ccc] font-medium cursor-pointer ml-2 items-center">
-          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors flex items-center gap-1"><FileCode2 size={12}/> File</button>
-          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Edit</button>
-          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Window</button>
-          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Tools</button>
-          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Build</button>
-          <button className="px-2 py-1 hover:bg-[#333] rounded transition-colors">Help</button>
+        <div className="w-[1px] h-[14px] bg-[#333] mx-1 hidden md:block"></div>
+        <div className="hidden md:flex gap-0.5 text-[11px] text-[#b0b5bd] font-medium cursor-pointer ml-1 items-center relative">
+          <button 
+             className="px-2 py-1 hover:bg-[#202020] hover:text-white rounded-[2px] transition-colors flex items-center gap-1.5"
+             onClick={() => setShowExportMenu(!showExportMenu)}
+          >
+            <FileCode2 size={12}/> File
+          </button>
+          
+          {showExportMenu && (
+             <div className="absolute top-full left-0 mt-1 w-48 bg-[#151515] border border-[#333] rounded-[4px] shadow-xl py-1 z-50 flex flex-col pointer-events-auto">
+                <button 
+                  className="px-3 py-1.5 text-left hover:bg-[#0078d7] hover:text-white text-[#ccc] transition-colors text-[11px] flex gap-2 items-center"
+                  onClick={() => {
+                    exportProjectToNAE();
+                    setShowExportMenu(false);
+                  }}
+                >
+                  <Download size={14} /> Export Project (.NAE)
+                </button>
+             </div>
+          )}
+          
+          <button className="px-2 py-1 hover:bg-[#202020] hover:text-white rounded-[2px] transition-colors">Edit</button>
+          <button className="px-2 py-1 hover:bg-[#202020] hover:text-white rounded-[2px] transition-colors">Window</button>
+          <button className="px-2 py-1 hover:bg-[#202020] hover:text-white rounded-[2px] transition-colors">Tools</button>
+          <button className="px-2 py-1 hover:bg-[#202020] hover:text-white rounded-[2px] transition-colors">Build</button>
+          <button className="px-2 py-1 hover:bg-[#202020] hover:text-white rounded-[2px] transition-colors">Help</button>
         </div>
       </div>
       
       {/* Simulation Controls - Center */}
-      <div className="hidden lg:flex items-center gap-1 bg-[#1a1a1a] border border-[#30363d] rounded-md p-1 mx-4 shadow-inner">
+      <div className="hidden lg:flex items-center gap-0.5 bg-[#17171A] border border-[#232328] rounded-[2px] px-1 py-0.5 mx-4 shadow-inner">
         <button 
           onClick={() => setIsSimulating(!isSimulating)}
-          className={`px-3 py-1.5 rounded-sm flex items-center gap-2 text-[11px] font-bold transition-all ${isSimulating ? 'text-[#3fb950]' : 'text-[#3fb950] hover:bg-[#222]'}`}
+          className={`px-2 py-1 rounded-[2px] flex items-center gap-2 text-[11px] font-bold transition-all ${isSimulating ? 'text-[#3fb950] bg-[#3fb950]/10' : 'text-[#3fb950] hover:bg-[#202020]'}`}
         >
-           <Play size={14} fill={isSimulating ? 'currentColor' : 'currentColor'}/>
+           <Play size={12} fill={isSimulating ? 'currentColor' : 'currentColor'}/>
         </button>
-        <button className="px-3 py-1.5 rounded-sm text-[#888] hover:bg-[#222] hover:text-[#fff] transition-colors">
-           <Pause size={14} fill="currentColor"/>
+        <button className="px-2 py-1 rounded-[2px] text-[#888] hover:bg-[#202020] hover:text-[#fff] transition-colors">
+           <Pause size={12} fill="currentColor"/>
         </button>
         <button 
           onClick={() => setIsSimulating(false)}
-          className="px-3 py-1.5 rounded-sm text-[#888] hover:bg-[#222] hover:text-[#fff] transition-colors"
+          className="px-2 py-1 rounded-[2px] text-[#888] hover:bg-[#202020] hover:text-[#fff] transition-colors"
         >
-           <Square size={14} fill="currentColor"/>
+           <Square size={12} fill="currentColor"/>
         </button>
-        <div className="w-[1px] h-[16px] bg-[#333] mx-1"></div>
-        <button className="px-3 py-1.5 rounded-sm text-[#888] hover:bg-[#222] hover:text-[#fff] transition-colors">
-           <MessageSquare size={14} />
+        <div className="w-[1px] h-[14px] bg-[#333] mx-1"></div>
+        <button className="px-2 py-1 rounded-[2px] text-[#888] hover:bg-[#202020] hover:text-[#fff] transition-colors">
+           <MessageSquare size={12} />
         </button>
       </div>
       
-      <div className="hidden xl:flex items-center gap-3 px-3 py-1 bg-[#0a0a0a] border border-[#222] rounded shadow-inner text-[9px] font-mono whitespace-nowrap">
+      <div className="hidden xl:flex items-center gap-3 px-3 py-1 bg-[#101012] border border-[#232328] rounded-[2px] shadow-inner text-[10px] font-mono whitespace-nowrap">
           <div className="flex flex-col">
             <span className="text-[#888]">FPS</span>
             <span className="text-[#3fb950] font-bold">59.9</span>
           </div>
-          <div className="w-[1px] h-[16px] bg-[#333]"></div>
+          <div className="w-[1px] h-[14px] bg-[#333]"></div>
           <div className="flex flex-col">
             <span className="text-[#888]">Logic</span>
             <span className="text-[#58a6ff]">2.1ms</span>
@@ -315,118 +464,285 @@ export default function App() {
           </div>
       </div>
 
-      <div className="flex gap-4 items-center flex-1 justify-end mr-4">
-        <button className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#ccc] hover:text-[#fff] px-2 py-1">
+      <div className="flex gap-4 items-center flex-1 justify-end mr-2">
+        <button className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#b0b5bd] hover:text-[#fff] hover:bg-[#202020] px-2 py-1 rounded-[2px] transition-colors">
           <Play size={12} fill="currentColor"/> Play ▼
         </button>
-        <button className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#ccc] hover:text-[#fff] px-2 py-1">
+        <button className="hidden xl:flex items-center gap-1.5 text-[11px] text-[#b0b5bd] hover:text-[#fff] hover:bg-[#202020] px-2 py-1 rounded-[2px] transition-colors">
           <Layers size={12}/> Platforms ▼
         </button>
-        <div className="w-[1px] h-[16px] bg-[#333] mx-2 hidden xl:block"></div>
-        <div className="text-[11px] text-[#888] mr-4 hidden xl:block tracking-wide">
-          Project: <span className="text-[#ccc] ml-1">FantasyWorld</span>
+        <div className="w-[1px] h-[14px] bg-[#333] mx-1 hidden xl:block"></div>
+        <div className="text-[11px] text-[#888] mr-2 hidden xl:block tracking-wide">
+          Project: <span className="text-[#b0b5bd] ml-1">FantasyWorld</span>
         </div>
-        <div className="flex gap-4 text-[#888] ml-2">
-          <span className="hover:text-[#fff] cursor-pointer">—</span>
-          <span className="hover:text-[#fff] cursor-pointer drop-shadow">□</span>
-          <span className="hover:text-[#fff] cursor-pointer font-bold">✕</span>
+        <div className="flex gap-2 text-[#888] ml-2 items-center">
+          <button className="hover:text-[#fff] hover:bg-[#ff0000] p-1 transition-colors w-[36px] h-[36px] flex items-center justify-center -mr-2">✕</button>
         </div>
       </div>
     </nav>
   );
 
+  const [toolSearch, setToolSearch] = useState('');
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+
   const renderVerticalToolbar = () => {
     const tools = [
-      { id: 'Select', title: 'Code Editor', icon: <Bot size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'Pipeline', title: 'AI Swarm Pipeline', icon: <GitPullRequest size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'EngineCore', title: 'Game Engine Architecture (GameObject, Core)', icon: <Cpu size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'GraphicsRender', title: 'Graphics & Rendering Tech (Nanite, Lumen, DLSS)', icon: <MonitorPlay size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'PhysicsEngine', title: 'Universal Physics Dynamics', icon: <Orbit size={20} />, activeColor: 'text-[#f85149]' },
-      { id: 'InputMapping', title: 'Input & Controller Mapping', icon: <Gamepad2 size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'AnimationAudio', title: 'Skeletal Anim, MoCap & Audio', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'BackendCloud', title: 'Server, Cloud, Sync & Economy', icon: <Cloud size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'ServerSim', title: 'Multiplayer Backend & Server Simulation', icon: <Server size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'AITestingQA', title: 'AI Offline QA, Perf Metric & Debug', icon: <ShieldCheck size={20} />, activeColor: 'text-[#2ea043]' },
-      { id: 'WorldBible', title: 'World Bible (Lore & Setup)', icon: <BookOpen size={20} />, activeColor: 'text-[#d2a8ff]' },
-      { id: 'GameSystems', title: 'AAA Game Systems Architecture', icon: <Blocks size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'ScriptEditor', title: 'IDE & Script Editor', icon: <TerminalSquare size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'AssetPipeline', title: 'Asset Pipeline & Source Control', icon: <FolderTree size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'BuildPublish', title: 'One-Click Build & Pipeline', icon: <Globe2 size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'MapEdit', title: 'Apex Map Builder', icon: <Map size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'NPCEdit', title: 'Deep NPC Builder', icon: <Users size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'MonsterEdit', title: 'Monster & Entities Builder', icon: <Ghost size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'Modeling', title: 'Apex 3D/2D Modeling Studio', icon: <Box size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'Landscape', title: 'Apex Terrain Editor', icon: <Mountain size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'PCG', title: 'Procedural Content Generation', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'ControlRig', title: 'Control Rig & MoCap', icon: <PersonStanding size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'Sequencer', title: 'Apex Timeline Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'MetaHuman', title: 'MetaHuman System', icon: <UserSquare size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'Blueprint', title: 'Visual Scripting (Kismet)', icon: <Waypoints size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'BlueprintGen', title: 'Blueprint AI Generator', icon: <Network size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'LogicVisual', title: 'Event Sheet Logic (GDevelop/Code.org)', icon: <Puzzle size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'BehaviorTree', title: 'AI Behavior Tree Editor', icon: <Network size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'DataTable', title: 'Data Table & Spreadsheets', icon: <Database size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'AssetStore', title: 'Marketplace & Asset Store', icon: <ShoppingCart size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'StoryGraph', title: 'Story & Narrative Graph', icon: <MessageSquare size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'Material', title: 'Node Material Editor', icon: <Palette size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'Niagara', title: 'Niagara Particle FX', icon: <Sparkles size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'MetaSound', title: 'Audio Mixer', icon: <Music size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'ImageEdit', title: 'Image & Texture Editor', icon: <Image size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'AudioEdit', title: 'Audio Studio & SFX', icon: <AudioWaveform size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'EffectEdit', title: 'VFX & Hitbox Studio', icon: <Flame size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'UIUXEdit', title: 'Apex UI/UX Builder', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'SkillForge', title: 'Ultimate Skill Forge', icon: <Swords size={20} />, activeColor: 'text-[#ff7b72]' },
+      { id: 'OmniCreatorMaster', title: '100% Omni Creator Master Dashboard', icon: <Command size={20} />, activeColor: 'text-[#f85149]', category: '🌟 ASCENSION STUDIO' },
       
-      { id: 'AIBrowser', title: 'AI Sandbox Browser Node', icon: <Globe size={20} />, activeColor: 'text-[#f85149]' },
-      { id: 'LocalAI', title: 'Local AI Compute Studio', icon: <BrainCircuit size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'WorldBuilder', title: '🌍 Nano-to-Macro World Builder', icon: <Globe size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'SentientAI', title: '🧠 Sentient AI & NPCDirector', icon: <Brain size={20} />, activeColor: 'text-[#f85149]' },
-      { id: 'ProceduralAsset', title: '🎬 Procedural Asset Studio', icon: <FlaskConical size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'DevOpsManager', title: '🛡️ System Architecture & DevOps Manager', icon: <Server size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'LevelDesign', title: 'Level Assembly (Blockout & ProBuilder)', icon: <Mountain size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'DialogueQuest', title: 'RPG Maker Quest & Dialogue Systems', icon: <BookOpen size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'PerformanceProfile', title: 'AAA Perf Profiler & Deep Bug Hunter', icon: <Bug size={20} />, activeColor: 'text-[#f85149]' },
-      { id: 'AnimGraph', title: 'Cascadeur Animation & Deep IK', icon: <PersonStanding size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'CharacterAnimator', title: 'AI Character Animator', icon: <PersonStanding size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'ProceduralGen', title: 'Houdini-Style PCG World Gen', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'Netcode', title: 'Rollback Multiplayer & Servers', icon: <Globe size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'LiveOps', title: 'LiveOps, Analytics & Economy', icon: <TrendingUp size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'CinematicSequencer', title: 'Timeline & Cinematic Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'AdvancedNavMesh', title: 'NavMesh & Crowd AI', icon: <Users size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'Photogrammetry', title: '3D Photogrammetry Scanner', icon: <Camera size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'HardwareDriver', title: 'Device Driver & HW Config', icon: <Activity size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'HD2DHybridEditor', title: '2.5D / HD-2D Hybrid Engine', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'VoxelEngine', title: 'Voxel & Destruction Engine', icon: <Box size={20} />, activeColor: 'text-[#f85149]' },
-      { id: 'VehiclePhysics', title: 'Vehicle Dynamics Configurator', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'MLAgents', title: 'Machine Learning Training Room', icon: <BrainCircuit size={20} />, activeColor: 'text-[#3fb950]' },
-      { id: 'VRXREngine', title: 'OpenXR VR/MR Development Hub', icon: <Glasses size={20} />, activeColor: 'text-[#bc8cff]' },
-      { id: 'BatchAI', title: 'Batch AI Asset Generator', icon: <Cloud size={20} />, activeColor: 'text-[#e3b341]' },
-      { id: 'DevOpsBuilder', title: 'Cross-Platform Matrix & DevOps Config', icon: <Terminal size={20} />, activeColor: 'text-[#58a6ff]' },
-      { id: 'ASTNodeWeaver', title: 'AST Logic Weaver (Nodes)', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]' },
-      { id: 'OptimizationOverview', title: 'Optimization Overview', icon: <Activity size={20} />, activeColor: 'text-[#3fb950]' },
+      // ====== START: TRADITIONAL / NON-AI / PROFESSIONAL EXPERT TOOLS ====== //
+      { id: 'MasterNarrativeCinematicEditor', title: 'Narrative & Cinematic Timeline (NLE)', icon: <Film size={20} />, activeColor: 'text-[#f85149]', category: '🎬 CINEMATICS' },
+      { id: 'CodeProfilerTracer', title: 'C++/C# System Deep Profiler', icon: <Microchip size={20} />, activeColor: 'text-[#58a6ff]', category: '🤖 IDE & CODE' },
+      { id: 'IDECompilerCore', title: 'Native Manual IDE & Compiler', icon: <TerminalSquare size={20} />, activeColor: 'text-[#3fb950]', category: '🤖 IDE & CODE' },
+      { id: 'BSPBrushArchitect', title: 'BSP Blockout & Grid Mappers', icon: <Box size={20} />, activeColor: 'text-[#e3b341]', category: '🌍 WORLD BUILDING' },
+      { id: 'NavMeshRouter', title: 'Manual NavMesh Pathfinder', icon: <Network size={20} />, activeColor: 'text-[#bc8cff]', category: '🌍 WORLD BUILDING' },
+      { id: 'TopologyUVPro', title: 'Manual Retopology & UV Unwrap Pro', icon: <Crosshair size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'FigmaStyleCanvas', title: 'UI/UX State Visual Builder', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#58a6ff]', category: '📐 UI & UX' },
+      { id: 'UXCognitiveLoadSim', title: 'UX Cognitive Load Simulator', icon: <Brain size={20} />, activeColor: 'text-[#bc8cff]', category: '📐 UI & UX' },
+      { id: 'VstMixerRack', title: 'VST / DSP Mixer Rack', icon: <Sliders size={20} />, activeColor: 'text-[#e3b341]', category: '🎵 AUDIO & SOUND' },
+      { id: 'MidiPianoRoll', title: 'Studio MIDI Piano Roll', icon: <Music size={20} />, activeColor: 'text-[#bc8cff]', category: '🎵 AUDIO & SOUND' },
+      { id: 'BranchingDialogueWeaver', title: 'Story Branch Node Graph', icon: <GitBranch size={20} />, activeColor: 'text-[#ff7b72]', category: '🎮 GAME DESIGN' },
+      { id: 'GameStateFlagTree', title: 'Game State Variable Regedit', icon: <Database size={20} />, activeColor: 'text-[#3fb950]', category: '🎮 GAME DESIGN' },
+      // ====== END: TRADITIONAL TOOLS ====== //
+      
+      { id: 'QuickStart', title: 'Quick Start Dashboard', icon: <Rocket size={20} />, activeColor: 'text-[#58a6ff]', category: '🌟 ASCENSION STUDIO' },
+      { id: 'Select', title: 'Code Editor', icon: <Bot size={20} />, activeColor: 'text-[#58a6ff]', category: '🤖 IDE & CODE' },
+      { id: 'EconomicBalancer', title: 'Combat & Economy Balancer', icon: <Map size={20} />, activeColor: 'text-[#e3b341]', category: '🎮 GAME DESIGN' },
+      { id: 'NodeGraphEditor', title: 'Logic & Dialogue Graph (No-AI)', icon: <Users size={20} />, activeColor: 'text-[#bc8cff]', category: '🤖 IDE & CODE' },
+      { id: 'Pipeline', title: 'AI Swarm Pipeline', icon: <GitPullRequest size={20} />, activeColor: 'text-[#3fb950]', category: '🤖 IDE & CODE' },
+
+      { id: 'EngineCore', title: 'Game Engine Architecture (GameObject, Core)', icon: <Cpu size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ ENGINE CORE' },
+      { id: 'GraphicsRender', title: 'Graphics & Rendering Tech (Nanite, Lumen, DLSS)', icon: <MonitorPlay size={20} />, activeColor: 'text-[#ff7b72]', category: '⚙️ ENGINE CORE' },
+      { id: 'PhysicsEngine', title: 'Universal Physics Dynamics', icon: <Orbit size={20} />, activeColor: 'text-[#f85149]', category: '⚙️ ENGINE CORE' },
+      { id: 'InputMapping', title: 'Input & Controller Mapping', icon: <Gamepad2 size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ ENGINE CORE' },
+      { id: 'AnimationAudio', title: 'Skeletal Anim, MoCap & Audio', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]', category: '🏃 ANIMATION' },
+      { id: 'BackendCloud', title: 'Server, Cloud, Sync & Economy', icon: <Cloud size={20} />, activeColor: 'text-[#bc8cff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'ServerSim', title: 'Multiplayer Backend & Server Simulation', icon: <Server size={20} />, activeColor: 'text-[#3fb950]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'AITestingQA', title: 'AI Offline QA, Perf Metric & Debug', icon: <ShieldCheck size={20} />, activeColor: 'text-[#2ea043]', category: '🐛 QA & DEBUGGING' },
+      { id: 'WorldBible', title: 'World Bible (Lore & Setup)', icon: <BookOpen size={20} />, activeColor: 'text-[#d2a8ff]', category: '🎮 GAME DESIGN' },
+      { id: 'GameSystems', title: 'AAA Game Systems Architecture', icon: <Blocks size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ ENGINE CORE' },
+      { id: 'ScriptEditor', title: 'IDE & Script Editor', icon: <TerminalSquare size={20} />, activeColor: 'text-[#ff7b72]', category: '🤖 IDE & CODE' },
+      { id: 'AssetPipeline', title: 'Asset Pipeline & Source Control', icon: <FolderTree size={20} />, activeColor: 'text-[#3fb950]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'BuildPublish', title: 'One-Click Build & Pipeline', icon: <Globe2 size={20} />, activeColor: 'text-[#3fb950]', category: '⚙️ DEVOPS' },
+      { id: 'MapEdit', title: 'Apex Map Builder', icon: <Map size={20} />, activeColor: 'text-[#58a6ff]', category: '🌍 WORLD BUILDING' },
+      { id: 'NPCEdit', title: 'Deep NPC Builder', icon: <Users size={20} />, activeColor: 'text-[#ff7b72]', category: '🎮 GAME DESIGN' },
+      { id: 'MonsterEdit', title: 'Monster & Entities Builder', icon: <Ghost size={20} />, activeColor: 'text-[#e3b341]', category: '🎮 GAME DESIGN' },
+      { id: 'Modeling', title: 'Apex 3D/2D Modeling Studio', icon: <Box size={20} />, activeColor: 'text-[#e3b341]', category: '🎨 ART & ASSETS' },
+      { id: 'Landscape', title: 'Apex Terrain Editor', icon: <Mountain size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'PCG', title: 'Procedural Content Generation', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]', category: '🌍 WORLD BUILDING' },
+      { id: 'ControlRig', title: 'Control Rig & MoCap', icon: <PersonStanding size={20} />, activeColor: 'text-[#ff7b72]', category: '🏃 ANIMATION' },
+      { id: 'Sequencer', title: 'Apex Timeline Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#bc8cff]', category: '🎬 CINEMATICS' },
+      { id: 'MetaHuman', title: 'MetaHuman System', icon: <UserSquare size={20} />, activeColor: 'text-[#58a6ff]', category: '🎨 ART & ASSETS' },
+      { id: 'Blueprint', title: 'Visual Scripting (Kismet)', icon: <Waypoints size={20} />, activeColor: 'text-[#3fb950]', category: '🤖 IDE & CODE' },
+      { id: 'BlueprintGen', title: 'Blueprint AI Generator', icon: <Network size={20} />, activeColor: 'text-[#bc8cff]', category: '🤖 IDE & CODE' },
+      { id: 'LogicVisual', title: 'Event Sheet Logic (GDevelop/Code.org)', icon: <Puzzle size={20} />, activeColor: 'text-[#3fb950]', category: '🤖 IDE & CODE' },
+      { id: 'BehaviorTree', title: 'AI Behavior Tree Editor', icon: <Network size={20} />, activeColor: 'text-[#e3b341]', category: '🤖 IDE & CODE' },
+      { id: 'DataTable', title: 'Data Table & Spreadsheets', icon: <Database size={20} />, activeColor: 'text-[#3fb950]', category: '🎮 GAME DESIGN' },
+      { id: 'AssetStore', title: 'Marketplace & Asset Store', icon: <ShoppingCart size={20} />, activeColor: 'text-[#bc8cff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'StoryGraph', title: 'Story & Narrative Graph', icon: <MessageSquare size={20} />, activeColor: 'text-[#ff7b72]', category: '🎮 GAME DESIGN' },
+      { id: 'Material', title: 'Node Material Editor', icon: <Palette size={20} />, activeColor: 'text-[#e3b341]', category: '🎨 ART & ASSETS' },
+      { id: 'Niagara', title: 'Niagara Particle FX', icon: <Sparkles size={20} />, activeColor: 'text-[#bc8cff]', category: '✨ VFX & PARTICLES' },
+      { id: 'MetaSound', title: 'Audio Mixer', icon: <Music size={20} />, activeColor: 'text-[#e3b341]', category: '🎵 AUDIO & SOUND' },
+      { id: 'ImageEdit', title: 'Image & Texture Editor', icon: <Image size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'AudioEdit', title: 'Audio Studio & SFX', icon: <AudioWaveform size={20} />, activeColor: 'text-[#3fb950]', category: '🎵 AUDIO & SOUND' },
+      { id: 'EffectEdit', title: 'VFX & Hitbox Studio', icon: <Flame size={20} />, activeColor: 'text-[#ff7b72]', category: '✨ VFX & PARTICLES' },
+      { id: 'OfflineVFX', title: 'Offline AI VFX Gen & Editor', icon: <Wand2 size={20} />, activeColor: 'text-[#e3b341]', category: '✨ VFX & PARTICLES' },
+      { id: 'UIUXEdit', title: 'Apex UI/UX Builder', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#58a6ff]', category: '📐 UI & UX' },
+      { id: 'PhysicsSimulation', title: 'Chaos Physics & Simulation Studio', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]', category: '⚙️ ENGINE CORE' },
+      { id: 'SkillForge', title: 'Ultimate Skill Forge', icon: <Swords size={20} />, activeColor: 'text-[#ff7b72]', category: '🎮 GAME DESIGN' },
+      
+      { id: 'AIBrowser', title: 'AI Sandbox Browser Node', icon: <Globe size={20} />, activeColor: 'text-[#f85149]', category: '🤖 IDE & CODE' },
+      { id: 'LocalAI', title: 'Local AI Compute Studio', icon: <BrainCircuit size={20} />, activeColor: 'text-[#e3b341]', category: '🤖 IDE & CODE' },
+      { id: 'WorldBuilder', title: '🌍 Nano-to-Macro World Builder', icon: <Globe size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'SentientAI', title: '🧠 Sentient AI & NPCDirector', icon: <Brain size={20} />, activeColor: 'text-[#f85149]', category: '🤖 IDE & CODE' },
+      { id: 'ProceduralAsset', title: '🎬 Procedural Asset Studio', icon: <FlaskConical size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'DevOpsManager', title: '🛡️ System Architecture & DevOps Manager', icon: <Server size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'LevelDesign', title: 'Level Assembly (Blockout & ProBuilder)', icon: <Mountain size={20} />, activeColor: 'text-[#e3b341]', category: '🌍 WORLD BUILDING' },
+      { id: 'DialogueQuest', title: 'RPG Maker Quest & Dialogue Systems', icon: <BookOpen size={20} />, activeColor: 'text-[#bc8cff]', category: '🎮 GAME DESIGN' },
+      { id: 'PerformanceProfile', title: 'AAA Perf Profiler & Deep Bug Hunter', icon: <Bug size={20} />, activeColor: 'text-[#f85149]', category: '🐛 QA & DEBUGGING' },
+      { id: 'AnimGraph', title: 'Cascadeur Animation & Deep IK', icon: <PersonStanding size={20} />, activeColor: 'text-[#e3b341]', category: '🏃 ANIMATION' },
+      { id: 'CharacterAnimator', title: 'AI Character Animator', icon: <PersonStanding size={20} />, activeColor: 'text-[#3fb950]', category: '🏃 ANIMATION' },
+      { id: 'ProceduralGen', title: 'Houdini-Style PCG World Gen', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'Netcode', title: 'Rollback Multiplayer & Servers', icon: <Globe size={20} />, activeColor: 'text-[#58a6ff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'LiveOps', title: 'LiveOps, Analytics & Economy', icon: <TrendingUp size={20} />, activeColor: 'text-[#bc8cff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'CinematicSequencer', title: 'Timeline & Cinematic Sequencer', icon: <Clapperboard size={20} />, activeColor: 'text-[#58a6ff]', category: '🎬 CINEMATICS' },
+      { id: 'ActionRecorder', title: 'Manual Action & Sequence Recorder', icon: <Video size={20} />, activeColor: 'text-[#e3b341]', category: '🎬 CINEMATICS' },
+      { id: 'ActionGraph', title: 'Action Graph Editor', icon: <GitBranch size={20} />, activeColor: 'text-[#bc8cff]', category: '🤖 IDE & CODE' },
+      { id: 'WorkflowDAG', title: 'Workflow DAG Editor', icon: <Network size={20} />, activeColor: 'text-[#58a6ff]', category: '🤖 IDE & CODE' },
+      { id: 'AdvancedNavMesh', title: 'NavMesh & Crowd AI', icon: <Users size={20} />, activeColor: 'text-[#e3b341]', category: '🤖 IDE & CODE' },
+      { id: 'Photogrammetry', title: '3D Photogrammetry Scanner', icon: <Camera size={20} />, activeColor: 'text-[#3fb950]', category: '🎨 ART & ASSETS' },
+      { id: 'HardwareDriver', title: 'Device Driver & HW Config', icon: <Activity size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'Offline3DModeler', title: 'Offline 3D Modeler & Sculptor', icon: <Box size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'AdvancedTerrain', title: 'Advanced Terrain & Biomes', icon: <Mountain size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'AudioDAW', title: 'Digital Audio Workstation', icon: <AudioWaveform size={20} />, activeColor: 'text-[#ff7b72]', category: '🎵 AUDIO & SOUND' },
+      { id: 'AdvancedImage', title: 'Advanced Image / Raster Forge', icon: <Image size={20} />, activeColor: 'text-[#0070d2]', category: '🎨 ART & ASSETS' },
+      { id: 'AdvancedMap', title: 'Tiled World Engineer', icon: <Map size={20} />, activeColor: 'text-[#8b5a2b]', category: '🌍 WORLD BUILDING' },
+      { id: 'UltimateMapBuilder', title: 'Ultimate Map Game Builder', icon: <Globe size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'MegaWorldArchitect', title: 'Mega World Architect Studio', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'RiggingAnim', title: 'Kinematics & Skeletal Animation', icon: <PersonStanding size={20} />, activeColor: 'text-[#fb8500]', category: '🏃 ANIMATION' },
+      { id: 'VFXGraph', title: 'HyperVFX Particle Graph', icon: <Flame size={20} />, activeColor: 'text-[#fb8500]', category: '✨ VFX & PARTICLES' },
+      { id: 'BlueprintExecution', title: 'Blueprint Execution Visualizer', icon: <Activity size={20} />, activeColor: 'text-[#bc8cff]', category: '🐛 QA & DEBUGGING' },
+      { id: 'CinematicDirector', title: 'Cinematic Master Sequencer', icon: <Film size={20} />, activeColor: 'text-[#bc8cff]', category: '🎬 CINEMATICS' },
+      { id: 'EngineProfiler', title: 'Engine Performance Profiler', icon: <Activity size={20} />, activeColor: 'text-red-500', category: '🐛 QA & DEBUGGING' },
+      { id: 'HD2DHybridEditor', title: '2.5D / HD-2D Hybrid Engine', icon: <Layers size={20} />, activeColor: 'text-[#3fb950]', category: '⚙️ ENGINE CORE' },
+      { id: 'VoxelEngine', title: 'Voxel & Destruction Engine', icon: <Box size={20} />, activeColor: 'text-[#f85149]', category: '⚙️ ENGINE CORE' },
+      { id: 'VehiclePhysics', title: 'Vehicle Dynamics Configurator', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]', category: '⚙️ ENGINE CORE' },
+      { id: 'MLAgents', title: 'Machine Learning Training Room', icon: <BrainCircuit size={20} />, activeColor: 'text-[#3fb950]', category: '🤖 IDE & CODE' },
+      { id: 'VRXREngine', title: 'OpenXR VR/MR Development Hub', icon: <Glasses size={20} />, activeColor: 'text-[#bc8cff]', category: '⚙️ ENGINE CORE' },
+      { id: 'BatchAI', title: 'Batch AI Asset Generator', icon: <Cloud size={20} />, activeColor: 'text-[#e3b341]', category: '🎨 ART & ASSETS' },
+      { id: 'DevOpsBuilder', title: 'Cross-Platform Matrix & DevOps Config', icon: <Terminal size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'ASTNodeWeaver', title: 'AST Logic Weaver (Nodes)', icon: <Workflow size={20} />, activeColor: 'text-[#ff7b72]', category: '🤖 IDE & CODE' },
+      { id: 'OptimizationOverview', title: 'Optimization Overview', icon: <Activity size={20} />, activeColor: 'text-[#3fb950]', category: '🐛 QA & DEBUGGING' },
+      
+      // Massive Non-AI tool additions
+      { id: 'NetworkDebugger', title: 'Network Packet Sniffer', icon: <Wifi size={20} />, activeColor: 'text-[#e3b341]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'DatabaseExplorer', title: 'SQL & NoSQL Explorer', icon: <Database size={20} />, activeColor: 'text-[#58a6ff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'KernelDebugger', title: 'Kernel Panic Analyzer', icon: <Microchip size={20} />, activeColor: 'text-[#f85149]', category: '🐛 QA & DEBUGGING' },
+      { id: 'MemoryProfiler', title: 'Heap & Memory Profiler', icon: <MemoryStick size={20} />, activeColor: 'text-[#bc8cff]', category: '🐛 QA & DEBUGGING' },
+      { id: 'AudioDSP', title: 'Digital Signal Processing (Audio)', icon: <Mic2 size={20} />, activeColor: 'text-[#3fb950]', category: '🎵 AUDIO & SOUND' },
+      { id: 'VideoEncoder', title: 'FFmpeg Video Pipeline', icon: <Video size={20} />, activeColor: 'text-[#e3b341]', category: '🎬 CINEMATICS' },
+      { id: 'VCSConflict', title: 'Git Conflict Resolver', icon: <GitMerge size={20} />, activeColor: 'text-[#f85149]', category: '⚙️ DEVOPS' },
+      { id: 'HexEditor', title: 'Raw Hex/Binary Editor', icon: <Binary size={20} />, activeColor: 'text-[#bc8cff]', category: '🤖 IDE & CODE' },
+      { id: 'EncryptionTool', title: 'Encryption & Crypto Suite', icon: <Shield size={20} />, activeColor: 'text-[#58a6ff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'CertManager', title: 'Key & Certificate Manager', icon: <Key size={20} />, activeColor: 'text-[#e3b341]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'HardwareConfig', title: 'Hardware I/O Configurator', icon: <Wrench size={20} />, activeColor: 'text-[#3fb950]', category: '⚙️ DEVOPS' },
+      { id: 'TerminalSvr', title: 'Secure Shell (SSH) Client', icon: <Terminal size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'RegexTester', title: 'Advanced Regex Engine', icon: <SearchCode size={20} />, activeColor: 'text-[#bc8cff]', category: '🤖 IDE & CODE' },
+      { id: 'DiffTool', title: 'Advanced File Diffs', icon: <SplitSquareHorizontal size={20} />, activeColor: 'text-[#f85149]', category: '🤖 IDE & CODE' },
+      { id: 'ApiTester', title: 'REST & GraphQL API Tester', icon: <Globe size={20} />, activeColor: 'text-[#58a6ff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'SystemTap', title: 'SystemTap & DTrace', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]', category: '🐛 QA & DEBUGGING' },
+      { id: 'HexInjector', title: 'Hex Injector / Patch Tool', icon: <Cpu size={20} />, activeColor: 'text-[#ff7b72]', category: '🐛 QA & DEBUGGING' },
+      { id: 'FontEditor', title: 'TrueType/OpenType Editor', icon: <AlignLeft size={20} />, activeColor: 'text-[#bc8cff]', category: '📐 UI & UX' },
+      { id: 'LocalDB', title: 'SQLite / IndexedDB Studio', icon: <Database size={20} />, activeColor: 'text-[#3fb950]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'DockerManager', title: 'Container & Image Builder', icon: <Box size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'BuildMonitor', title: 'Jenkins / CI Monitor', icon: <Activity size={20} />, activeColor: 'text-[#f85149]', category: '⚙️ DEVOPS' },
+      { id: 'AppProfiler', title: 'Strace & Ltrace Viewer', icon: <Search size={20} />, activeColor: 'text-[#e3b341]', category: '🐛 QA & DEBUGGING' },
+      { id: 'CompilerTool', title: 'GCC/LLVM Flag Optimizer', icon: <Wrench size={20} />, activeColor: 'text-[#bc8cff]', category: '⚙️ DEVOPS' },
+      { id: 'LogViewer', title: 'Massive System Log Viewer', icon: <AlignLeft size={20} />, activeColor: 'text-[#3fb950]', category: '🐛 QA & DEBUGGING' },
+      
+      // The Ultimate Complete Game Studio Additions (100% Comprehensive Request)
+      { id: 'MotionCapture', title: 'Real-time Facial & Body MoCap Studio', icon: <Camera size={20} />, activeColor: 'text-[#ff7b72]', category: '🏃 ANIMATION' },
+      { id: 'SculptMaster', title: 'Topological Sculpting (ZBrush Eq)', icon: <Box size={20} />, activeColor: 'text-[#58a6ff]', category: '🎨 ART & ASSETS' },
+      { id: 'UVRetopology', title: 'Auto-UV Unwrapper & Retopology', icon: <Crosshair size={20} />, activeColor: 'text-[#e3b341]', category: '🎨 ART & ASSETS' },
+      { id: 'AITextureSynthesizer', title: 'AI PBR Texture Synthesizer', icon: <Image size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'TextureBaker', title: 'PBR Material Node & Texture Baker', icon: <Combine size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'VectorHybrid', title: 'Raster/Vector Hybrid Graph', icon: <Image size={20} />, activeColor: 'text-[#3fb950]', category: '🎨 ART & ASSETS' },
+      { id: 'SpriteSheetGen', title: '2D SpriteSheet AI Interpolation', icon: <MonitorPlay size={20} />, activeColor: 'text-[#ff7b72]', category: '🎨 ART & ASSETS' },
+      { id: 'VoiceDubbingStudio', title: 'AI Voice Actor & Lip-Sync Automator', icon: <Mic size={20} />, activeColor: 'text-[#ff7b72]', category: '🎵 AUDIO & SOUND' },
+      { id: 'DynamicOSTComposer', title: 'Procedural Midi Orchestrator', icon: <Music size={20} />, activeColor: 'text-[#bc8cff]', category: '🎵 AUDIO & SOUND' },
+      { id: 'LipSyncAutomator', title: 'Phoneme Blendshape Extractor', icon: <Smile size={20} />, activeColor: 'text-[#58a6ff]', category: '🏃 ANIMATION' },
+      { id: 'EyeTrackingHeatmap', title: 'Eye-Tracking & Heatmap QA', icon: <Eye size={20} />, activeColor: 'text-[#3fb950]', category: '📐 UI & UX' },
+      { id: 'UXCognitiveLoadSim', title: 'UX Cognitive Load Simulator', icon: <Brain size={20} />, activeColor: 'text-[#bc8cff]', category: '📐 UI & UX' },
+      { id: 'TelemetryAnalytics', title: 'Player Telemetry & Heatmap Analytics', icon: <Activity size={20} />, activeColor: 'text-[#e3b341]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'LocDB', title: 'I18n Localization & Subtitles DB', icon: <BookOpen size={20} />, activeColor: 'text-[#58a6ff]', category: '🎮 GAME DESIGN' },
+      { id: 'RelayServer', title: 'Matchmaking & Relay Server Arch', icon: <Server size={20} />, activeColor: 'text-[#bc8cff]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'AntiCheat', title: 'Kernel Anti-Cheat Secure Gateway', icon: <Shield size={20} />, activeColor: 'text-[#f85149]', category: '☁️ BACKEND & NETWORKING' },
+      { id: 'EconomySimulator', title: 'Monetization & Auction House Sim', icon: <TrendingUp size={20} />, activeColor: 'text-[#e3b341]', category: '🎮 GAME DESIGN' },
+      { id: 'RenderPipeline', title: 'Scriptable Render Pipeline Architect', icon: <MonitorPlay size={20} />, activeColor: 'text-[#3fb950]', category: '⚙️ ENGINE CORE' },
+      { id: 'FigmaClone', title: 'Ultimate UI/UX Figma-like Canvas', icon: <LayoutDashboard size={20} />, activeColor: 'text-[#bc8cff]', category: '📐 UI & UX' },
+      { id: 'InteractionPrototyper', title: 'UI Animations & State Keyframer', icon: <Layers size={20} />, activeColor: 'text-[#ff7b72]', category: '📐 UI & UX' },
+      { id: 'AccessibilityTester', title: 'UX Contrast & Colorblindness QA', icon: <Eye size={20} />, activeColor: 'text-[#e3b341]', category: '📐 UI & UX' },
+      { id: 'CloudBuildPipeline', title: 'Cross-form CI/CD Build Farm', icon: <Cloud size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'ModdingPublisher', title: 'Modding API & Workshop Publisher', icon: <Globe size={20} />, activeColor: 'text-[#bc8cff]', category: '☁️ BACKEND & NETWORKING' },
     ];
 
+    const filteredTools = toolSearch 
+      ? tools.filter(t => t.title.toLowerCase().includes(toolSearch.toLowerCase()) || t.id.toLowerCase().includes(toolSearch.toLowerCase()) || t.category.toLowerCase().includes(toolSearch.toLowerCase())) 
+      : tools;
+
+    // Grouping tools by category
+    const groupedTools = filteredTools.reduce((acc, tool) => {
+        if (!acc[tool.category]) {
+            acc[tool.category] = [];
+        }
+        acc[tool.category].push(tool);
+        return acc;
+    }, {} as Record<string, typeof tools>);
+
     return (
-      <div className="w-[48px] bg-[#111] border-r border-[#222] hidden md:flex flex-col items-center py-2 shrink-0 justify-between overflow-y-auto custom-scrollbar drop-shadow-lg">
-        <div className="flex flex-col gap-3 items-center w-full">
-          {tools.map(t => (
-            <button 
-              key={t.id}
-              onClick={() => setActiveTool(t.id)}
-              title={t.title}
-              className={`p-2 rounded-lg transition-colors ${activeTool === t.id ? `bg-[#222] ${t.activeColor} shadow-inner border border-[#333]` : 'text-[#888] hover:text-[#fff] hover:bg-[#1a1a1a]'}`}
-            >
-              {t.icon}
-            </button>
-          ))}
+      <div 
+         className={`bg-[#101012] border-r border-[#000] hidden md:flex flex-col items-center py-2 shrink-0 justify-between overflow-y-auto custom-scrollbar shadow-[2px_0_10px_rgba(0,0,0,0.5)] z-10 relative transition-all duration-300 ease-out ${isSidebarHovered || toolSearch ? 'w-[280px] px-2 items-stretch' : 'w-[42px]'}`}
+         onMouseEnter={() => setIsSidebarHovered(true)}
+         onMouseLeave={() => { setIsSidebarHovered(false); if (!toolSearch) setToolSearch(''); }}
+      >
+        <div className={`flex flex-col gap-1 w-full ${isSidebarHovered || toolSearch ? 'items-stretch' : 'items-center'}`}>
+          
+          {/* Real-time Search Filter */}
+          <div className={`w-full overflow-hidden transition-all duration-300 ease-out ${isSidebarHovered || toolSearch ? 'h-[30px] opacity-100 mb-2' : 'h-0 opacity-0 mb-0'}`}>
+             <div className="relative h-full text-[#888]">
+                 <Search size={12} className="absolute left-2 top-1/2 -translate-y-[50%]" />
+                 <input 
+                    type="text" 
+                    value={toolSearch}
+                    onChange={(e) => setToolSearch(e.target.value)}
+                    placeholder="Filter Tools, Domains, Modules..."
+                    className="w-full h-full bg-[#1c1c1f] rounded border border-[#333] pl-6 pr-2 text-[#eee] font-medium text-[11px] outline-none focus:border-[#58a6ff] transition-colors"
+                 />
+                 {toolSearch && (
+                    <button className="absolute right-2 top-1/2 -translate-y-[50%] hover:text-[#fff]" onClick={() => setToolSearch('')}><X size={10} /></button>
+                 )}
+             </div>
+          </div>
+
+          <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar pb-10">
+             {(() => {
+                // If not hovered, display the flat vertical list of icons (first 15 icons to prevent massive scroll without tooltips visible)
+                if (!isSidebarHovered && !toolSearch) {
+                  return tools.slice(0, 18).map(t => (
+                    <button 
+                      key={t.id}
+                      onClick={() => setActiveTool(t.id)}
+                      className={`p-1.5 rounded-[2px] transition-all relative group flex items-center justify-center h-[34px] w-[34px] ${activeTool === t.id ? `bg-[#242428] ${t.activeColor}` : 'text-[#888] hover:bg-[#202022] hover:text-[#fff]'}`}
+                    >
+                      {activeTool === t.id && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[20px] bg-[#58a6ff] rounded-r-[1px]"></div>
+                      )}
+                      {React.cloneElement(t.icon, { size: 18, className: "shrink-0" })}
+                      <div className="absolute left-10 opacity-0 group-hover:opacity-100 bg-[#0a0a0a] text-white text-[10px] whitespace-nowrap px-2 py-1 rounded-[2px] pointer-events-none transition-opacity ml-2 z-50 shadow-md border border-[#222]">
+                        {t.title}
+                      </div>
+                    </button>
+                  ));
+                }
+
+                // Hovered: Show beautifully categorized groups
+                return Object.entries(groupedTools).map(([category, catTools]) => {
+                  if (catTools.length === 0) return null;
+                  return (
+                     <div key={category} className="mb-3">
+                        <div className="text-[10px] font-black tracking-widest text-[#555] uppercase mb-1 px-2 pb-1 border-b border-[#222]">{category}</div>
+                        <div className="flex flex-col">
+                           {catTools.map(t => (
+                             <button 
+                               key={t.id}
+                               onClick={() => setActiveTool(t.id)}
+                               className={`px-2 py-1.5 rounded-[2px] transition-all relative flex items-center justify-start gap-2 h-[34px] w-full
+                                 ${activeTool === t.id ? `bg-[#202022] ${t.activeColor} shadow-[inset_2px_0_0_currentColor]` : 'text-[#888] hover:bg-[#1a1a1c] hover:text-[#ccc]'}`}
+                             >
+                               {React.cloneElement(t.icon, { size: 16, className: "shrink-0 opacity-80" })}
+                               <span className="text-[11px] truncate whitespace-nowrap opacity-100 transition-opacity font-medium">
+                                  {t.title}
+                               </span>
+                             </button>
+                           ))}
+                        </div>
+                     </div>
+                  );
+                });
+             })()}
+             {filteredTools.length === 0 && (
+                 <div className="text-[#888] text-[10px] text-center p-2 mt-4 italic bg-[#111] rounded border border-[#222]">No highly-specialized module found. Omni Creator handles 5,000+ domains. Search again.</div>
+             )}
+          </div>
         </div>
-        <div className="flex flex-col gap-3 items-center w-full mb-2">
+        <div className="flex flex-col gap-1 items-center w-full mb-2 shrink-0 bg-[#101012] pt-2 z-20">
            <button 
              onClick={() => setShowSettingsModal(true)}
              title="Engine Preferences & AI Cluster"
-             className="p-2 rounded-lg text-[#888] hover:text-[#fff] hover:bg-[#1a1a1a] transition-colors"
+             className={`p-1.5 h-[34px] flex items-center rounded-[2px] text-[#888] hover:text-[#fff] hover:bg-[#202022] transition-colors
+                ${isSidebarHovered || toolSearch ? 'w-full justify-start px-2 gap-2' : 'justify-center w-[34px]'}`}
            >
-             <Settings size={20} />
+             <Settings size={18} className="shrink-0" />
+             {(isSidebarHovered || toolSearch) && <span className="text-[11px]">Preferences & AI Cluster</span>}
            </button>
         </div>
       </div>
@@ -438,65 +754,59 @@ export default function App() {
     const isCodeIDE = activeTool === 'Select';
     
     return (
-      <aside className={`w-full md:w-[260px] bg-[#1a1a1a] border-r border-[#000] flex-col shrink-0 ${mobileView === 'explorer' ? 'flex' : 'hidden'} md:flex h-full`}>
+      <aside className={`w-full h-full bg-[#151515] border-r border-[#000] flex-col shrink-0 ${mobileView === 'explorer' ? 'flex' : 'hidden'} md:flex`}>
         {isCodeIDE ? (
-          <div className="flex bg-[#111] shrink-0 h-[36px] items-center px-1 overflow-x-auto custom-scrollbar">
+          <div className="flex bg-[#101012] shrink-0 h-[28px] items-center px-1 overflow-x-auto custom-scrollbar border-b border-[#222]">
             <button 
               onClick={() => setLeftPanel('explorer')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none shrink-0 ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <FolderTree size={14} /> {t('sidebar.explorer')}
+              <FolderTree size={12} /> {t('sidebar.explorer')}
             </button>
             <button 
               onClick={() => setLeftPanel('debug')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'debug' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none shrink-0 ${leftPanel === 'debug' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <Bug size={14} /> DEBUG
+              <Bug size={12} /> DEBUG
             </button>
             <button 
               onClick={() => setLeftPanel('git')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'git' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none shrink-0 ${leftPanel === 'git' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <GitBranch size={14} /> SOURCE
+              <GitBranch size={12} /> SOURCE
             </button>
             <button 
               onClick={() => setLeftPanel('test')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'test' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none shrink-0 ${leftPanel === 'test' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <FlaskConical size={14} /> TEST
+              <FlaskConical size={12} /> TEST
             </button>
             <button 
               onClick={() => setLeftPanel('extensions')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'extensions' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none shrink-0 ${leftPanel === 'extensions' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <Puzzle size={14} /> EXTENSIONS
-            </button>
-            <button 
-              onClick={() => setLeftPanel('tasks')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded shrink-0 ${leftPanel === 'tasks' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
-            >
-              <CheckCircle size={14} /> TASKS
+              <Puzzle size={12} /> EXT
             </button>
           </div>
         ) : (
-          <div className="flex bg-[#111] shrink-0 h-[36px] items-center px-1">
+          <div className="flex bg-[#101012] shrink-0 h-[28px] items-center px-1 border-b border-[#222]">
             <button 
               onClick={() => setLeftPanel('explorer')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none ${leftPanel === 'explorer' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <UserSquare size={14} /> ACTORS
+              <UserSquare size={12} /> ACTORS
             </button>
             <button 
               onClick={() => setLeftPanel('outliner')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded ${leftPanel === 'outliner' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none ${leftPanel === 'outliner' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <Box size={14} /> WORLD
+              <Box size={12} /> WORLD
             </button>
             <button 
               onClick={() => setLeftPanel('git')}
-              className={`px-3 py-1 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors rounded ${leftPanel === 'git' ? 'text-[#fff] bg-[#222]' : 'text-[#888] hover:text-[#fff]'}`}
+              className={`px-3 h-full text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors rounded-none ${leftPanel === 'git' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'text-[#b0b5bd] hover:text-[#fff]'}`}
             >
-              <FolderTree size={14} /> EXPLORER
+              <FolderTree size={12} /> PROJECT
             </button>
           </div>
         )}
@@ -782,16 +1092,16 @@ export default function App() {
   };
 
   const renderTabs = () => (
-    <div className="min-h-[44px] md:min-h-[35px] bg-[#161b22] flex border-b border-[#30363d] shrink-0 custom-scrollbar relative z-10 w-full justify-between overflow-visible">
+    <div className="min-h-[35px] bg-[#101012] flex border-b border-[#000] shrink-0 custom-scrollbar relative z-10 w-full justify-between overflow-visible">
       <div className="flex overflow-x-auto hide-scrollbar flex-1">
         {files.map(f => (
           <div 
             key={f.id}
             onClick={() => { setActiveFileId(f.id); setActiveTool('Select'); }}
-            className={`px-5 flex items-center text-[13px] md:text-[12px] border-r border-[#30363d] cursor-pointer whitespace-nowrap transition-colors select-none ${
+            className={`px-4 flex items-center text-[10px] border-r border-[#222] cursor-pointer whitespace-nowrap transition-colors select-none ${
               f.id === activeFileId && activeTool === 'Select'
-                ? 'bg-[#0d1117] text-[#c9d1d9] font-medium border-t-[2px] border-t-[#58a6ff]'
-                : 'text-[#8b949e] hover:bg-[#21262d] border-t-[2px] border-t-transparent'
+                ? 'bg-[#151515] text-[#fff] font-bold border-t-[2px] border-t-[#0078d7]'
+                : 'text-[#b0b5bd] hover:bg-[#202022] border-t-[2px] border-t-transparent'
             }`}
           >
             {f.name}
@@ -799,17 +1109,17 @@ export default function App() {
         ))}
         <div 
           onClick={() => setActiveTool('AssetStore')}
-          className={`px-5 flex items-center gap-1.5 text-[13px] md:text-[12px] border-r border-[#30363d] cursor-pointer whitespace-nowrap transition-colors select-none ${
+          className={`px-4 flex items-center gap-1.5 text-[10px] border-r border-[#222] cursor-pointer whitespace-nowrap transition-colors select-none ${
             activeTool === 'AssetStore'
-              ? 'bg-[#0d1117] text-[#bc8cff] font-medium border-t-[2px] border-t-[#bc8cff]'
-              : 'text-[#8b949e] hover:bg-[#21262d] border-t-[2px] border-t-transparent'
+              ? 'bg-[#151515] text-[#bc8cff] font-bold border-t-[2px] border-t-[#bc8cff]'
+              : 'text-[#b0b5bd] hover:bg-[#202022] border-t-[2px] border-t-transparent'
           }`}
         >
-          <ShoppingCart size={14} /> Asset Store
+          <ShoppingCart size={12} /> Asset Store
         </div>
       </div>
       {activeTool === 'Select' && (
-        <div className="flex items-center px-3 border-l border-[#30363d] shrink-0 bg-[#161b22]">
+        <div className="flex items-center px-3 border-l border-[#222] shrink-0 bg-[#101012]">
           <button 
             onClick={() => setShowEditorViewport(!showEditorViewport)}
             className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-bold transition-colors ${showEditorViewport ? 'bg-[#58a6ff]/20 text-[#58a6ff]' : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d]'}`}
@@ -824,13 +1134,13 @@ export default function App() {
   );
 
   const renderAIChat = () => (
-    <aside className={`w-full md:w-[320px] lg:w-[380px] flex-col bg-[#161b22] border-l border-[#30363d] shrink-0 z-10 h-full ${mobileView === 'chat' ? 'flex' : 'hidden'} md:flex`}>
-      <div className="p-4 md:p-3 bg-[#0d1117] md:bg-transparent border-b border-[#30363d] flex flex-col gap-1 shrink-0 relative">
+    <aside className={`w-full h-full flex-col bg-[#151515] border-l border-[#000] shrink-0 z-10 ${mobileView === 'chat' ? 'flex' : 'hidden'} md:flex`}>
+      <div className="p-3 bg-[#101012] border-b border-[#222] flex flex-col gap-1 shrink-0 relative">
         <div className="absolute right-4 top-3 flex gap-1">
-          <span className="text-[#3fb950] font-mono text-[9px] bg-[#3fb950]/10 border border-[#3fb950]/20 px-1 py-0.5 rounded" title="Memory Core: Keeping last 50 messages + project context">
+          <span className="text-[#3fb950] font-mono text-[9px] bg-[#3fb950]/10 border border-[#3fb950]/20 px-1 py-0.5 rounded-[2px]" title="Memory Core: Keeping last 50 messages + project context">
              50/50 MEMORY
           </span>
-          <span className="text-[#58a6ff] font-mono text-[9px] bg-[#58a6ff]/10 border border-[#58a6ff]/20 px-1 py-0.5 rounded" title="Context Space: 16 Million Tokens">
+          <span className="text-[#58a6ff] font-mono text-[9px] bg-[#58a6ff]/10 border border-[#58a6ff]/20 px-1 py-0.5 rounded-[2px]" title="Context Space: 16 Million Tokens">
              16M CONTEXT
           </span>
         </div>
@@ -840,18 +1150,18 @@ export default function App() {
             <select 
               value={aiAgentMode}
               onChange={(e) => setAiAgentMode(e.target.value)}
-              className="bg-transparent text-[14px] md:text-[13px] font-semibold text-[#c9d1d9] outline-none cursor-pointer hover:text-[#58a6ff] transition-colors"
+              className="bg-transparent text-[11px] font-bold uppercase tracking-[1px] text-[#b0b5bd] outline-none cursor-pointer hover:text-[#fff] transition-colors"
             >
               {Object.entries(AGENTS).map(([key, agent]) => (
-                <option key={key} value={key} className="bg-[#161b22] text-[#c9d1d9]">
+                <option key={key} value={key} className="bg-[#151515] text-[#b0b5bd]">
                   {agent.icon} {agent.name}
                 </option>
               ))}
             </select>
           </div>
-          <span className={`text-[10px] ${currentAgent.color} text-[#fff] px-1.5 py-0.5 rounded font-mono shadow-sm`}>{currentAgent.context}</span>
+          <span className={`text-[9px] ${currentAgent.color} text-[#fff] px-1.5 py-0.5 rounded-[2px] font-mono shadow-sm`}>{currentAgent.context}</span>
         </div>
-        <div className="flex items-center justify-between text-[11px] md:text-[10px] text-[#8b949e] mt-1">
+        <div className="flex items-center justify-between text-[10px] text-[#888] mt-1">
             <span className="font-mono">Model: {currentAgent.model}</span>
             <span className="font-mono flex items-center gap-1">
               <span className={`w-1 h-1 rounded-full ${currentAgent.color}`}></span>
@@ -876,20 +1186,20 @@ export default function App() {
   );
 
   const renderStatusBar = () => (
-    <footer className="h-[28px] bg-[#58a6ff] text-black items-center px-3 text-[11px] font-semibold tracking-wide shrink-0 justify-between hidden md:flex">
+    <footer className="h-[24px] bg-[#0E0E0F] text-[#888] border-t border-[#000] items-center px-3 text-[10px] font-medium tracking-wide shrink-0 justify-between hidden md:flex z-50">
       <div className="flex items-center gap-4">
-        <span className="flex items-center gap-1"><Sparkles size={12}/> ENGINE READY</span>
+        <span className="flex items-center gap-1 text-[#3fb950]"><Sparkles size={10}/> READY</span>
         <span className="font-mono hidden xl:block">LN 1, COL 1</span>
-        <span className="uppercase tracking-widest hidden xl:block">{activeFile?.language || 'CORE'}</span>
-        <span className="bg-[#0d1117] text-[#58a6ff] px-2 py-0.5 rounded-sm flex items-center shadow-inner gap-1">
-          <MonitorPlay size={10}/> NEXT-GEN TARGET: <span className="text-[#3fb950] font-bold">144FPS / LOW SPEC</span>
+        <span className="uppercase tracking-widest hidden xl:block text-[#b0b5bd]">{activeFile?.language || 'CORE'}</span>
+        <span className="flex items-center gap-1">
+          <MonitorPlay size={10}/> TARGET: <span className="text-[#3fb950] font-bold">144FPS</span>
         </span>
-        <span className="bg-[#000] text-[#e3b341] px-2 py-0.5 rounded-sm flex items-center shadow-inner gap-1">
-          <Zap size={10}/> AI AUTO-OPTIMIZATION: <span className="font-bold text-white">ACTIVE</span>
+        <span className="flex items-center gap-1">
+          <Zap size={10}/> AI OPTIMIZATION: <span className="font-bold text-[#b0b5bd]">ACTIVE</span>
         </span>
       </div>
-      <div className="flex items-center gap-4 cursor-pointer hover:underline">
-        <span className="flex items-center gap-1 font-bold text-black"><Play size={12} fill="currentColor"/> 1-CLICK RAPID BUILD (WINDOWS / MOBILE)</span>
+      <div className="flex items-center gap-4 cursor-pointer hover:text-white transition-colors text-[10px]">
+        <span className="flex items-center gap-1"><Play size={10} fill="currentColor"/> START DEBUGGING (F5)</span>
       </div>
     </footer>
   );
@@ -921,103 +1231,48 @@ export default function App() {
   );
 
   const renderDetailsPanel = () => (
-    <aside className="w-[280px] bg-[#161616] border-l border-[#222] hidden xl:flex flex-col shrink-0 z-10 h-full">
-      <div className="p-3 text-[11px] uppercase tracking-[1px] text-[#fff] font-bold bg-[#0a0a0a] border-b border-[#222]">Details (Inspector)</div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 text-[12px] text-[#888]">
-         {activeTool === 'Select' ? (
-           <div className="flex flex-col gap-3">
-             <div className="text-[#fff] font-bold border-b border-[#333] pb-1 tracking-wider uppercase text-[11px] mb-1">File Properties</div>
-             <div className="flex justify-between"><span className="text-[#888]">Name:</span> <span className="text-[#ccc] truncate">{activeFile?.name}</span></div>
-             <div className="flex justify-between"><span className="text-[#888]">Type:</span> <span className="text-[#ccc] uppercase">{activeFile?.language}</span></div>
-             <div className="flex justify-between"><span className="text-[#888]">Size:</span> <span className="text-[#ccc]">{(activeFile?.content.length || 0)} bytes</span></div>
-           </div>
-         ) : activeTool === 'Material' ? (
-           <div className="flex flex-col gap-3">
-             <div className="text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Shader Properties</div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Blend Mode:</span> <select className="bg-[#111] border border-[#333] rounded px-1 text-right text-[#ccc] outline-none focus:border-[#58a6ff]"><option>Opaque</option><option>Masked</option><option>Translucent</option></select></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Shading Model:</span> <select className="bg-[#111] border border-[#333] rounded px-1 text-right text-[#ccc] outline-none focus:border-[#58a6ff]"><option>Default Lit</option><option>Unlit</option><option>Clear Coat</option></select></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Two Sided:</span> <input type="checkbox" className="w-3 h-3 border-[#333] accent-[#58a6ff]" /></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Is Wireframe:</span> <input type="checkbox" className="w-3 h-3 border-[#333] accent-[#58a6ff]" /></div>
-             <div className="mt-4 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Graph Stats</div>
-             <div className="flex justify-between text-[10px]"><span className="text-[#888]">Instructions:</span> <span className="text-[#ccc]">142 ALU, 3 Tex</span></div>
-             <div className="flex justify-between text-[10px]"><span className="text-[#888]">Samplers:</span> <span className="text-[#3fb950] font-bold">3/16</span></div>
-           </div>
-         ) : (
-           <div className="flex flex-col gap-3">
-             <div className="text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Context Inspector</div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Target:</span> <span className="text-[#3fb950] font-mono uppercase bg-[#3fb950]/10 px-1 py-0.5 rounded border border-[#3fb950]/20 text-[10px] truncate max-w-[120px] text-right">{activeTool}</span></div>
-             
-             <div className="mt-2 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1 text-[#bc8cff] flex items-center gap-1"><Sparkles size={12}/> AI Copilot Actions</div>
-             <div className="flex flex-col gap-1.5">
-               <button className="bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 py-1.5 rounded transition-colors text-[10px] font-bold tracking-wide uppercase flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(188,140,255,0.1)]">Auto-Optimize Scene</button>
-               <button className="bg-[#58a6ff]/10 hover:bg-[#58a6ff]/20 text-[#58a6ff] border border-[#58a6ff]/30 py-1.5 rounded transition-colors text-[10px] font-bold tracking-wide uppercase flex items-center justify-center gap-2">Generate Blueprints</button>
-               <button className="bg-[#e3b341]/10 hover:bg-[#e3b341]/20 text-[#e3b341] border border-[#e3b341]/30 py-1.5 rounded transition-colors text-[10px] font-bold tracking-wide uppercase flex items-center justify-center gap-2">Audit Performance</button>
-             </div>
-
-             <div className="mt-2 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Global Rendering</div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Target FPS:</span> <select className="bg-[#111] border border-[#333] rounded px-1 text-right text-[#ccc] outline-none focus:border-[#58a6ff] text-[10px]"><option>60 FPS</option><option selected>144 FPS</option></select></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Nanite Instancing:</span> <span className="text-[#3fb950] font-bold text-[10px]">Active</span></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Virtual Shadow Maps:</span> <span className="text-[#3fb950] font-bold text-[10px]">Active</span></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">DLSS / FSR:</span> <span className="text-[#3fb950] font-bold text-[10px]">FSR 3.0</span></div>
-
-             <div className="mt-2 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-1">Transform</div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Pos X:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#f85149] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Pos Y:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#3fb950] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Pos Z:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#58a6ff] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
-             
-             <div className="flex justify-between items-center mt-1"><span className="text-[#888]">Rot X:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#f85149] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Rot Y:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#3fb950] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
-             <div className="flex justify-between items-center"><span className="text-[#888]">Rot Z:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#58a6ff] font-mono outline-none focus:border-[#58a6ff]" defaultValue="0.0" /></div>
-             
-             <div className="flex justify-between items-center mt-1"><span className="text-[#888]">Scale Uni:</span> <input type="number" className="w-16 bg-[#111] border border-[#333] rounded px-1 text-right text-[#e3b341] font-mono outline-none focus:border-[#58a6ff]" defaultValue="1.0" /></div>
-
-             <div className="mt-4 text-[#fff] font-bold border-b border-[#333] pb-1 flex justify-between items-center uppercase tracking-wider text-[11px] mb-1">
-                <span>Material Slots</span>
-                <button className="text-[#58a6ff] hover:text-[#fff] text-[16px] leading-[0] mb-0.5">+</button>
-             </div>
-             <div className="flex items-center gap-2 group cursor-pointer">
-                <div className="w-6 h-6 bg-[#111] rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,1)] border border-[#333] shrink-0 pointer-events-none"></div>
-                <button className="flex-1 bg-[#111] p-1.5 rounded-sm text-left border border-[#333] group-hover:border-[#58a6ff] transition-colors truncate text-[11px] text-[#ccc]">M_BaseDefault</button>
-             </div>
-
-             <div className="mt-4 text-[#fff] font-bold border-b border-[#333] pb-1 uppercase tracking-wider text-[11px] mb-2">
-                 Physics Collision Matrix
-             </div>
-             <PhysicsCollisionMatrix />
-           </div>
-         )}
-      </div>
+    <aside className="w-full h-full bg-[#151515] border-l border-[#000] hidden xl:flex flex-col shrink-0 z-10 custom-scrollbar overflow-x-hidden">
+      <GlobalUniversalDetailsPanel activeTool={activeTool} />
     </aside>
   );
 
   const renderBottomPanel = () => {
     const isCodeIDE = activeTool === 'Select';
-    return (
-      <div className={`h-[250px] bg-[#0a0a0a] border-t border-[#222] shrink-0 font-mono text-[11px] flex flex-col z-20 ${showConsole || isCodeIDE ? 'flex' : 'hidden'} shadow-[0_-5px_20px_rgba(0,0,0,0.5)]`}>
-        <div className="flex bg-[#111] border-b border-[#222] text-[#888] overflow-x-auto hide-scrollbar shrink-0">
+    const content = (
+      <div className={`w-full h-full bg-[#151515] border-t border-[#000] shrink-0 font-mono text-[10px] flex flex-col z-20 ${showConsole || isCodeIDE ? 'flex' : 'hidden'}`}>
+        <div className="flex bg-[#101012] border-b border-[#222] text-[#888] overflow-x-auto hide-scrollbar shrink-0 min-h-[26px]">
           {isCodeIDE ? (
             <>
-              <button onClick={() => setBottomTab('problems')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'problems' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Bug size={12}/> Problems <span className="bg-[#161b22] px-1 rounded-full text-[9px] text-[#f85149]">3</span></button>
-              <button onClick={() => setBottomTab('output')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'output' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Activity size={12}/> Output</button>
-              <button onClick={() => setBottomTab('chrono')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'chrono' ? 'border-[#a371f7] text-[#fff]' : 'border-transparent hover:text-[#a371f7]'}`}><History size={12}/> Chrono-State Debugger</button>
-              <button onClick={() => setBottomTab('debugConsole')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'debugConsole' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Server size={12}/> Debug Console</button>
-              <button onClick={() => setBottomTab('terminal')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'terminal' || !['problems', 'output', 'debugConsole', 'chrono'].includes(bottomTab) ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Terminal</button>
+              <button onClick={() => setBottomTab('problems')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'problems' ? 'text-[#fff] bg-[#222] border-t-2 border-[#f85149]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Bug size={10}/> Problems <span className="bg-[#161b22] px-1 rounded-full text-[9px] text-[#f85149]">3</span></button>
+              <button onClick={() => setBottomTab('output')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'output' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Activity size={10}/> Output</button>
+              <button onClick={() => setBottomTab('chrono')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'chrono' ? 'text-[#fff] bg-[#222] border-t-2 border-[#a371f7]' : 'border-t-2 border-transparent hover:text-[#a371f7]'}`}><History size={10}/> History</button>
+              <button onClick={() => setBottomTab('debugConsole')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'debugConsole' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Server size={10}/> Debug Console</button>
+              <button onClick={() => setBottomTab('terminal')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'terminal' || !['problems', 'output', 'debugConsole', 'chrono', 'resource'].includes(bottomTab) ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Terminal size={10}/> Terminal</button>
+              <button onClick={() => setBottomTab('resource')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'resource' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Activity size={10}/> Resource Usage</button>
             </>
           ) : (
             <>
-              <button onClick={() => setBottomTab('content')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'content' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><FolderTree size={12}/> Content Drawer</button>
-              <button onClick={() => setBottomTab('log')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'log' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Terminal size={12}/> Output Log</button>
-              <button onClick={() => setBottomTab('cmd')} className={`px-4 py-1.5 border-b-[3px] transition-colors flex items-center gap-1.5 font-bold uppercase tracking-[1px] text-[10px] shrink-0 ${bottomTab === 'cmd' ? 'border-[#58a6ff] text-[#fff]' : 'border-transparent hover:text-[#fff]'}`}><Server size={12}/> Cmd</button>
+              <button onClick={() => setBottomTab('content')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'content' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><FolderTree size={10}/> Content Drawer</button>
+              <button onClick={() => setBottomTab('log')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'log' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Terminal size={10}/> Output Log</button>
+              <button onClick={() => setBottomTab('cmd')} className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 uppercase font-bold text-[10px] shrink-0 ${bottomTab === 'cmd' ? 'text-[#fff] bg-[#222] border-t-2 border-[#58a6ff]' : 'border-t-2 border-transparent hover:text-[#fff]'}`}><Server size={10}/> Cmd</button>
             </>
           )}
-          {!isCodeIDE && <button className="px-4 py-1.5 ml-auto border-transparent hover:text-[#fff] transition-colors shrink-0" onClick={() => setShowConsole(false)}>X</button>}
+          <div className="ml-auto flex items-center">
+             <button onClick={() => setDetachedWindows(prev => ({...prev, console: !prev.console}))} className="px-2 py-1.5 hover:text-[#fff] transition-colors shrink-0 flex items-center gap-1" title="Pop out Terminal">
+                <ExternalLink size={10} />
+             </button>
+             {!isCodeIDE && <button className="px-4 py-1.5 border-transparent hover:text-[#fff] transition-colors shrink-0" onClick={() => setShowConsole(false)}>X</button>}
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar flex">
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex min-h-0">
           {!isCodeIDE && bottomTab === 'content' ? (
             <ContentBrowser onOpenBlueprint={() => setActiveTool('Blueprint')} />
           ) : isCodeIDE ? (
+            bottomTab === 'resource' ? (
+              <ResourceUsageTab />
+            ) : (
             <div className="flex-1 p-4 flex flex-col gap-1 text-[#ccc] font-mono text-[12px]">
-              {bottomTab === 'terminal' || !['problems', 'output', 'debugConsole', 'chrono'].includes(bottomTab) ? (
+              {bottomTab === 'terminal' || !['problems', 'output', 'debugConsole', 'chrono', 'resource'].includes(bottomTab) ? (
                 <>
                   {terminalHistory.map((item, index) => (
                     <div key={index} className={
@@ -1161,6 +1416,7 @@ export default function App() {
                 </div>
               )}
             </div>
+            )
           ) : (
             <div className="flex-1 p-4 flex flex-col gap-1 text-[#ccc]">
                <div className="text-[#888]">NexusEngine AI initialized. (Local Cluster Offline)</div>
@@ -1179,150 +1435,255 @@ export default function App() {
         </div>
       </div>
     );
+
+    if (detachedWindows.console) {
+      return (
+        <div className={`w-full h-full bg-[#151515] border-t border-[#000] flex flex-col items-center justify-center font-mono text-[10px] text-[#8b949e] ${showConsole || isCodeIDE ? 'flex' : 'hidden'}`}>
+           <Terminal size={32} className="mb-2 text-[#30363d]" />
+           <div className="text-[12px] uppercase font-bold text-white tracking-widest mb-1">{isCodeIDE ? 'Terminal & Output Detached' : 'Console Detached'}</div>
+           <div className="mb-4 text-[11px]">This panel is currently running in a separate window.</div>
+           <button onClick={() => setDetachedWindows(prev => ({...prev, console: false}))} className="px-3 py-1.5 bg-[#1f6feb] text-white rounded hover:bg-[#388bfd] transition-colors rounded text-xs font-bold">
+             Restore to Main Window
+           </button>
+           <PopOutPanel title="Terminal & Console" onClose={() => setDetachedWindows(prev => ({...prev, console: false}))}>
+              {content}
+           </PopOutPanel>
+        </div>
+      );
+    }
+
+    return content;
   };
 
   // ---------------------------------------------------------------------------
   // Main Render
   // ---------------------------------------------------------------------------
+  
+  const renderMainEditorContent = () => (
+    <div className={`flex-1 min-h-0 relative ${isSimulating ? 'hidden' : 'block'} w-full h-full`}>
+       {activeTool === 'Select' && (
+         <PanelGroup orientation="horizontal">
+           <Panel defaultSize={showEditorViewport ? 50 : 100} minSize={20}>
+             <div className="flex-1 min-w-0 border-r border-[#30363d] relative h-full">
+               <CodeEditor 
+                 code={activeFile?.content || ''} 
+                 setCode={setCode} 
+                 language={activeFile?.language || 'plaintext'} 
+                 setLanguage={setLanguage} 
+                 filename={activeFile?.name}
+               />
+             </div>
+           </Panel>
+           
+           {showEditorViewport && (
+             <>
+               <PanelResizeHandle className="w-[1px] bg-[#222] hover:bg-[#58a6ff] transition-colors cursor-col-resize z-50 relative after:content-[''] after:absolute after:inset-y-0 after:-left-[2px] after:w-[5px]" />
+               <Panel defaultSize={50} minSize={20}>
+                 <div className="flex-1 min-w-0 relative h-full">
+                   <Viewport3D activeTool={activeTool} activeFile={activeFile} />
+                 </div>
+               </Panel>
+             </>
+           )}
+         </PanelGroup>
+       )}
+       {activeTool === 'QuickStart' && <QuickStartDashboard onSelectTool={setActiveTool} />}
+       {activeTool === 'EconomicBalancer' && <EconomicBalancer />}
+       {activeTool === 'NodeGraphEditor' && <NodeGraphEditor />}
+       {activeTool === 'WorldBible' && <WorldBibleEditor />}
+       {activeTool === 'ASTNodeWeaver' && (
+         <NodeGraphMockup onClose={() => setActiveTool('Select')} />
+       )}
+       {activeTool === 'Material' && (
+         <MaterialEditor />
+       )}
+       {activeTool === 'Pipeline' && (
+         <PipelineEditor />
+       )}
+       {activeTool === 'Blueprint' && (
+         <BlueprintEditor 
+            onCodeGenerated={(code) => {
+              setFiles(prev => {
+                const existing = prev.find(f => f.name === 'BlueprintCompiled.js');
+                if (existing) {
+                   if (existing.content === code) return prev;
+                   return prev.map(f => f.id === existing.id ? { ...f, content: code } : f);
+                } else {
+                   return [...prev, { id: 'bp_compiled_' + Date.now(), name: 'BlueprintCompiled.js', language: 'javascript', folder: 'Compiled', content: code }];
+                }
+              });
+            }}
+         />
+       )}
+       {activeTool === 'ServerSim' && (
+         <NetworkSim />
+       )}
+       {['AITestingQA', 'ControlRig', 'ProceduralGen'].includes(activeTool) && (
+         <ModulePanel moduleType={activeTool} />
+       )}
+       {['GameSystems', 'AdvancedNavMesh', 'VoxelEngine'].includes(activeTool) && (
+         <GameSystemsEditor />
+       )}
+       {activeTool === 'VehiclePhysics' && <VehicleDynamicsEditor />}
+       {activeTool === 'MLAgents' && <MLAgentsEditor />}
+       {activeTool === 'VRXREngine' && <VRXREngineEditor />}
+       {activeTool === 'OptimizationOverview' && <OptimizationOverview />}
+       {activeTool === 'CinematicSequencer' && <CinematicSequencerEditor />}
+       {['WorldBible', 'DialogueQuest'].includes(activeTool) && (
+         <WorldLoreEditor />
+       )}
+       {['BuildPublish', 'AssetPipeline', 'BackendCloud', 'DevOpsBuilder'].includes(activeTool) && (
+         <BuildPublishEditor />
+       )}
+       {['PhysicsEngine', 'InputMapping'].includes(activeTool) && (
+         <ProjectSettingsEditor />
+       )}
+       {activeTool === 'GraphicsRender' &&  (
+         <GraphicsRenderEditor />
+       )}
+       {['MetaSound', 'AudioEdit', 'AnimationAudio'].includes(activeTool) && (
+         <AudioEditor />
+       )}
+       {activeTool === 'ImageEdit' && <ImageEditor setActiveTool={setActiveTool} />}
+       {activeTool === 'EffectEdit' && <VFXHitboxStudio setActiveTool={setActiveTool} />}
+       {activeTool === 'OfflineVFX' && <OfflineAIVFXStudio />}
+       {['NPCEdit', 'MonsterEdit'].includes(activeTool) && <NPCEditor initialTab={activeTool === 'MonsterEdit' ? 'Monsters' : 'NPCs'} />}
+       {['ControlRig', 'Modeling'].includes(activeTool) && <ModelingEditor />}
+       {activeTool === 'ScriptEditor' && <ScriptEditor />}
+       {['AITestingQA', 'PerformanceProfile'].includes(activeTool) && <PerformanceProfiler />}
+       {['Sequencer', 'CinematicSequencer'].includes(activeTool) && (
+         <CutsceneEditor />
+       )}
+       {activeTool === 'DataTable' && <DataTableEditor />}
+       {activeTool === 'AssetStore' && <AssetStore />}
+       {activeTool === 'Offline3DModeler' && <Offline3DModeler />}
+       {activeTool === 'AdvancedTerrain' && <AdvancedTerrainEditor />}
+       {activeTool === 'AudioDAW' && <AudioDAW />}
+       {activeTool === 'AdvancedImage' && <AdvancedImageEditor />}
+       {activeTool === 'AdvancedMap' && <AdvancedMapBuilder />}
+       {activeTool === 'UltimateMapBuilder' && <UltimateMapGameBuilder />}
+       {activeTool === 'MegaWorldArchitect' && <MegaWorldArchitect />}
+       {activeTool === 'RiggingAnim' && <RiggingAndAnimation />}
+       {activeTool === 'VFXGraph' && <VFXGraphEditor />}
+       {activeTool === 'BlueprintExecution' && <BlueprintExecutionVisualizer />}
+       {activeTool === 'CinematicDirector' && <CinematicDirector />}
+       {activeTool === 'EngineProfiler' && <GameEngineProfiler />}
+       {activeTool === 'StoryGraph' && <StoryGraphEditor />}
+       {activeTool === 'BehaviorTree' && <BehaviorTreeEditor />}
+       {activeTool === 'LogicVisual' && <LogicVisualEditor />}
+       {activeTool === 'MetaHuman' && <MetaHumanEditor />}
+       {activeTool === 'Niagara' && <NiagaraEditor />}
+       {['PCG', 'ProceduralGen'].includes(activeTool) && <PCGEditor />}
+       {activeTool === 'UIUXEdit' && <UIUXEditor />}
+       {activeTool === 'ActionRecorder' && <ManualSequenceRecorder />}
+       {activeTool === 'ActionGraph' && <ActionGraphEditor />}
+       {activeTool === 'WorkflowDAG' && <WorkflowDAGEditor />}
+       {activeTool === 'PhysicsSimulation' && <PhysicsSimulationStudio />}
+       {activeTool === 'SkillForge' && <SkillForgeEditor setActiveTool={setActiveTool} />}
+       {activeTool === 'AIBrowser' && <AIBrowser />}
+       {activeTool === 'LocalAI' && <LocalAIStudio setActiveTool={setActiveTool} />}
+       {activeTool === 'WorldBuilder' && <WorldBuilderEditor />}
+       {activeTool === 'SentientAI' && <SentientAIEditor />}
+       {activeTool === 'ProceduralAsset' && <ProceduralAssetStudio />}
+       {activeTool === 'DevOpsManager' && <ArchitectureDevOpsEditor />}
+       {activeTool === 'LiveOps' && <LiveOpsDashboard />}
+       {activeTool === 'AnimGraph' && <AnimGraphEditor />}
+       {activeTool === 'CharacterAnimator' && <CharacterAnimator />}
+       {activeTool === 'Landscape' && <LandscapeEditor />}
+       {activeTool === 'MapEdit' && <MapEditor setActiveTool={setActiveTool} />}
+       {activeTool === 'Netcode' && <NetcodeEditor />}
+       {activeTool === 'EngineCore' && <EngineCoreEditor />}
+       {activeTool === 'LevelDesign' && <LevelDesignEditor />}
+       {activeTool === 'QuestDirector' && <QuestDirectorEditor />}
+       {activeTool === 'BatchAI' && <BatchAIImporter onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />}
+       {activeTool === 'Photogrammetry' && <Photogrammetry3DScanner />}
+       {activeTool === 'HardwareDriver' && <DeviceDriverConfigPanel />}
+       {activeTool === 'OmniCreatorMaster' && <OmniCreatorMaster onSelectTool={setActiveTool} />}
+       {activeTool === 'AITextureSynthesizer' && <AITextureSynthesizer />}
+       {activeTool === 'MasterNarrativeCinematicEditor' && <MasterNarrativeCinematicEditor />}
+       {['VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator'].includes(activeTool) && <VoiceMusicStudio />}
+       {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'ActionRecorder', 'ActionGraph', 'WorkflowDAG', 'PhysicsSimulation', 'SkillForge', 'AIBrowser', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'OfflineVFX', 'QuickStart', 'EconomicBalancer', 'NodeGraphEditor', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping', 'OptimizationOverview', 'Photogrammetry', 'HardwareDriver', 'Offline3DModeler', 'AdvancedTerrain', 'AudioDAW', 'AdvancedImage', 'AdvancedMap', 'UltimateMapBuilder', 'MegaWorldArchitect', 'RiggingAnim', 'VFXGraph', 'BlueprintExecution', 'CinematicDirector', 'EngineProfiler', 'OmniCreatorMaster', 'AITextureSynthesizer', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'EyeTrackingHeatmap', 'UXCognitiveLoadSim', 'LocDB', 'MasterNarrativeCinematicEditor', 'CodeProfilerTracer', 'IDECompilerCore', 'BSPBrushArchitect', 'NavMeshRouter', 'TopologyUVPro', 'FigmaStyleCanvas', 'VstMixerRack', 'MidiPianoRoll', 'BranchingDialogueWeaver', 'GameStateFlagTree'].includes(activeTool) && (
+         <Viewport3D activeTool={activeTool} activeFile={activeFile} />
+       )}
+
+       {/* Global Offline AI Command Bar for Active Editor */}
+       {activeTool !== 'Material' && activeTool !== 'BatchAI' && activeTool !== 'Pipeline' && activeTool !== 'Blueprint' && activeTool !== 'ServerSim' && (
+          <AICommandCenter activeTool={activeTool} onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />
+       )}
+
+       <HardwareProfilerOverlay />
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-[#0a0a0a] text-[#ccc] font-['Helvetica_Neue',Arial,sans-serif] overflow-hidden">
       {renderTopNavigation()}
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full relative">
         {renderVerticalToolbar()}
-        {renderSidebar()}
-
-        {/* Editor Area */}
-        <section className={`flex-1 flex-col min-w-0 bg-[#0a0a0a] ${mobileView === 'editor' ? 'flex' : 'hidden'} md:flex h-full`}>
-          {renderTabs()}
-          
-          <div className="flex-1 flex flex-col min-h-0 relative h-full">
-            {isSimulating && <GamePreview files={files} />}
-            <div className={`flex-1 min-h-0 relative ${isSimulating ? 'hidden' : 'block'}`}>
-               {activeTool === 'Select' && (
-                 <div className="flex w-full h-full">
-                   <div className="flex-1 min-w-0 border-r border-[#30363d] relative">
-                     <CodeEditor 
-                       code={activeFile?.content || ''} 
-                       setCode={setCode} 
-                       language={activeFile?.language || 'plaintext'} 
-                       setLanguage={setLanguage} 
-                     />
-                   </div>
-                   {showEditorViewport && (
-                     <div className="flex-1 min-w-0 relative">
-                       <Viewport3D activeTool={activeTool} activeFile={activeFile} />
-                     </div>
-                   )}
-                 </div>
-               )}
-               {activeTool === 'ASTNodeWeaver' && (
-                 <NodeGraphMockup onClose={() => setActiveTool('Select')} />
-               )}
-               {activeTool === 'Material' && (
-                 <MaterialEditor />
-               )}
-               {activeTool === 'Pipeline' && (
-                 <PipelineEditor />
-               )}
-               {activeTool === 'Blueprint' && (
-                 <BlueprintEditor 
-                    onCodeGenerated={(code) => {
-                      setFiles(prev => {
-                        const existing = prev.find(f => f.name === 'BlueprintCompiled.js');
-                        if (existing) {
-                           if (existing.content === code) return prev;
-                           return prev.map(f => f.id === existing.id ? { ...f, content: code } : f);
-                        } else {
-                           return [...prev, { id: 'bp_compiled_' + Date.now(), name: 'BlueprintCompiled.js', language: 'javascript', folder: 'Compiled', content: code }];
-                        }
-                      });
-                    }}
-                 />
-               )}
-               {activeTool === 'ServerSim' && (
-                 <NetworkSim />
-               )}
-               {['AITestingQA', 'ControlRig', 'ProceduralGen'].includes(activeTool) && (
-                 <ModulePanel moduleType={activeTool} />
-               )}
-               {['GameSystems', 'AdvancedNavMesh', 'VoxelEngine'].includes(activeTool) && (
-                 <GameSystemsEditor />
-               )}
-               {activeTool === 'VehiclePhysics' && <VehicleDynamicsEditor />}
-               {activeTool === 'MLAgents' && <MLAgentsEditor />}
-               {activeTool === 'VRXREngine' && <VRXREngineEditor />}
-               {activeTool === 'OptimizationOverview' && <OptimizationOverview />}
-               {activeTool === 'CinematicSequencer' && <CinematicSequencerEditor />}
-               {['WorldBible', 'DialogueQuest'].includes(activeTool) && (
-                 <WorldLoreEditor />
-               )}
-               {['BuildPublish', 'AssetPipeline', 'BackendCloud', 'DevOpsBuilder'].includes(activeTool) && (
-                 <BuildPublishEditor />
-               )}
-               {['PhysicsEngine', 'InputMapping'].includes(activeTool) && (
-                 <ProjectSettingsEditor />
-               )}
-               {activeTool === 'GraphicsRender' &&  (
-                 <GraphicsRenderEditor />
-               )}
-               {['MetaSound', 'AudioEdit', 'AnimationAudio'].includes(activeTool) && (
-                 <AudioEditor />
-               )}
-               {activeTool === 'ImageEdit' && <ImageEditor setActiveTool={setActiveTool} />}
-               {activeTool === 'EffectEdit' && <VFXHitboxStudio setActiveTool={setActiveTool} />}
-               {['NPCEdit', 'MonsterEdit'].includes(activeTool) && <NPCEditor initialTab={activeTool === 'MonsterEdit' ? 'Monsters' : 'NPCs'} />}
-               {['ControlRig', 'Modeling'].includes(activeTool) && <ModelingEditor />}
-               {activeTool === 'ScriptEditor' && <ScriptEditor />}
-               {['AITestingQA', 'PerformanceProfile'].includes(activeTool) && <PerformanceProfiler />}
-               {['Sequencer', 'CinematicSequencer'].includes(activeTool) && (
-                 <CutsceneEditor />
-               )}
-               {activeTool === 'DataTable' && <DataTableEditor />}
-               {activeTool === 'AssetStore' && <AssetStore />}
-               {activeTool === 'StoryGraph' && <StoryGraphEditor />}
-               {activeTool === 'BehaviorTree' && <BehaviorTreeEditor />}
-               {activeTool === 'LogicVisual' && <LogicVisualEditor />}
-               {activeTool === 'MetaHuman' && <MetaHumanEditor />}
-               {activeTool === 'Niagara' && <NiagaraEditor />}
-               {['PCG', 'ProceduralGen'].includes(activeTool) && <PCGEditor />}
-               {activeTool === 'UIUXEdit' && <UIUXEditor />}
-               {activeTool === 'SkillForge' && <SkillForgeEditor setActiveTool={setActiveTool} />}
-               {activeTool === 'AIBrowser' && <AIBrowser />}
-               {activeTool === 'LocalAI' && <LocalAIStudio setActiveTool={setActiveTool} />}
-               {activeTool === 'WorldBuilder' && <WorldBuilderEditor />}
-               {activeTool === 'SentientAI' && <SentientAIEditor />}
-               {activeTool === 'ProceduralAsset' && <ProceduralAssetStudio />}
-               {activeTool === 'DevOpsManager' && <ArchitectureDevOpsEditor />}
-               {activeTool === 'LiveOps' && <LiveOpsDashboard />}
-               {activeTool === 'AnimGraph' && <AnimGraphEditor />}
-               {activeTool === 'CharacterAnimator' && <CharacterAnimator />}
-               {activeTool === 'Landscape' && <LandscapeEditor />}
-               {activeTool === 'MapEdit' && <MapEditor setActiveTool={setActiveTool} />}
-               {activeTool === 'Netcode' && <NetcodeEditor />}
-               {activeTool === 'EngineCore' && <EngineCoreEditor />}
-               {activeTool === 'LevelDesign' && <LevelDesignEditor />}
-               {activeTool === 'QuestDirector' && <QuestDirectorEditor />}
-               {activeTool === 'BatchAI' && <BatchAIImporter onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />}
-               {activeTool === 'Photogrammetry' && <Photogrammetry3DScanner />}
-               {activeTool === 'HardwareDriver' && <DeviceDriverConfigPanel />}
-               {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'SkillForge', 'AIBrowser', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping', 'OptimizationOverview', 'Photogrammetry', 'HardwareDriver'].includes(activeTool) && (
-                 <Viewport3D activeTool={activeTool} activeFile={activeFile} />
-               )}
-
-               {/* Global Offline AI Command Bar for Active Editor */}
-               {activeTool !== 'Material' && activeTool !== 'BatchAI' && activeTool !== 'Pipeline' && activeTool !== 'Blueprint' && activeTool !== 'ServerSim' && (
-                  <AICommandCenter activeTool={activeTool} onNavigateToMapEdit={() => setActiveTool('MapEdit')} onNavigateToMonsterEdit={() => setActiveTool('MonsterEdit')} />
-               )}
-
-               <HardwareProfilerOverlay />
-            </div>
-            {renderBottomPanel()}
+        
+        {isDesktop ? (
+          <PanelGroup orientation="horizontal" className="flex-1 h-full w-full">
+            <Panel defaultSize={20} minSize={5}>
+              {renderSidebar()}
+            </Panel>
+            
+            <PanelResizeHandle className="w-[1px] bg-[#222] hover:bg-[#58a6ff] transition-colors cursor-col-resize z-50 relative after:content-[''] after:absolute after:inset-y-0 after:-left-[2px] after:w-[5px]" />
+            
+            <Panel defaultSize={isXL ? 50 : 60} minSize={20}>
+              <section className="flex-1 flex-col min-w-0 bg-[#0a0a0a] flex h-full w-full overflow-hidden">
+                {renderTabs()}
+                
+                <PanelGroup orientation="vertical" className="flex-1 h-full">
+                  <Panel defaultSize={75} minSize={20} className="relative !overflow-hidden">
+                    <div className="flex-1 flex flex-col w-full h-full relative">
+                      {isSimulating && <GamePreview files={files} />}
+                      {renderMainEditorContent()}
+                    </div>
+                  </Panel>
+                  
+                  { (showConsole || activeTool === 'Select') && (
+                     <>
+                        <PanelResizeHandle className="h-[1px] bg-[#222] hover:bg-[#58a6ff] transition-colors cursor-row-resize z-50 relative after:content-[''] after:absolute after:inset-x-0 after:-top-[2px] after:h-[5px]" />
+                        <Panel defaultSize={25} minSize={5} className="relative !overflow-hidden">
+                           {renderBottomPanel()}
+                        </Panel>
+                     </>
+                  )}
+                </PanelGroup>
+              </section>
+            </Panel>
+            
+            {isXL && (
+              <>
+                <PanelResizeHandle className="w-[1px] bg-[#222] hover:bg-[#58a6ff] transition-colors cursor-col-resize z-50 relative after:content-[''] after:absolute after:inset-y-0 after:-left-[2px] after:w-[5px]" />
+                <Panel defaultSize={15} minSize={5}>
+                  {renderDetailsPanel()}
+                </Panel>
+              </>
+            )}
+            
+            <PanelResizeHandle className="w-[1px] bg-[#222] hover:bg-[#58a6ff] transition-colors cursor-col-resize z-50 relative after:content-[''] after:absolute after:inset-y-0 after:-left-[2px] after:w-[5px]" />
+            
+            <Panel defaultSize={isXL ? 15 : 20} minSize={10}>
+              {renderAIChat()}
+            </Panel>
+          </PanelGroup>
+        ) : (
+          <div className="flex-1 flex flex-col w-full h-full relative">
+            {renderSidebar()}
+            <section className={`flex-1 flex-col min-w-0 bg-[#0a0a0a] ${mobileView === 'editor' ? 'flex' : 'hidden'} h-full w-full`}>
+               {renderTabs()}
+               <div className="flex-1 flex flex-col w-full h-full relative overflow-hidden">
+                 {isSimulating && <GamePreview files={files} />}
+                 {renderMainEditorContent()}
+                 {(showConsole || activeTool === 'Select') && renderBottomPanel()}
+               </div>
+            </section>
+            {renderDetailsPanel()}
+            {renderAIChat()}
           </div>
-        </section>
-
-        {renderDetailsPanel()}
-        {renderAIChat()}
+        )}
       </div>
 
       {renderStatusBar()}

@@ -157,10 +157,10 @@ export default function NetworkSim() {
                     <div className="grid grid-cols-2 gap-4">
                        <div className="flex flex-col gap-1">
                           <label className="text-[#8b949e] text-[11px] font-bold uppercase">Tick Rate (Hz)</label>
-                          <select className="bg-[#0d1117] border border-[#30363d] text-white rounded p-2 focus:border-[#58a6ff] outline-none text-[13px]">
+                          <select defaultValue="128 Hz (Esports Tactical)" className="bg-[#0d1117] border border-[#30363d] text-white rounded p-2 focus:border-[#58a6ff] outline-none text-[13px]">
                              <option>20 Hz (RPG/Strategy)</option>
                              <option>60 Hz (Standard Action)</option>
-                             <option selected>128 Hz (Esports Tactical)</option>
+                             <option>128 Hz (Esports Tactical)</option>
                           </select>
                        </div>
                        <div className="flex flex-col gap-1">

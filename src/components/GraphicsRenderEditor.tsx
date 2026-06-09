@@ -142,6 +142,7 @@ export default function GraphicsRenderEditor() {
         <button onClick={() => setActiveTab('culling')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'culling' ? 'text-[#3fb950] border-b-2 border-[#3fb950]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Settings2 size={14}/> Culling & LOD</button>
         <button onClick={() => setActiveTab('smart-lod')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'smart-lod' ? 'text-[#a371f7] border-b-2 border-[#a371f7]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Box size={14}/> Smart LOD Pipeline</button>
         <button onClick={() => setActiveTab('shaders')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'shaders' ? 'text-[#f85149] border-b-2 border-[#f85149]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><Cpu size={14}/> Shaders & Cache</button>
+        <button onClick={() => setActiveTab('post-process')} className={`px-4 h-full text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${activeTab === 'post-process' ? 'text-[#e3b341] border-b-2 border-[#e3b341]' : 'text-[#8b949e] hover:text-[#c9d1d9]'}`}><MonitorPlay size={14}/> Post-Process</button>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
@@ -185,9 +186,9 @@ export default function GraphicsRenderEditor() {
                         <div className="text-white font-bold">Object Pooling Aggressiveness</div>
                         <div className="text-[#8b949e] text-[10px] mt-0.5">Preallocate memory to prevent GC spikes.</div>
                       </div>
-                      <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-white outline-none">
+                      <select defaultValue="Aggressive (Max FPS)" className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-white outline-none">
                         <option>Moderate</option>
-                        <option selected>Aggressive (Max FPS)</option>
+                        <option>Aggressive (Max FPS)</option>
                       </select>
                     </label>
                   </div>
@@ -201,9 +202,9 @@ export default function GraphicsRenderEditor() {
                         <div className="text-white font-bold">Target Frame Rate (FPS)</div>
                         <div className="text-[#8b949e] text-[10px] mt-0.5">Dynamic resolution scales to meet target.</div>
                       </div>
-                      <select className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-white outline-none">
+                      <select defaultValue="120 FPS" className="bg-[#0d1117] border border-[#30363d] rounded p-1 text-white outline-none">
                         <option>60 FPS</option>
-                        <option selected>120 FPS</option>
+                        <option>120 FPS</option>
                         <option>Unlimited</option>
                       </select>
                     </label>
@@ -259,14 +260,14 @@ export default function GraphicsRenderEditor() {
                       <p className="text-[#8b949e] text-[11px] mb-3">Render at lower internal resolution and use AI to reconstruct high-quality images, plus insert AI-generated artificial frames to multiply FPS.</p>
                       <div className="flex flex-col gap-3">
                         <div className="flex gap-2">
-                           <select className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9] flex-1">
+                           <select defaultValue="FSR 3.0 (AMD/Universal)" className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9] flex-1">
                               <option>DLSS (NVIDIA)</option>
-                              <option selected>FSR 3.0 (AMD/Universal)</option>
+                              <option>FSR 3.0 (AMD/Universal)</option>
                               <option>XeSS (Intel)</option>
                            </select>
-                           <select className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9] flex-1">
+                           <select defaultValue="Balanced" className="bg-[#0d1117] border border-[#30363d] text-[11px] px-2 py-1 rounded outline-none text-[#c9d1d9] flex-1">
                               <option>Quality</option>
-                              <option selected>Balanced</option>
+                              <option>Balanced</option>
                               <option>Performance</option>
                            </select>
                         </div>
@@ -312,18 +313,18 @@ export default function GraphicsRenderEditor() {
                          <div className="space-y-3">
                            <div className="flex items-center justify-between">
                               <span className="text-[11px] text-[#c9d1d9]">Max Bounce Depth Limit</span>
-                              <select className="bg-[#161b22] border border-[#30363d] text-[11px] text-white rounded px-2 py-1 outline-none min-w-[170px]">
+                              <select defaultValue="Progressive (Auto 1-4 Bounces)" className="bg-[#161b22] border border-[#30363d] text-[11px] text-white rounded px-2 py-1 outline-none min-w-[170px]">
                                 <option>Conservative (1 Bounce)</option>
                                 <option>Balanced (Auto 1-2 Bounces)</option>
-                                <option selected>Progressive (Auto 1-4 Bounces)</option>
+                                <option>Progressive (Auto 1-4 Bounces)</option>
                                 <option>Cinematic (8 Bounces - High Cost)</option>
                               </select>
                            </div>
                            <div className="flex items-center justify-between">
                               <span className="text-[11px] text-[#c9d1d9]">Denoising Execution Pass</span>
-                              <select className="bg-[#161b22] border border-[#30363d] text-[11px] text-white rounded px-2 py-1 outline-none min-w-[170px]">
+                              <select defaultValue="Temporal Reprojection (Medium)" className="bg-[#161b22] border border-[#30363d] text-[11px] text-white rounded px-2 py-1 outline-none min-w-[170px]">
                                 <option>Spatial Filter Only (Fast)</option>
-                                <option selected>Temporal Reprojection (Medium)</option>
+                                <option>Temporal Reprojection (Medium)</option>
                                 <option>AI-Accelerated Engine (DLSS/XeSS)</option>
                               </select>
                            </div>
@@ -718,6 +719,122 @@ export default function GraphicsRenderEditor() {
 
           {activeTab === 'shaders' && (
             <ShaderCompiler />
+          )}
+
+          {activeTab === 'post-process' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2"><MonitorPlay className="text-[#e3b341]"/> Post-Process Volume Editor</h2>
+              
+              <div className="grid grid-cols-2 gap-6">
+                 {/* Bloom */}
+                 <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg space-y-4">
+                    <h3 className="text-white font-bold border-b border-[#30363d] pb-2">Bloom & Glare</h3>
+                    <p className="text-[#8b949e] text-[11px]">Control the bleeding of light from bright areas to simulate camera lenses and atmospheric scattering.</p>
+                    <div className="space-y-3">
+                       <div>
+                          <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                             <span>Bloom Intensity</span>
+                             <span className="text-[#e3b341] font-mono">1.5</span>
+                          </div>
+                          <input type="range" className="w-full accent-[#e3b341] bg-[#0a0a0a]" min="0" max="10" step="0.1" defaultValue="1.5"/>
+                       </div>
+                       <div>
+                          <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                             <span>Bloom Threshold</span>
+                             <span className="text-[#e3b341] font-mono">0.8</span>
+                          </div>
+                          <input type="range" className="w-full accent-[#e3b341] bg-[#0a0a0a]" min="0" max="5" step="0.1" defaultValue="0.8"/>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* Depth of Field */}
+                 <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg space-y-4">
+                    <h3 className="text-white font-bold border-b border-[#30363d] pb-2">Depth of Field (Cinematic DoF)</h3>
+                    <p className="text-[#8b949e] text-[11px]">Replicate physical camera apertures and focal planes to isolate subjects.</p>
+                    <div className="space-y-3">
+                       <div>
+                          <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                             <span>Focal Distance (m)</span>
+                             <span className="text-[#58a6ff] font-mono">2.5</span>
+                          </div>
+                          <input type="range" className="w-full accent-[#58a6ff] bg-[#0a0a0a]" min="0.1" max="100" step="0.1" defaultValue="2.5"/>
+                       </div>
+                       <div>
+                          <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                             <span>Aperture (f-stop)</span>
+                             <span className="text-[#58a6ff] font-mono">f/1.8</span>
+                          </div>
+                          <input type="range" className="w-full accent-[#58a6ff] bg-[#0a0a0a]" min="0.8" max="22" step="0.1" defaultValue="1.8"/>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Color Grading & LUTs */}
+              <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-lg space-y-4">
+                  <h3 className="text-white font-bold border-b border-[#30363d] pb-2">Color Grading & Film Emulation (LUT)</h3>
+                  <p className="text-[#8b949e] text-[11px]">Apply professional 3D Look-Up Tables (LUTs) to stylize the final image output globally.</p>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                     <div className="col-span-1 space-y-4">
+                        <label className="block text-[11px] text-[#c9d1d9] font-bold mb-1">Active LUT Profile</label>
+                        <select className="w-full bg-[#0d1117] border border-[#30363d] text-white text-[12px] p-2 rounded outline-none" defaultValue="Matrix_Green">
+                           <option value="None">None (Linear Rec.709)</option>
+                           <option value="Matrix_Green">Sci-Fi Matrix (Green Tint)</option>
+                           <option value="Cinematic_TealOrange">Cinematic (Teal & Orange)</option>
+                           <option value="Cyberpunk_Neon">Cyberpunk (Neon High Contrast)</option>
+                           <option value="BleachBypass">Bleach Bypass (Desaturated)</option>
+                        </select>
+                        <div className="pt-2">
+                           <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                              <span className="font-bold">LUT Blend Weight</span>
+                              <span className="text-[#bc8cff] font-mono">1.0</span>
+                           </div>
+                           <input type="range" className="w-full accent-[#bc8cff] bg-[#0a0a0a]" min="0" max="1" step="0.05" defaultValue="1.0" />
+                        </div>
+                     </div>
+                     <div className="col-span-2 grid grid-cols-3 gap-2">
+                         <div className="bg-[#0a0a0a] border border-[#30363d] rounded p-2 flex flex-col gap-1 items-center justify-center cursor-pointer hover:border-[#bc8cff] transition">
+                            <div className="w-16 h-12 bg-gradient-to-br from-[#0f172a] to-[#042f2e] border border-[#333] rounded"></div>
+                            <span className="text-[9px] text-[#c9d1d9]">Matrix Green</span>
+                         </div>
+                         <div className="bg-[#0a0a0a] border border-[#30363d] rounded p-2 flex flex-col gap-1 items-center justify-center cursor-pointer hover:border-[#bc8cff] transition">
+                            <div className="w-16 h-12 bg-gradient-to-br from-[#1e3a8a] to-[#9a3412] border border-[#333] rounded"></div>
+                            <span className="text-[9px] text-[#c9d1d9]">Teal & Orange</span>
+                         </div>
+                         <div className="bg-[#0a0a0a] border border-[#30363d] rounded p-2 flex flex-col gap-1 items-center justify-center cursor-pointer hover:border-[#bc8cff] transition">
+                            <div className="w-16 h-12 bg-gradient-to-br from-[#db2777] to-[#0284c7] border border-[#333] rounded"></div>
+                            <span className="text-[9px] text-[#c9d1d9]">Cyberpunk</span>
+                         </div>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#30363d]">
+                     <div>
+                        <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                           <span>Contrast</span>
+                           <span className="text-white font-mono">1.10</span>
+                        </div>
+                        <input type="range" className="w-full accent-[#bc8cff] bg-[#0a0a0a]" min="0.5" max="2.0" step="0.01" defaultValue="1.10" />
+                     </div>
+                     <div>
+                        <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                           <span>Saturation</span>
+                           <span className="text-white font-mono">1.25</span>
+                        </div>
+                        <input type="range" className="w-full accent-[#bc8cff] bg-[#0a0a0a]" min="0" max="2.0" step="0.01" defaultValue="1.25" />
+                     </div>
+                     <div>
+                        <div className="flex justify-between text-[11px] text-[#c9d1d9] mb-1">
+                           <span>Film Grain</span>
+                           <span className="text-white font-mono">0.15</span>
+                        </div>
+                        <input type="range" className="w-full accent-[#bc8cff] bg-[#0a0a0a]" min="0" max="1.0" step="0.01" defaultValue="0.15" />
+                     </div>
+                  </div>
+              </div>
+            </div>
           )}
 
         </div>

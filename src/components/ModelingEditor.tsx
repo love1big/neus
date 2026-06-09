@@ -9,6 +9,7 @@ export default function ModelingEditor() {
   const [activeTab, setActiveTab] = useState<'Blender'|'ZBrush'|'Rigging'|'CAD'|'AI'>('Blender');
   const [rightPanelTab, setRightPanelTab] = useState<'modifiers'|'materials'|'uv_bake'|'lod'>('modifiers');
   const [expandedOutliner, setExpandedOutliner] = useState(true);
+  const [simulateZoom, setSimulateZoom] = useState(false);
   
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] text-[#8b949e] font-['Helvetica_Neue',Arial,sans-serif]">
@@ -103,21 +104,26 @@ export default function ModelingEditor() {
         <div className="flex-1 relative bg-[#050505] flex flex-col group overflow-hidden">
           <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
             {/* Grid */}
-            <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: 'linear-gradient(#58a6ff 1px, transparent 1px), linear-gradient(90deg, #58a6ff 1px, transparent 1px)', backgroundSize: '40px 40px', transform: 'perspective(500px) rotateX(60deg) scale(2)', transformOrigin: 'center 80%' }}></div>
+            <div className={`absolute inset-0 opacity-[0.1] transition-transform duration-500`} style={{ backgroundImage: 'linear-gradient(#58a6ff 1px, transparent 1px), linear-gradient(90deg, #58a6ff 1px, transparent 1px)', backgroundSize: '40px 40px', transform: `perspective(500px) rotateX(60deg) scale(${simulateZoom ? 5 : 2})`, transformOrigin: 'center 80%' }}></div>
             {/* Center Axis */}
-            <div className="absolute w-[2px] h-[50%] bg-[#3fb950] blur-[1px] top-1/4"></div>
-            <div className="absolute w-[50%] h-[2px] bg-[#f85149] blur-[1px] left-1/4"></div>
+            <div className={`absolute w-[2px] h-[50%] bg-[#3fb950] blur-[1px] top-1/4 transition-transform duration-500`} style={{ transform: simulateZoom ? 'scale(2)' : 'scale(1)' }}></div>
+            <div className={`absolute w-[50%] h-[2px] bg-[#f85149] blur-[1px] left-1/4 transition-transform duration-500`} style={{ transform: simulateZoom ? 'scale(2)' : 'scale(1)' }}></div>
             
             {/* Detailed Wireframe Placeholder */}
             {activeTab === 'Blender' && (
-               <div className="relative pointer-events-auto cursor-crosshair">
+               <div className={`relative pointer-events-auto cursor-crosshair transition-transform duration-500 ${simulateZoom ? 'scale-[2.5]' : 'scale-100'}`}>
                  <div className="w-48 h-48 border border-[#58a6ff] absolute shadow-[0_0_20px_rgba(88,166,255,0.2)] flex items-center justify-center transition-transform hover:scale-105" style={{ transform: 'rotateX(60deg) rotateZ(45deg)'}}>
                     {/* Subdivision grid */}
-                    <div className="absolute inset-0 grid grid-cols-4 grid-rows-4">
-                      {Array.from({length: 16}).map((_, i) => (
-                         <div key={i} className={`border border-[#58a6ff]/30 ${i === 5 ? 'bg-[#e3b341]/40 border-[#e3b341] shadow-[inset_0_0_10px_#e3b341]' : 'hover:bg-[#58a6ff]/20'}`}></div>
+                    <div className={`absolute inset-0 grid ${simulateZoom ? 'grid-cols-8 grid-rows-8' : 'grid-cols-4 grid-rows-4'}`}>
+                      {Array.from({length: simulateZoom ? 64 : 16}).map((_, i) => (
+                         <div key={i} className={`border border-[#58a6ff]/30 ${!simulateZoom && i === 5 ? 'bg-[#e3b341]/40 border-[#e3b341] shadow-[inset_0_0_10px_#e3b341]' : 'hover:bg-[#58a6ff]/20'}`}></div>
                       ))}
                     </div>
+                    {simulateZoom && (
+                       <div className="absolute top-2 left-2 bg-[#161b22]/90 px-2 py-1 rounded text-[#58a6ff] text-[8px] border border-[#58a6ff]/40 font-mono">
+                          LOD0 FORCED (ADS ZOOM)
+                       </div>
+                    )}
                     {/* Vertex points */}
                     <div className="absolute -top-1 -left-1 w-2 h-2 bg-white rounded-full"></div>
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></div>
@@ -258,6 +264,12 @@ export default function ModelingEditor() {
           </div>
 
           <div className="absolute top-4 right-4 z-10 flex gap-2">
+             <button 
+                onClick={() => setSimulateZoom(!simulateZoom)}
+                className={`p-1.5 backdrop-blur border rounded flex items-center gap-1 ${simulateZoom ? 'bg-[#58a6ff]/20 border-[#58a6ff] text-[#58a6ff]' : 'bg-[#161b22]/80 border-[#30363d] text-[#8b949e] hover:text-white'}`} 
+                title="ADS / Camera Zoom Override (Force LOD 0)">
+                <Crosshair size={12} /> <span className="text-[10px] font-bold">Zoom {simulateZoom ? 'Active' : 'Off'}</span>
+             </button>
              <button className="p-1.5 bg-[#161b22]/80 backdrop-blur border border-[#30363d] rounded text-[#8b949e] hover:text-white" title="Toggle Grid"><Grid size={12} /></button>
              <button className="p-1.5 bg-[#161b22]/80 backdrop-blur border border-[#30363d] rounded text-[#8b949e] hover:text-white" title="Snapping"><Magnet size={12} /></button>
              <button className="p-1.5 bg-[#161b22]/80 backdrop-blur border border-[#30363d] rounded text-[#8b949e] hover:text-white" title="Focus Selected"><Focus size={12} /></button>
@@ -443,8 +455,19 @@ export default function ModelingEditor() {
                         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" defaultChecked className="accent-[#bc8cff]"/> Protect UV Boundaries</label>
                         <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" defaultChecked className="accent-[#bc8cff]"/> Symmetric Reduction</label>
                       </div>
+
+                      <div className="pt-2 flex flex-col gap-2 border-b border-[#30363d] pb-4">
+                        <h4 className="text-[10px] font-bold text-[#58a6ff] uppercase mb-1 flex items-center gap-1"><Crosshair size={10} /> Zoom & ADS Override</h4>
+                        <p className="text-[9px] text-[#8b949e] mb-1">Forces high-resolution models (LOD 0) when viewed through camera zoom or weapon scopes to ensure crisp details.</p>
+                        <label className="flex items-center gap-2 text-[10px] text-[#c9d1d9]"><input type="checkbox" checked={simulateZoom} onChange={() => setSimulateZoom(!simulateZoom)} className="accent-[#58a6ff]"/> Force LOD 0 on Camera Zoom (Viewport Override)</label>
+                        <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" defaultChecked className="accent-[#58a6ff]"/> Ignore Distance Metrics in ADS Mode</label>
+                        <div className="flex justify-between items-center text-[10px] mt-1 pl-5">
+                            <span className="text-[#8b949e]">Zoom Threshold Focus</span>
+                            <input type="number" defaultValue={2.5} className="bg-[#21262d] text-white w-14 rounded px-1 text-center outline-none border border-[#30363d]" />
+                        </div>
+                      </div>
                       
-                      <button className="w-full py-2 bg-[#bc8cff] text-[#0a0a0a] rounded text-[11px] font-bold hover:bg-[#d2a8ff] transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(188,140,255,0.2)]">
+                      <button className="w-full py-2 bg-[#bc8cff] text-[#0a0a0a] rounded text-[11px] font-bold hover:bg-[#d2a8ff] transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(188,140,255,0.2)] mt-2">
                          <Focus size={14}/> Generate LOD Cluster
                       </button>
                    </div>

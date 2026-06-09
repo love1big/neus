@@ -64,9 +64,9 @@ export default function BuildPublishEditor() {
                      <div className="bg-[#161b22] border border-[#30363d] p-4 rounded space-y-3">
                          <label className="flex items-center justify-between text-[11px]">
                              <span className="text-[#8b949e]">Build Type</span>
-                             <select className="bg-[#0d1117] border border-[#30363d] text-white p-1 rounded min-w-[120px] outline-none">
+                             <select defaultValue="Shipping (Production)" className="bg-[#0d1117] border border-[#30363d] text-white p-1 rounded min-w-[120px] outline-none">
                                 <option>Development</option>
-                                <option selected>Shipping (Production)</option>
+                                <option>Shipping (Production)</option>
                                 <option>Test / QA</option>
                              </select>
                          </label>
