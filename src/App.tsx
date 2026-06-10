@@ -10,7 +10,7 @@ import AIChat from './components/AIChat';
 import Viewport3D from './components/Viewport3D';
 import PopOutPanel from './components/PopOutPanel';
 import GitPanel from './components/GitPanel';
-import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords, Camera, Wand2, Wifi, Microchip, MemoryStick, Mic2, Mic, Video, GitMerge, Hash, Binary, Crosshair, Wrench, Shield, Key, Fingerprint, Anchor, Zap as Flash, Combine, Command, SearchCode, ExternalLink, Film, Sliders, Smile } from 'lucide-react';
+import { Brain, ShoppingCart, Database, Bot, Play, Pause, Square, FolderTree, FileCode2, MessageSquare, Sparkles, Box, Mountain, Workflow, PersonStanding, Clapperboard, UserSquare, Waypoints, Palette, Music, GitBranch, Terminal, Server, GitPullRequest, Download, Globe, Map, Users, Ghost, BookOpen, Image, Layers, Eye, Gamepad2, Cpu, MonitorPlay, Activity, Cloud, ShieldCheck, Blocks, Orbit, AudioWaveform, Search, Bug, FlaskConical, Blocks as Puzzle, LayoutDashboard, RotateCw, XCircle, ChevronDown, CheckCircle, AlertTriangle, Plus, X, Flame, Network, TrendingUp, BrainCircuit, Glasses, Zap, Swords, Camera, Wand2, Wifi, Microchip, MemoryStick, Mic2, Mic, Video, GitMerge, Hash, Binary, Crosshair, Wrench, Shield, Key, Fingerprint, Anchor, Zap as Flash, Combine, Command, SearchCode, ExternalLink, Film, Sliders, Smile, Volume2, Share2, Droplet, Paintbrush, Boxes, Gauge, Calendar } from 'lucide-react';
 import { useLanguage } from './contexts/LanguageContext';
 import MaterialEditor from './components/MaterialEditor';
 import CutsceneEditor from './components/CutsceneEditor';
@@ -116,6 +116,36 @@ import AITextureSynthesizer from './components/AITextureSynthesizer';
 import VoiceMusicStudio from './components/VoiceMusicStudio';
 
 import MasterNarrativeCinematicEditor from './components/MasterNarrativeCinematicEditor';
+import TopologyUVPro from './components/TopologyUVPro';
+import BSPBrushArchitect from './components/BSPBrushArchitect';
+import CodeProfilerTracer from './components/CodeProfilerTracer';
+import BranchingDialogueWeaver from './components/BranchingDialogueWeaver';
+import NavMeshRouter from './components/NavMeshRouter';
+import FigmaStyleCanvas from './components/FigmaStyleCanvas';
+import GameStateFlagTree from './components/GameStateFlagTree';
+import UXCognitiveLoadSim from './components/UXCognitiveLoadSim';
+import IDECompilerCore from './components/IDECompilerCore';
+import MidiPianoRoll from './components/MidiPianoRoll';
+import VstMixerRack from './components/VstMixerRack';
+import LevelStreamingManager from './components/LevelStreamingManager';
+import CinematicLightingEditor from './components/CinematicLightingEditor';
+import ModdingWorkshopPublisher from './components/ModdingWorkshopPublisher';
+import AudioMusicDSPStudio from './components/AudioMusicDSPStudio';
+import ZBrushStyleSculptingStudio from './components/ZBrushStyleSculptingStudio';
+import NukeStyleCompositor from './components/NukeStyleCompositor';
+import SubstanceStyleTexturePainter from './components/SubstanceStyleTexturePainter';
+import LiveLinkMoCapStudio from './components/LiveLinkMoCapStudio';
+import RenderFarmManager from './components/RenderFarmManager';
+import HoudiniStyleProceduralNode from './components/HoudiniStyleProceduralNode';
+import CrowdAIController from './components/CrowdAIController';
+import VehicleDynamicsTuner from './components/VehicleDynamicsTuner';
+import NetworkReplicationSim from './components/NetworkReplicationSim';
+import TerrainErosionSim from './components/TerrainErosionSim';
+import AnimationRetargetingRig from './components/AnimationRetargetingRig';
+import PhotogrammetryMeshBuilder from './components/PhotogrammetryMeshBuilder';
+import PhysicsChaosDestruction from './components/PhysicsChaosDestruction';
+import GameEconomyBalancer from './components/GameEconomyBalancer';
+import LiveOpsEventScheduler from './components/LiveOpsEventScheduler';
 
 export default function App() {
   const { t } = useLanguage();
@@ -490,6 +520,25 @@ export default function App() {
       { id: 'OmniCreatorMaster', title: '100% Omni Creator Master Dashboard', icon: <Command size={20} />, activeColor: 'text-[#f85149]', category: '🌟 ASCENSION STUDIO' },
       
       // ====== START: TRADITIONAL / NON-AI / PROFESSIONAL EXPERT TOOLS ====== //
+      { id: 'ZBrushStyleSculptingStudio', title: 'Digital HD Sculpting', icon: <Droplet size={20} />, activeColor: 'text-[#e3b341]', category: '🎨 ART & ASSETS' },
+      { id: 'SubstanceStyleTexturePainter', title: 'Procedural Texture Canvas', icon: <Paintbrush size={20} />, activeColor: 'text-[#bc8cff]', category: '🎨 ART & ASSETS' },
+      { id: 'HoudiniStyleProceduralNode', title: 'VEX Procedural Geo Node', icon: <Boxes size={20} />, activeColor: 'text-[#58a6ff]', category: '🎨 ART & ASSETS' },
+      { id: 'PhotogrammetryMeshBuilder', title: '3D Photogrammetry Scanner', icon: <Camera size={20} />, activeColor: 'text-[#f85149]', category: '🎨 ART & ASSETS' },
+      { id: 'NukeStyleCompositor', title: 'Node VFX Compositing', icon: <Combine size={20} />, activeColor: 'text-[#58a6ff]', category: '✨ VFX & PARTICLES' },
+      { id: 'LiveLinkMoCapStudio', title: 'LiveLink MoCap Stream', icon: <Activity size={20} />, activeColor: 'text-[#f85149]', category: '✨ VFX & PARTICLES' },
+      { id: 'PhysicsChaosDestruction', title: 'Chaos Physics Destruction', icon: <AlertTriangle size={20} />, activeColor: 'text-[#e3b341]', category: '✨ VFX & PARTICLES' },
+      { id: 'AudioMusicDSP', title: 'Audio DSP & Music Studio', icon: <Volume2 size={20} />, activeColor: 'text-[#e3b341]', category: '🎵 AUDIO & SOUND' },
+      { id: 'LevelStreamingManager', title: 'World Partition & Chunk Streaming', icon: <Layers size={20} />, activeColor: 'text-[#58a6ff]', category: '🌍 WORLD BUILDING' },
+      { id: 'CrowdAIController', title: 'Mass Crowd AI & Boids', icon: <Users size={20} />, activeColor: 'text-[#58a6ff]', category: '🌍 WORLD BUILDING' },
+      { id: 'VehicleDynamicsTuner', title: 'Vehicle Dynamics & Physics', icon: <Gauge size={20} />, activeColor: 'text-[#58a6ff]', category: '🌍 WORLD BUILDING' },
+      { id: 'TerrainErosionSim', title: 'Procedural Terrain & Erosion', icon: <Mountain size={20} />, activeColor: 'text-[#3fb950]', category: '🌍 WORLD BUILDING' },
+      { id: 'CinematicLightingEditor', title: 'Atmosphere & Volumetric Lighting', icon: <Flame size={20} />, activeColor: 'text-[#e3b341]', category: '🎬 CINEMATICS' },
+      { id: 'AnimationRetargetingRig', title: 'Animation IK Retargeter', icon: <GitMerge size={20} />, activeColor: 'text-[#bc8cff]', category: '🎬 CINEMATICS' },
+      { id: 'NetworkReplicationSim', title: 'Netcode Replication Sim', icon: <Network size={20} />, activeColor: 'text-[#bc8cff]', category: '⚙️ DEVOPS' },
+      { id: 'RenderFarmManager', title: 'Distributed Render Farm', icon: <Server size={20} />, activeColor: 'text-[#58a6ff]', category: '⚙️ DEVOPS' },
+      { id: 'ModdingWorkshopPublisher', title: 'Modding Workshop Publisher', icon: <Share2 size={20} />, activeColor: 'text-[#bc8cff]', category: '⚙️ DEVOPS' },
+      { id: 'GameEconomyBalancer', title: 'Virtual Economy Balancer', icon: <TrendingUp size={20} />, activeColor: 'text-[#eab308]', category: '⚙️ DEVOPS' },
+      { id: 'LiveOpsEventScheduler', title: 'LiveOps Event Scheduler', icon: <Calendar size={20} />, activeColor: 'text-[#10b981]', category: '⚙️ DEVOPS' },
       { id: 'MasterNarrativeCinematicEditor', title: 'Narrative & Cinematic Timeline (NLE)', icon: <Film size={20} />, activeColor: 'text-[#f85149]', category: '🎬 CINEMATICS' },
       { id: 'CodeProfilerTracer', title: 'C++/C# System Deep Profiler', icon: <Microchip size={20} />, activeColor: 'text-[#58a6ff]', category: '🤖 IDE & CODE' },
       { id: 'IDECompilerCore', title: 'Native Manual IDE & Compiler', icon: <TerminalSquare size={20} />, activeColor: 'text-[#3fb950]', category: '🤖 IDE & CODE' },
@@ -1601,8 +1650,38 @@ export default function App() {
        {activeTool === 'OmniCreatorMaster' && <OmniCreatorMaster onSelectTool={setActiveTool} />}
        {activeTool === 'AITextureSynthesizer' && <AITextureSynthesizer />}
        {activeTool === 'MasterNarrativeCinematicEditor' && <MasterNarrativeCinematicEditor />}
+       {activeTool === 'TopologyUVPro' && <TopologyUVPro />}
+       {activeTool === 'BSPBrushArchitect' && <BSPBrushArchitect />}
+       {activeTool === 'CodeProfilerTracer' && <CodeProfilerTracer />}
+       {activeTool === 'BranchingDialogueWeaver' && <BranchingDialogueWeaver />}
+       {activeTool === 'NavMeshRouter' && <NavMeshRouter />}
+       {activeTool === 'FigmaStyleCanvas' && <FigmaStyleCanvas />}
+       {activeTool === 'GameStateFlagTree' && <GameStateFlagTree />}
+       {activeTool === 'UXCognitiveLoadSim' && <UXCognitiveLoadSim />}
+       {activeTool === 'IDECompilerCore' && <IDECompilerCore />}
+       {activeTool === 'MidiPianoRoll' && <MidiPianoRoll />}
+       {activeTool === 'VstMixerRack' && <VstMixerRack />}
+       {activeTool === 'LevelStreamingManager' && <LevelStreamingManager />}
+       {activeTool === 'CinematicLightingEditor' && <CinematicLightingEditor />}
+       {activeTool === 'ModdingWorkshopPublisher' && <ModdingWorkshopPublisher />}
+       {activeTool === 'AudioMusicDSP' && <AudioMusicDSPStudio />}
+       {activeTool === 'ZBrushStyleSculptingStudio' && <ZBrushStyleSculptingStudio />}
+       {activeTool === 'NukeStyleCompositor' && <NukeStyleCompositor />}
+       {activeTool === 'SubstanceStyleTexturePainter' && <SubstanceStyleTexturePainter />}
+       {activeTool === 'LiveLinkMoCapStudio' && <LiveLinkMoCapStudio />}
+       {activeTool === 'RenderFarmManager' && <RenderFarmManager />}
+       {activeTool === 'HoudiniStyleProceduralNode' && <HoudiniStyleProceduralNode />}
+       {activeTool === 'CrowdAIController' && <CrowdAIController />}
+       {activeTool === 'VehicleDynamicsTuner' && <VehicleDynamicsTuner />}
+       {activeTool === 'NetworkReplicationSim' && <NetworkReplicationSim />}
+       {activeTool === 'TerrainErosionSim' && <TerrainErosionSim />}
+       {activeTool === 'AnimationRetargetingRig' && <AnimationRetargetingRig />}
+       {activeTool === 'PhotogrammetryMeshBuilder' && <PhotogrammetryMeshBuilder />}
+       {activeTool === 'PhysicsChaosDestruction' && <PhysicsChaosDestruction />}
+       {activeTool === 'GameEconomyBalancer' && <GameEconomyBalancer />}
+       {activeTool === 'LiveOpsEventScheduler' && <LiveOpsEventScheduler />}
        {['VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator'].includes(activeTool) && <VoiceMusicStudio />}
-       {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'ActionRecorder', 'ActionGraph', 'WorkflowDAG', 'PhysicsSimulation', 'SkillForge', 'AIBrowser', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'OfflineVFX', 'QuickStart', 'EconomicBalancer', 'NodeGraphEditor', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping', 'OptimizationOverview', 'Photogrammetry', 'HardwareDriver', 'Offline3DModeler', 'AdvancedTerrain', 'AudioDAW', 'AdvancedImage', 'AdvancedMap', 'UltimateMapBuilder', 'MegaWorldArchitect', 'RiggingAnim', 'VFXGraph', 'BlueprintExecution', 'CinematicDirector', 'EngineProfiler', 'OmniCreatorMaster', 'AITextureSynthesizer', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'EyeTrackingHeatmap', 'UXCognitiveLoadSim', 'LocDB', 'MasterNarrativeCinematicEditor', 'CodeProfilerTracer', 'IDECompilerCore', 'BSPBrushArchitect', 'NavMeshRouter', 'TopologyUVPro', 'FigmaStyleCanvas', 'VstMixerRack', 'MidiPianoRoll', 'BranchingDialogueWeaver', 'GameStateFlagTree'].includes(activeTool) && (
+       {!['Select', 'BatchAI', 'Material', 'Pipeline', 'Blueprint', 'ServerSim', 'DataTable', 'AssetStore', 'StoryGraph', 'BehaviorTree', 'LogicVisual', 'MetaHuman', 'Niagara', 'PCG', 'UIUXEdit', 'ActionRecorder', 'ActionGraph', 'WorkflowDAG', 'PhysicsSimulation', 'SkillForge', 'AIBrowser', 'LocalAI', 'LiveOps', 'PerformanceProfile', 'AnimGraph', 'CharacterAnimator', 'Landscape', 'MapEdit', 'Netcode', 'EngineCore', 'LevelDesign', 'QuestDirector', 'Modeling', 'WorldBible', 'NPCEdit', 'MonsterEdit', 'PhysicsEngine', 'GameSystems', 'GraphicsRender', 'AnimationAudio', 'BackendCloud', 'AITestingQA', 'ControlRig', 'Sequencer', 'CinematicSequencer', 'MetaSound', 'ImageEdit', 'AudioEdit', 'EffectEdit', 'OfflineVFX', 'QuickStart', 'EconomicBalancer', 'NodeGraphEditor', 'ScriptEditor', 'BuildPublish', 'AssetPipeline', 'DialogueQuest', 'ProceduralGen', 'AdvancedNavMesh', 'VoxelEngine', 'VehiclePhysics', 'MLAgents', 'VRXREngine', 'DevOpsBuilder', 'WorldBuilder', 'SentientAI', 'ProceduralAsset', 'DevOpsManager', 'InputMapping', 'OptimizationOverview', 'Photogrammetry', 'HardwareDriver', 'Offline3DModeler', 'AdvancedTerrain', 'AudioDAW', 'AdvancedImage', 'AdvancedMap', 'UltimateMapBuilder', 'MegaWorldArchitect', 'RiggingAnim', 'VFXGraph', 'BlueprintExecution', 'CinematicDirector', 'EngineProfiler', 'OmniCreatorMaster', 'AITextureSynthesizer', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'EyeTrackingHeatmap', 'UXCognitiveLoadSim', 'LocDB', 'MasterNarrativeCinematicEditor', 'CodeProfilerTracer', 'IDECompilerCore', 'BSPBrushArchitect', 'NavMeshRouter', 'TopologyUVPro', 'FigmaStyleCanvas', 'VstMixerRack', 'MidiPianoRoll', 'BranchingDialogueWeaver', 'GameStateFlagTree', 'LevelStreamingManager', 'CinematicLightingEditor', 'ModdingWorkshopPublisher', 'AudioMusicDSP', 'ZBrushStyleSculptingStudio', 'NukeStyleCompositor', 'SubstanceStyleTexturePainter', 'LiveLinkMoCapStudio', 'RenderFarmManager', 'HoudiniStyleProceduralNode', 'CrowdAIController', 'VehicleDynamicsTuner', 'NetworkReplicationSim', 'TerrainErosionSim', 'AnimationRetargetingRig', 'PhotogrammetryMeshBuilder', 'PhysicsChaosDestruction', 'GameEconomyBalancer', 'LiveOpsEventScheduler'].includes(activeTool) && (
          <Viewport3D activeTool={activeTool} activeFile={activeFile} />
        )}
 
