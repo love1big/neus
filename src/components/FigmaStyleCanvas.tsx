@@ -59,7 +59,7 @@ export default function FigmaStyleCanvas() {
                </div>
 
                <div className="flex items-center justify-between p-1.5 hover:bg-[#333] rounded cursor-pointer group text-[#ccc]">
-                  <span className="flex items-center gap-2"><Image size={12}/> Minimap_Radar</span>
+                  <span className="flex items-center gap-2"><ImageIcon size={12}/> Minimap_Radar</span>
                </div>
                <div className="flex items-center justify-between p-1.5 hover:bg-[#333] rounded cursor-pointer group text-[#ccc]">
                   <span className="flex items-center gap-2"><Component size={12}/> Skill_Slot_Group</span>

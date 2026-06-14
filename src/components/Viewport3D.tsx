@@ -12,6 +12,7 @@ import BasicSkeletonModel from './BasicSkeletonModel';
 interface Viewport3DProps {
   activeTool: string;
   activeFile: { name: string; content: string } | undefined;
+  globalActiveTransformTool?: string;
 }
 
 type ToolMode = 'translate' | 'rotate' | 'scale' | 'select' | 'physics' | 'orbit' | 'pan' | 'zoom';
@@ -188,7 +189,7 @@ function NavMeshPathVisualization() {
   );
 }
 
-export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) {
+export default function Viewport3D({ activeTool, activeFile, globalActiveTransformTool }: Viewport3DProps) {
   const [isPoppedOut, setIsPoppedOut] = useState(false);
   // Sky Environment
   const [skybox, setSkybox] = useState(() => localStorage.getItem('skybox') || 'Default (Dark)');
@@ -197,7 +198,19 @@ export default function Viewport3D({ activeTool, activeFile }: Viewport3DProps) 
 
   // Object and Transform State
   const [activeTransformTool, setActiveTransformTool] = useState<ToolMode>('orbit');
-  const [showInspector, setShowInspector] = useState(true);
+  
+  useEffect(() => {
+    if (globalActiveTransformTool) {
+       let mappedTool: ToolMode | null = null;
+       if (globalActiveTransformTool === 'move') mappedTool = 'translate';
+       if (globalActiveTransformTool === 'rotate') mappedTool = 'rotate';
+       if (globalActiveTransformTool === 'scale') mappedTool = 'scale';
+       if (globalActiveTransformTool === 'select') mappedTool = 'select';
+       if (mappedTool) setActiveTransformTool(mappedTool);
+    }
+  }, [globalActiveTransformTool]);
+
+  const [showInspector, setShowInspector] = useState(false);
 
   const [objTransform, setObjTransform] = useState<TransformProps>({
     position: [0, 5, 0],
