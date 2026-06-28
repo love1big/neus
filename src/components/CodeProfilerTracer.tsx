@@ -61,9 +61,9 @@ export default function CodeProfilerTracer() {
 
               <div className="space-y-2">
                  <label className="text-[10px] text-[#8b949e] font-bold uppercase">Sampling Rate</label>
-                 <select className="w-full bg-[#161b22] border border-[#30363d] text-[#c9d1d9] rounded px-2 py-1 text-[11px] outline-none font-mono">
+                 <select defaultValue="5 ms (Standard)" className="w-full bg-[#161b22] border border-[#30363d] text-[#c9d1d9] rounded px-2 py-1 text-[11px] outline-none font-mono">
                     <option>1 ms (High Overhead)</option>
-                    <option selected>5 ms (Standard)</option>
+                    <option>5 ms (Standard)</option>
                     <option>20 ms (Low Overhead)</option>
                     <option>Instruction Pointer Hook (Intrusive)</option>
                  </select>

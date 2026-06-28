@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Film, Play, Pause, SkipBack, SkipForward, Square, Camera, Volume2, UserSquare, Video, Settings2, ZoomIn, ZoomOut, Scissors, Plus, Mic, Settings, Maximize, Activity, Code, Music, Eye } from 'lucide-react';
+import { Film, Play, Pause, SkipBack, SkipForward, Square, Camera, Volume2, UserSquare, Video, Settings2, ZoomIn, ZoomOut, Scissors, Plus, Mic, Settings, Maximize, Activity, Code, Music, Eye, Zap } from 'lucide-react';
 
 export default function CinematicDirector() {
   const [isPlaying, setIsPlaying] = useState(false);

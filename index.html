@@ -4,6 +4,47 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NexusEngine AI Workflow</title>
+    <script>
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        var string = msg.toLowerCase();
+        var substring = "script error";
+        var message = '';
+        if (string.indexOf(substring) > -1){
+          message = 'Script Error: See Browser Console for Detail';
+        } else {
+          message = [
+            'Message: ' + msg,
+            'URL: ' + url,
+            'Line: ' + lineNo,
+            'Column: ' + columnNo,
+            'Error object: ' + JSON.stringify(error)
+          ].join(' - ');
+        }
+        var errorDiv = document.createElement('div');
+        errorDiv.style.color = 'red';
+        errorDiv.style.padding = '20px';
+        errorDiv.style.background = 'white';
+        errorDiv.style.position = 'absolute';
+        errorDiv.style.top = '0';
+        errorDiv.style.left = '0';
+        errorDiv.style.zIndex = '999999';
+        errorDiv.innerText = message;
+        document.body.appendChild(errorDiv);
+        return false;
+      };
+      window.onunhandledrejection = function(event) {
+        var errorDiv = document.createElement('div');
+        errorDiv.style.color = 'red';
+        errorDiv.style.padding = '20px';
+        errorDiv.style.background = 'white';
+        errorDiv.style.position = 'absolute';
+        errorDiv.style.top = '50px';
+        errorDiv.style.left = '0';
+        errorDiv.style.zIndex = '999999';
+        errorDiv.innerText = 'Unhandled Promise Rejection: ' + event.reason;
+        document.body.appendChild(errorDiv);
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>

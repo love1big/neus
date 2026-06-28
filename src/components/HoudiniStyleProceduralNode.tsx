@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network, Server, Play, Pause, AlertTriangle, CheckCircle, Clock, HardDrive, Cpu, MemoryStick, Maximize, Activity, RefreshCw } from 'lucide-react';
+import { Network, Server, Play, Pause, AlertTriangle, CheckCircle, Clock, HardDrive, Cpu, MemoryStick, Maximize, Activity, RefreshCw, Layers } from 'lucide-react';
 
 export default function RenderFarmManager() {
   return (

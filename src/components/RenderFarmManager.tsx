@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network, Server, Play, Pause, AlertTriangle, CheckCircle, Clock, HardDrive, Cpu, MemoryStick, Maximize, Activity, RefreshCw } from 'lucide-react';
+import { Network, Server, Play, Pause, AlertTriangle, CheckCircle, Clock, HardDrive, Cpu, MemoryStick, Maximize, Activity, RefreshCw, Layers } from 'lucide-react';
 
 export default function RenderFarmManager() {
   return (
@@ -36,7 +36,12 @@ export default function RenderFarmManager() {
             {/* Header info */}
             <div className="flex justify-between items-center">
                <h3 className="text-[14px] font-bold tracking-widest text-[#a3a3a3] uppercase flex items-center gap-2"><Network size={16}/> Cluster Topology Overview</h3>
-               <button className="bg-[#222] hover:bg-[#333] border border-[#444] text-[#a3a3a3] px-3 py-1.5 rounded text-[11px] font-bold tracking-wider flex items-center gap-2"><RefreshCw size={12}/> Refresh Network</button>
+               <div className="flex items-center gap-2">
+                  <button className="bg-gradient-to-r from-blue-600 to-[#0284c7] hover:opacity-90 border border-[#0ea5e9] text-white px-3 py-1.5 rounded text-[11px] font-bold tracking-wider flex items-center gap-2 shadow-[0_0_10px_rgba(2,132,199,0.5)]">
+                    <Maximize size={12}/> เพิ่มเครื่องประมวลผล (มือถือ/PC)
+                  </button>
+                  <button className="bg-[#222] hover:bg-[#333] border border-[#444] text-[#a3a3a3] px-3 py-1.5 rounded text-[11px] font-bold tracking-wider flex items-center gap-2"><RefreshCw size={12}/> Refresh Network</button>
+               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -46,11 +51,12 @@ export default function RenderFarmManager() {
                   const status = i < 18 ? 'rendering' : i < 22 ? 'idle' : 'offline';
                   const cpuLoad = status === 'rendering' ? 80 + Math.random() * 20 : status === 'idle' ? 1 + Math.random() * 5 : 0;
                   const temp = status === 'rendering' ? 70 + Math.random() * 15 : status === 'idle' ? 35 : 0;
+                  const nodeType = i % 4 === 0 ? '📱 Mobile / มือถือ' : i % 5 === 0 ? '📡 IoT Edge' : '🖥️ Desktop';
                   
                   return (
                      <div key={i} className={`bg-[#262626] border rounded p-3 flex flex-col shadow-lg transition-all ${status === 'rendering' ? 'border-[#0284c7]' : status === 'idle' ? 'border-[#3f3f46]' : 'border-[#991b1b] opacity-50'}`}>
-                        <div className="flex justify-between items-center mb-2">
-                           <span className="text-[11px] font-bold text-white font-mono">NODE-{`00${i+1}`.slice(-3)}</span>
+                        <div className="flex justify-between items-center mb-1">
+                           <span className="text-[11px] font-bold text-white font-mono">{nodeType} NODE-{`00${i+1}`.slice(-3)}</span>
                            {status === 'rendering' ? <div className="w-2 h-2 rounded-full bg-[#0284c7] animate-pulse"></div> : 
                             status === 'idle' ? <div className="w-2 h-2 rounded-full bg-[#a3e635]"></div> : 
                             <div className="w-2 h-2 rounded-full bg-[#991b1b]"></div>}

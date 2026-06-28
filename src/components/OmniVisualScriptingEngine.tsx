@@ -1,244 +1,374 @@
-import React, { useState } from 'react';
-import { 
-  Waypoints, GitBranch, Share2, Network, GitMerge, Activity, CheckCircle2, AlertTriangle, 
-  Settings2, Play, Cpu, Bot, Zap, PlusSquare, Trash2, BoxSelect, Maximize,
-  Sliders, ArrowUpRight, Copy, TerminalSquare, Eye, ChevronDown, Flag, Database
-} from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Waypoints, GitBranch, Share2, Network, GitMerge, Activity, CheckCircle2, AlertTriangle, Settings2, Play, Cpu, Bot, Zap, PlusSquare, Trash2, BoxSelect, Maximize, Sliders, ArrowUpRight, Copy, TerminalSquare, Eye, ChevronDown, Flag, Database, RotateCw, Layers } from 'lucide-react';
+
+interface NodePin {
+  id: string;
+  name: string;
+  type: 'exec' | 'float' | 'string' | 'boolean' | 'object';
+  isInput: boolean;
+  value?: any;
+}
+
+interface GraphNode {
+  id: string;
+  title: string;
+  x: number;
+  y: number;
+  color: string;
+  category: 'event' | 'logic' | 'math' | 'variable';
+  inputs: NodePin[];
+  outputs: NodePin[];
+}
+
+interface NodeConnection {
+  id: string;
+  fromNode: string;
+  fromPin: string;
+  toNode: string;
+  toPin: string;
+  type: string;
+}
 
 export default function OmniVisualScriptingEngine() {
-  const [activeTab, setActiveTab] = useState('BehaviorTree'); // Custom, BehaviorTree, AppLogic, StateMachine, Execution
+  const [activeTab, setActiveTab] = useState('AppLogic');
+  
+  const [nodes, setNodes] = useState<GraphNode[]>([
+    { 
+      id: 'n1', title: 'Event BeginPlay', x: 100, y: 150, color: 'border-[#f85149]', category: 'event',
+      inputs: [], outputs: [{ id: 'o1', name: 'Exec', type: 'exec', isInput: false }]
+    },
+    { 
+      id: 'n2', title: 'Spawn Actor', x: 400, y: 120, color: 'border-[#3fb950]', category: 'logic',
+      inputs: [
+        { id: 'i1', name: 'Exec', type: 'exec', isInput: true },
+        { id: 'i2', name: 'Class', type: 'string', isInput: true, value: 'NPC_Guard' },
+        { id: 'i3', name: 'Location', type: 'object', isInput: true }
+      ], 
+      outputs: [
+        { id: 'o1', name: 'Exec', type: 'exec', isInput: false },
+        { id: 'o2', name: 'Actor', type: 'object', isInput: false }
+      ]
+    },
+    { 
+      id: 'n3', title: 'Delay', x: 750, y: 150, color: 'border-[#58a6ff]', category: 'logic',
+      inputs: [
+        { id: 'i1', name: 'Exec', type: 'exec', isInput: true },
+        { id: 'i2', name: 'Duration', type: 'float', isInput: true, value: 2.5 }
+      ], 
+      outputs: [{ id: 'o1', name: 'Completed', type: 'exec', isInput: false }]
+    }
+  ]);
+  
+  const [connections, setConnections] = useState<NodeConnection[]>([
+    { id: 'c1', fromNode: 'n1', fromPin: 'o1', toNode: 'n2', toPin: 'i1', type: 'exec' },
+    { id: 'c2', fromNode: 'n2', fromPin: 'o1', toNode: 'n3', toPin: 'i1', type: 'exec' }
+  ]);
+
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  
+  // Connection dragging state
+  const [drawingConnection, setDrawingConnection] = useState<{nodeId: string, pinId: string, isInput: boolean, startX: number, startY: number, currentX: number, currentY: number, type: string} | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handlePointerDownNode = (id: string, e: React.PointerEvent) => {
+    e.stopPropagation();
+    const node = nodes.find(n => n.id === id);
+    if(node) {
+      setDraggingNodeId(id);
+      setOffset({ x: e.clientX - node.x, y: e.clientY - node.y });
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    }
+  };
+
+  const handlePointerDownPin = (nodeId: string, pin: NodePin, e: React.PointerEvent) => {
+    e.stopPropagation();
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const targetRect = (e.target as HTMLElement).getBoundingClientRect();
+    
+    setDrawingConnection({
+      nodeId,
+      pinId: pin.id,
+      isInput: pin.isInput,
+      startX: targetRect.left + targetRect.width / 2 - rect.left,
+      startY: targetRect.top + targetRect.height / 2 - rect.top,
+      currentX: e.clientX - rect.left,
+      currentY: e.clientY - rect.top,
+      type: pin.type
+    });
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+
+    if (draggingNodeId !== null) {
+      setNodes(prev => prev.map(n => 
+        n.id === draggingNodeId ? { ...n, x: e.clientX - offset.x, y: e.clientY - offset.y } : n
+      ));
+    } else if (drawingConnection !== null) {
+      setDrawingConnection(prev => prev ? {
+        ...prev,
+        currentX: e.clientX - rect.left,
+        currentY: e.clientY - rect.top
+      } : null);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (draggingNodeId !== null) {
+      setDraggingNodeId(null);
+      try { (e.target as HTMLElement).releasePointerCapture(e.pointerId); } catch(e) {}
+    }
+    
+    if (drawingConnection !== null) {
+      setDrawingConnection(null);
+    }
+  };
+
+  const handlePinMouseUp = (nodeId: string, pin: NodePin, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (drawingConnection && drawingConnection.nodeId !== nodeId && drawingConnection.isInput !== pin.isInput) {
+      // Create connection
+      if (drawingConnection.type === pin.type || drawingConnection.type === 'exec' || pin.type === 'exec') { // Simplified type matching
+        const fromNode = drawingConnection.isInput ? nodeId : drawingConnection.nodeId;
+        const fromPin = drawingConnection.isInput ? pin.id : drawingConnection.pinId;
+        const toNode = drawingConnection.isInput ? drawingConnection.nodeId : nodeId;
+        const toPin = drawingConnection.isInput ? drawingConnection.pinId : pin.id;
+        
+        // Remove existing connection to the same input pin
+        const newConns = connections.filter(c => !(c.toNode === toNode && c.toPin === toPin));
+        
+        setConnections([...newConns, {
+          id: `c_${Date.now()}`,
+          fromNode, fromPin, toNode, toPin,
+          type: drawingConnection.type
+        }]);
+      }
+    }
+    setDrawingConnection(null);
+  };
+
+  const addNode = (type: string) => {
+    const id = `n_${Date.now()}`;
+    if (type === 'logic') {
+      setNodes([...nodes, { id, title: 'Custom Logic', x: 200, y: 200, color: 'border-[#3fb950]', category: 'logic', inputs: [{id: 'i1', name: 'Exec', type: 'exec', isInput: true}], outputs: [{id: 'o1', name: 'Exec', type: 'exec', isInput: false}] }]);
+    } else if (type === 'math') {
+      setNodes([...nodes, { id, title: 'Add (Float)', x: 200, y: 200, color: 'border-[#e3b341]', category: 'math', inputs: [{id: 'i1', name: 'A', type: 'float', isInput: true, value: 0}, {id: 'i2', name: 'B', type: 'float', isInput: true, value: 0}], outputs: [{id: 'o1', name: 'Result', type: 'float', isInput: false}] }]);
+    } else if (type === 'event') {
+      setNodes([...nodes, { id, title: 'Custom Event', x: 200, y: 200, color: 'border-[#f85149]', category: 'event', inputs: [], outputs: [{id: 'o1', name: 'Exec', type: 'exec', isInput: false}] }]);
+    }
+  };
+
+  const deleteNode = (id: string) => {
+    setNodes(nodes.filter(n => n.id !== id));
+    setConnections(connections.filter(c => c.fromNode !== id && c.toNode !== id));
+  };
+
+  const getPinColor = (type: string) => {
+    switch(type) {
+      case 'exec': return 'bg-[#ffffff]';
+      case 'float': return 'bg-[#3fb950]';
+      case 'string': return 'bg-[#bc8cff]';
+      case 'boolean': return 'bg-[#f85149]';
+      case 'object': return 'bg-[#58a6ff]';
+      default: return 'bg-[#888888]';
+    }
+  };
+
+  const getPinStrokeColor = (type: string) => {
+    switch(type) {
+      case 'exec': return '#ffffff';
+      case 'float': return '#3fb950';
+      case 'string': return '#bc8cff';
+      case 'boolean': return '#f85149';
+      case 'object': return '#58a6ff';
+      default: return '#888888';
+    }
+  };
+
+  const updateNodeInputValue = (nodeId: string, pinId: string, value: any) => {
+    setNodes(nodes.map(n => n.id === nodeId ? {
+      ...n,
+      inputs: n.inputs.map(p => p.id === pinId ? { ...p, value } : p)
+    } : n));
+  };
 
   return (
     <div className="flex-1 flex flex-col w-full h-full bg-[#0a0a0a] text-[#cccccc] font-sans text-xs overflow-hidden select-none">
-      
-      {/* 💥 ELITE TOP NAVBAR 💥 */}
       <div className="h-16 border-b border-[#2d2d2d] bg-[#141414] flex flex-col justify-between shrink-0 shadow-[0_5px_15px_rgba(0,0,0,0.8)] z-30">
          <div className="flex items-center justify-between px-2 pt-1">
             <div className="flex items-center gap-3">
                 <div className="flex bg-[#000] px-3 py-1.5 rounded border border-[#333] shadow-inner items-center gap-2">
                    <Network size={18} className="text-[#bc8cff] animate-pulse"/>
-                   <span className="text-white font-black tracking-widest text-[12px] uppercase" style={{textShadow: '0 0 10px rgba(188,140,255,0.5)'}}>Omni Visual Scripting</span>
-                   <span className="text-[#666] font-mono text-[9px] ml-2">Node Engine Core</span>
-                </div>
-                <div className="h-6 w-px bg-[#333]"></div>
-                <div className="flex text-[10px] font-mono gap-5 text-[#8b949e]">
-                   <span className="flex items-center gap-1"><Cpu size={12} className="text-[#58a6ff]"/> Virtual Machine: IDLE</span>
-                   <span className="flex items-center gap-1"><Activity size={12} className="text-[#3fb950]"/> 0 Calls/Frame</span>
-                   <span className="flex items-center gap-1"><GitBranch size={12} className="text-[#e3b341]"/> Sub-Graphs: 3</span>
+                   <span className="text-white font-black tracking-widest text-[12px] uppercase">Node Engine Core (Interactive)</span>
                 </div>
             </div>
             
             <div className="flex items-center gap-2">
-                 <button className="px-3 py-1.5 bg-[#1a1a1a] border border-[#333] text-white rounded hover:bg-[#222] transition flex items-center gap-2 font-bold text-[10px]"><Zap size={12} className="text-[#e3b341]"/> Compile C++</button>
-                 <button className={`px-5 py-1.5 bg-[#1a1a1a] text-white font-black rounded shadow-[0_0_15px_rgba(255,255,255,0.1)] transition flex items-center gap-2 text-[11px] uppercase tracking-widest border border-white/20 hover:bg-[#222]`}>
-                    <Play size={12} className="text-[#3fb950]"/> Simulate Local
+                 <button onClick={() => setConnections([])} className="px-3 py-1.5 bg-[#1a1a1a] text-[#f85149] rounded border border-[#333] hover:bg-[#222] transition flex items-center gap-2 text-[11px]">
+                    <Trash2 size={12}/> Clear Links
+                 </button>
+                 <button className="px-5 py-1.5 bg-[#238636] text-white font-black rounded shadow-[0_0_15px_rgba(63,185,80,0.4)] transition flex items-center gap-2 text-[11px] uppercase tracking-widest border border-[#3fb950]/50 hover:bg-[#2ea043]">
+                    <Play size={12}/> Compile & Play
                  </button>
             </div>
          </div>
 
-         {/* Meta-Module Ribbon */}
          <div className="flex px-2 bg-[#0a0a0a] border-t border-[#222]">
-            <ModuleTab active={activeTab === 'BehaviorTree'} onClick={() => setActiveTab('BehaviorTree')} icon={<Bot size={12}/>} label="1. AI Behavior Tree" color="text-[#e3b341]"/>
-            <ModuleTab active={activeTab === 'AppLogic'} onClick={() => setActiveTab('AppLogic')} icon={<Waypoints size={12}/>} label="2. Data-Flow Execution" color="text-[#3fb950]"/>
-            <ModuleTab active={activeTab === 'StateMachine'} onClick={() => setActiveTab('StateMachine')} icon={<GitMerge size={12}/>} label="3. FSM Action Graph" color="text-[#bc8cff]"/>
-            <ModuleTab active={activeTab === 'Execution'} onClick={() => setActiveTab('Execution')} icon={<Activity size={12}/>} label="4. Live Execution Visualizer" color="text-[#f85149]"/>
-            <ModuleTab active={activeTab === 'GameState'} onClick={() => setActiveTab('GameState')} icon={<Database size={12}/>} label="5. Game State Vector Regedit" color="text-[#58a6ff]"/>
+            <ModuleTab active={true} onClick={() => {}} icon={<Waypoints size={12}/>} label="Node Graph (Draggable)" color="text-[#3fb950]"/>
+            <ModuleTab active={false} onClick={() => {}} icon={<TerminalSquare size={12}/>} label="Generated Code" color="text-[#8b949e]"/>
          </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
         <div className="w-full h-full flex bg-[#050505]">
-
-           {/* TOOLBAR */}
-           <div className="w-[200px] border-r border-[#222] bg-[#111] flex flex-col custom-scrollbar z-20 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
-              <div className="p-2 border-b border-[#333]">
-                 <input type="text" placeholder="Search Node DB..." className="w-full bg-[#1a1a1a] border border-[#333] text-[#ccc] px-2 py-1.5 text-[10px] rounded outline-none" />
+           <div className="w-[200px] border-r border-[#222] bg-[#111] flex flex-col z-20 shadow-[5px_0_15px_rgba(0,0,0,0.5)]">
+              <div className="p-3 border-b border-[#333] flex flex-col gap-2">
+                 <span className="text-[10px] text-[#888] font-bold uppercase tracking-wider mb-1">Add Nodes</span>
+                 <button className="w-full bg-[#1a1a1a] border border-[#333] hover:border-[#f85149] text-left px-2 py-1.5 rounded flex items-center gap-2" onClick={() => addNode('event')}>
+                    <div className="w-2 h-2 bg-[#f85149] rounded-full"></div> Custom Event
+                 </button>
+                 <button className="w-full bg-[#1a1a1a] border border-[#333] hover:border-[#3fb950] text-left px-2 py-1.5 rounded flex items-center gap-2" onClick={() => addNode('logic')}>
+                    <div className="w-2 h-2 bg-[#3fb950] rounded-full"></div> Logic Node
+                 </button>
+                 <button className="w-full bg-[#1a1a1a] border border-[#333] hover:border-[#e3b341] text-left px-2 py-1.5 rounded flex items-center gap-2" onClick={() => addNode('math')}>
+                    <div className="w-2 h-2 bg-[#e3b341] rounded-full"></div> Math Operation
+                 </button>
               </div>
-              <div className="p-2 overflow-y-auto">
-                 <NodeCategory title="Logic Events">
-                    <DraggableNode label="On Initialize" icon={<Play size={10} className="text-[#3fb950]"/>}/>
-                    <DraggableNode label="On Tick (Update)" icon={<RotateCw size={10} className="text-[#58a6ff]"/>}/>
-                    <DraggableNode label="Sequence" icon={<Layers size={10} className="text-[#bc8cff]"/>}/>
-                    <DraggableNode label="Branch (If/Else)" icon={<GitBranch size={10} className="text-[#e3b341]"/>}/>
-                 </NodeCategory>
-                 
-                 <NodeCategory title="AI Context">
-                    <DraggableNode label="Selector (Fallback)" icon={<Share2 size={10} className="text-[#888]"/>}/>
-                    <DraggableNode label="Move To Location" icon={<ArrowUpRight size={10} className="text-[#3fb950]"/>}/>
-                    <DraggableNode label="Check Blackboard" icon={<Database size={10} className="text-[#58a6ff]"/>}/>
-                    <DraggableNode label="Wait" icon={<AlertTriangle size={10} className="text-[#e3b341]"/>}/>
-                 </NodeCategory>
-                 
-                 <NodeCategory title="Game State Vectors">
-                    <DraggableNode label="Read Flag" icon={<Flag size={10} className="text-[#f85149]"/>}/>
-                    <DraggableNode label="Write Flag" icon={<PlusSquare size={10} className="text-[#3fb950]"/>}/>
-                    <DraggableNode label="Trigger Event" icon={<Zap size={10} className="text-[#e3b341]"/>}/>
-                 </NodeCategory>
+              
+              <div className="p-3 flex-1 overflow-y-auto">
+                <span className="text-[10px] text-[#888] font-bold uppercase tracking-wider mb-2 block">Properties</span>
+                <div className="text-[10px] text-[#666] italic">Select a node to edit properties...</div>
               </div>
            </div>
 
-           {/* MAIN WORKSPACE AREA */}
-           <div className="flex-1 relative overflow-hidden flex flex-col">
-              
-              {activeTab === 'BehaviorTree' && (
-                 <div className="w-full h-full relative" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+           <div 
+             ref={containerRef}
+             className="flex-1 relative overflow-hidden" 
+             style={{ backgroundImage: 'radial-gradient(circle at center, #222 1px, transparent 1px)', backgroundSize: '30px 30px' }} 
+             onPointerMove={handlePointerMove} 
+             onPointerUp={handlePointerUp}
+           >
+               {/* Connections SVG Layer */}
+               <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
+                   {/* Draw completed connections */}
+                   {connections.map(conn => {
+                     const fNode = nodes.find(n => n.id === conn.fromNode);
+                     const tNode = nodes.find(n => n.id === conn.toNode);
+                     if (!fNode || !tNode) return null;
                      
-                     <div className="absolute top-4 right-4 bg-[#111] border border-[#333] p-2 rounded text-[#888] font-bold text-[9px] uppercase tracking-wider backdrop-blur bg-opacity-80">Root: AI_Guard_Agent</div>
+                     // Approximate pin positions (requires DOM refs for exact, but this works for demo)
+                     const fPinIndex = fNode.outputs.findIndex(p => p.id === conn.fromPin);
+                     const tPinIndex = tNode.inputs.findIndex(p => p.id === conn.toPin);
                      
-                     {/* Tree Root */}
-                     <BTNode title="ROOT" type="root" x={350} y={40} color="border-[#888]" bg="bg-[#222]" />
+                     const startX = fNode.x + 200; // Node width
+                     const startY = fNode.y + 40 + (fPinIndex * 24); // Title height + offset
                      
-                     {/* Selectors & Sequences */}
-                     <BTNode title="Selector (Main Logic)" type="composite" x={350} y={150} color="border-[#e3b341]" bg="bg-[#e3b341]/10" />
+                     const endX = tNode.x;
+                     const endY = tNode.y + 40 + (tPinIndex * 24);
                      
-                     <BTNode title="Sequence (Combat)" type="composite" x={200} y={260} color="border-[#58a6ff]" bg="bg-[#58a6ff]/10" />
-                     <BTNode title="Sequence (Patrol)" type="composite" x={500} y={260} color="border-[#58a6ff]" bg="bg-[#58a6ff]/10" />
+                     const strokeColor = getPinStrokeColor(conn.type);
                      
-                     {/* Leaves & Actions */}
-                     <BTNode title="Check Health < 20" type="decorator" x={120} y={370} color="border-[#bc8cff]" bg="bg-[#bc8cff]/10" />
-                     <BTNode title="Flee To Cover" type="task" x={280} y={370} color="border-[#3fb950]" bg="bg-[#3fb950]/10" />
-                     
-                     <BTNode title="Get Next Waypoint" type="task" x={420} y={370} color="border-[#3fb950]" bg="bg-[#3fb950]/10" />
-                     <BTNode title="Move To Local" type="task" x={580} y={370} color="border-[#3fb950]" bg="bg-[#3fb950]/10" />
-                     
-                     <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
-                         <path d="M420 80 L 420 150" stroke="#555" fill="none" strokeWidth="2" />
-                         <path d="M420 190 L 270 260" stroke="#555" fill="none" strokeWidth="2" />
-                         <path d="M420 190 L 570 260" stroke="#555" fill="none" strokeWidth="2" />
-                         <path d="M270 300 L 190 370" stroke="#555" fill="none" strokeWidth="2" />
-                         <path d="M270 300 L 350 370" stroke="#555" fill="none" strokeWidth="2" />
-                         <path d="M570 300 L 490 370" stroke="#555" fill="none" strokeWidth="2" />
-                         <path d="M570 300 L 650 370" stroke="#555" fill="none" strokeWidth="2" />
-                     </svg>
-                 </div>
-              )}
-
-              {activeTab === 'AppLogic' && (
-                 <div className="w-full h-full relative" style={{ backgroundImage: 'radial-gradient(circle at center, #222 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
-                    <LogicNode title="Event OnTakeDamage" x={50} y={150} color="border-[#f85149]">
-                       <div className="flex justify-between items-center bg-[#1a1a1a] rounded px-1 py-0.5 mt-1 border border-[#333]"><span className="text-[#888]">(Float) Damage</span><div className="w-2 h-2 rounded-full bg-[#3fb950]"></div></div>
-                       <div className="flex justify-between items-center bg-[#1a1a1a] rounded px-1 py-0.5 mt-1 border border-[#333]"><span className="text-[#888]">(Instigator) HitBy</span><div className="w-2 h-2 rounded-full bg-[#58a6ff]"></div></div>
-                    </LogicNode>
-                    
-                    <LogicNode title="Subtract" x={250} y={150} color="border-[#3fb950]">
-                       <div className="flex justify-between items-center bg-[#1a1a1a] rounded px-1 py-0.5 mt-1 border border-[#333]"><div className="w-2 h-2 rounded-full bg-[#3fb950]"></div><span className="text-[#888]">A</span></div>
-                       <div className="flex justify-between items-center bg-[#1a1a1a] rounded px-1 py-0.5 mt-1 border border-[#333]"><div className="w-2 h-2 rounded-full bg-[#3fb950]"></div><span className="text-[#888]">B</span></div>
-                       <div className="flex justify-end items-center bg-[#1a1a1a] rounded px-1 py-0.5 mt-2 border border-[#333]"><span className="text-[#888]">Result</span><div className="w-2 h-2 rounded-full bg-[#3fb950] ml-2"></div></div>
-                    </LogicNode>
-
-                    <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
-                        <path d="M190 190 Q 220 190, 250 190" stroke="#3fb950" fill="none" strokeWidth="2" />
-                        <path d="M190 160 Q 220 160, 250 215" stroke="#fff" strokeOpacity="0.3" fill="none" strokeWidth="2" />
-                    </svg>
-                 </div>
-              )}
-
-              {activeTab === 'Execution' && (
-                 <div className="w-full h-full relative p-4 flex flex-col gap-4">
-                     <div className="flex items-center gap-2 text-[#f85149] font-bold"><Activity className="animate-pulse"/> LIVE EXECUTION TRACE LOGGER</div>
-                     <div className="flex-1 bg-[#111] border border-[#333] rounded overflow-y-auto font-mono text-[10px] p-2 space-y-1">
-                        <div className="text-[#888]">[00:15:22.41] <span className="text-[#58a6ff]">PlayerController_BP</span> executed <span className="text-white">Event_Tick</span> (0.012ms)</div>
-                        <div className="text-[#888]">[00:15:22.41] <span className="text-[#3fb950]">WeaponSystem_BP</span> variable <span className="text-[#e3b341]">CurrentAmmo</span> changed from 30 -{">"} 29</div>
-                        <div className="text-[#888]">[00:15:22.42] <span className="text-[#bc8cff]">AI_Guard_Agent_BP</span> entered state <span className="text-[#f85149]">COMBAT_ENGAGE</span></div>
-                        <div className="text-[#888]">[00:15:22.43] <span className="text-[#58a6ff]">PlayerController_BP</span> executed <span className="text-white">FireWeapon</span> (0.450ms) <Activity className="inline text-[#f85149] w-3 h-3"/> Warning: High Latency</div>
+                     return (
+                       <path 
+                         key={conn.id}
+                         d={`M${startX} ${startY} C ${startX + 50} ${startY}, ${endX - 50} ${endY}, ${endX} ${endY}`} 
+                         stroke={strokeColor} 
+                         fill="none" 
+                         strokeWidth="2.5" 
+                         strokeOpacity="0.8"
+                       />
+                     );
+                   })}
+                   
+                   {/* Draw active connection being dragged */}
+                   {drawingConnection && (
+                     <path 
+                       d={`M${drawingConnection.startX} ${drawingConnection.startY} C ${drawingConnection.startX + (drawingConnection.isInput ? -50 : 50)} ${drawingConnection.startY}, ${drawingConnection.currentX + (drawingConnection.isInput ? 50 : -50)} ${drawingConnection.currentY}, ${drawingConnection.currentX} ${drawingConnection.currentY}`} 
+                       stroke={getPinStrokeColor(drawingConnection.type)} 
+                       fill="none" 
+                       strokeWidth="2.5" 
+                       strokeDasharray="5,5"
+                       className="animate-[dash_1s_linear_infinite]"
+                     />
+                   )}
+               </svg>
+               
+               {/* Nodes Layer */}
+               {nodes.map(node => (
+                 <div 
+                   key={node.id}
+                   onPointerDown={(e) => handlePointerDownNode(node.id, e)}
+                   className={`absolute w-[200px] bg-[#111] border-t-4 ${node.color} border-l border-r border-b border-[#333] rounded shadow-xl z-20 cursor-grab active:cursor-grabbing opacity-95`} 
+                   style={{ left: node.x, top: node.y }}
+                 >
+                     <div className="px-2 py-1.5 text-[11px] font-bold text-white border-b border-[#333] flex justify-between items-center tracking-wide group" style={{ backgroundColor: node.color.replace('border-', 'bg-').replace(']', ']/20') }}>
+                         <span className="truncate pr-2 pointer-events-none">{node.title}</span>
+                         <button onClick={(e) => { e.stopPropagation(); deleteNode(node.id); }} className="text-[#888] hover:text-[#f85149] opacity-0 group-hover:opacity-100 transition-opacity">
+                           <Trash2 size={12}/>
+                         </button>
+                     </div>
+                     <div className="p-0 flex flex-col font-mono text-[10px] bg-[#0a0a0a]">
+                        <div className="flex w-full">
+                           {/* Inputs */}
+                           <div className="flex-1 flex flex-col gap-1 p-1">
+                             {node.inputs.map(pin => (
+                               <div key={pin.id} className="flex items-center gap-1.5 relative h-5">
+                                 <div 
+                                   className={`w-3 h-3 rounded-full border-2 border-[#111] cursor-crosshair z-30 ${getPinColor(pin.type)}`}
+                                   style={{ marginLeft: '-8px' }}
+                                   onPointerDown={(e) => handlePointerDownPin(node.id, pin, e)}
+                                   onMouseUp={(e) => handlePinMouseUp(node.id, pin, e)}
+                                 ></div>
+                                 <span className="text-[#c9d1d9]">{pin.name}</span>
+                                 {pin.type !== 'exec' && pin.type !== 'object' && !connections.some(c => c.toNode === node.id && c.toPin === pin.id) && (
+                                   <input 
+                                     type={pin.type === 'float' ? 'number' : 'text'} 
+                                     value={pin.value || ''} 
+                                     onChange={(e) => updateNodeInputValue(node.id, pin.id, e.target.value)}
+                                     onPointerDown={(e) => e.stopPropagation()}
+                                     className="w-10 bg-[#161616] border border-[#333] text-white text-[9px] px-1 rounded outline-none focus:border-[#58a6ff]"
+                                   />
+                                 )}
+                               </div>
+                             ))}
+                           </div>
+                           
+                           {/* Outputs */}
+                           <div className="flex-1 flex flex-col gap-1 p-1 items-end">
+                             {node.outputs.map(pin => (
+                               <div key={pin.id} className="flex items-center justify-end gap-1.5 relative h-5">
+                                 <span className="text-[#c9d1d9]">{pin.name}</span>
+                                 <div 
+                                   className={`w-3 h-3 rounded-full border-2 border-[#111] cursor-crosshair z-30 ${getPinColor(pin.type)}`}
+                                   style={{ marginRight: '-8px' }}
+                                   onPointerDown={(e) => handlePointerDownPin(node.id, pin, e)}
+                                   onMouseUp={(e) => handlePinMouseUp(node.id, pin, e)}
+                                 ></div>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
                      </div>
                  </div>
-              )}
-
-              {activeTab === 'GameState' && (
-                  <div className="w-full h-full p-4 flex flex-col">
-                      <div className="flex justify-between items-center mb-4">
-                          <div className="text-[#58a6ff] font-bold text-lg tracking-widest uppercase"><Database className="inline mr-2"/> Global Game State Flags & Variables</div>
-                          <button className="bg-[#3fb950]/20 text-[#3fb950] border border-[#3fb950]/50 px-3 py-1 rounded flex items-center gap-2"><PlusSquare size={14}/> Add Global Flag</button>
-                      </div>
-                      <div className="bg-[#111] border border-[#333] rounded-t p-2 grid grid-cols-4 font-bold text-[#888] uppercase tracking-wider text-[10px] ">
-                          <div>Variable ID</div>
-                          <div>Data Type</div>
-                          <div>Current Value</div>
-                          <div>Persistence</div>
-                      </div>
-                      <div className="flex flex-col border border-t-0 border-[#333] rounded-b bg-[#0a0a0a]">
-                          <FlagRow id="MainQuest_Stage" type="Integer" val="4" persist="Save Game" />
-                          <FlagRow id="HasMet_Elder_NPC" type="Boolean" val="true" persist="Save Game" color="text-[#3fb950] textShadow-glow" />
-                          <FlagRow id="Session_Kills" type="Integer" val="14" persist="Session Only" color="text-[#f85149]" />
-                          <FlagRow id="Current_Music_Tension" type="Float" val="0.85" persist="Transient" />
-                          <FlagRow id="Player_SubFaction" type="Enum" val="MAGE_GUILD" persist="Save Game" color="text-[#bc8cff]" />
-                      </div>
-                  </div>
-              )}
-
+               ))}
            </div>
-
         </div>
       </div>
     </div>
   );
 }
 
-// ------ STYLED COMPONENT HELPERS ------ //
-
-function ModuleTab({ active, onClick, icon, label, color }) {
-   return (
-      <div 
-         onClick={onClick}
-         className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer border-t-[2px] transition-colors
-         ${active ? `bg-[#111] text-white ${color.replace('text-', 'border-')}` : 'border-transparent text-[#888] hover:bg-[#1a1a1a] hover:text-[#ccc]'}`}
-      >
-         <span className={active ? color : 'opacity-70'}>{icon}</span> {label}
-      </div>
-   );
-}
-
-function NodeCategory({ title, children }) {
-    return (
-        <div className="mb-4">
-            <div className="text-[#888] font-bold text-[9px] uppercase tracking-wider mb-2 flex items-center gap-1">
-                <ChevronDown size={10}/> {title}
-            </div>
-            <div className="flex flex-col gap-1 ml-2">
-                {children}
-            </div>
-        </div>
-    );
-}
-
-function DraggableNode({ label, icon }) {
-    return (
-        <div className="bg-[#1a1a1a] border border-[#333] hover:border-[#555] rounded px-2 py-1 flex items-center gap-2 text-[10px] cursor-grab transition-colors">
-            {icon} <span className="text-[#ccc]">{label}</span>
-        </div>
-    );
-}
-
-function BTNode({ title, type, x, y, color, bg }) {
-    return (
-        <div className={`absolute w-[140px] ${bg} border-2 ${color} rounded shadow-xl z-20 flex flex-col items-center justify-center p-2 text-center transform -translate-x-1/2`} style={{ left: x, top: y }}>
-            <div className="text-white font-bold text-[10px] mb-1 leading-tight">{title}</div>
-            <div className={`text-[8px] uppercase tracking-wider ${color.replace('border-', 'text-')}`}>{type}</div>
-        </div>
-    );
-}
-
-function LogicNode({ title, x, y, color, children }) {
-    return (
-        <div className={`absolute w-[180px] bg-[#111] border-t-4 ${color} border-l border-r border-b border-[#333] rounded shadow-xl z-20 overflow-hidden opacity-90`} style={{ left: x, top: y }}>
-            <div className="px-2 py-1 text-[10px] font-bold text-white border-b border-[#333] flex justify-between items-center tracking-wide" style={{ backgroundColor: color.replace('border-', 'bg-').replace(']', ']/20') }}>
-                {title}
-            </div>
-            <div className="p-2 flex flex-col font-mono text-[9px] bg-[#0a0a0a]">
-                {children}
-            </div>
-        </div>
-    );
-}
-
-function FlagRow({ id, type, val, persist, color = "text-white" }) {
-    return (
-        <div className="grid grid-cols-4 py-2 px-3 border-b border-[#222] text-[10px] hover:bg-[#111] transition-colors font-mono">
-            <div className="text-[#58a6ff]">{id}</div>
-            <div className="text-[#888]">{type}</div>
-            <div className={`font-bold ${color}`}>{val}</div>
-            <div className="text-[#666] uppercase text-[9px]">{persist}</div>
-        </div>
-    )
+function ModuleTab({ active, onClick, icon, label, color }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; color: string }) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`px-4 py-2 border-r border-[#222] flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider transition ${active ? 'bg-[#0a0a0a] border-t-2 border-t-[#3fb950] text-white' : 'bg-[#111] text-[#888] hover:bg-[#1a1a1a]'}`}
+    >
+      <span className={active ? color : ''}>{icon}</span> {label}
+    </button>
+  );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Users, Search, Plus, Trash2, Save, Activity, BookOpen, Zap, Settings2, ArrowRight, Ghost, MessageSquare, Database, ShieldAlert, GitBranch, FlaskConical, Wand2, Dna } from 'lucide-react';
+import { Users, Search, Plus, Trash2, Save, Activity, BookOpen, Zap, Settings2, ArrowRight, Ghost, MessageSquare, Database, ShieldAlert, GitBranch, FlaskConical, Wand2, Dna, Cpu, Move3D } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import Viewport3D from './Viewport3D';
 
 type Stat = { hp: number; mp: number; strength: number; agility: number; intelligence: number };
 type NPC = { id: string; name: string; title: string; category: string; description: string; stats: Stat; skills: string[]; questIds: string[]; behavior: string; aiType?: string; patrolPath?: string; proceduralIdle?: string; aggroRange?: number; attackPattern?: string; skillFrequency?: number; reactProximity?: boolean; critiqueSystem?: string; combatWatchDistance?: number; voiceProfile?: string; psychologicalTraits?: string; hiddenAgenda?: string; alignment?: string; conversationStyle?: string; memoryRetention?: string; adultContentOverride?: boolean; nonAiVoiceLines?: string; emotionMatrix?: string; lootTableId?: string; factionId?: string; dialogueId?: string; isMonster?: boolean; spawnConditions?: string; phaseTransitions?: string; };
@@ -534,7 +535,13 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
       </div>
 
       {/* Main Editor Area */}
-      <div className="flex-1 bg-[#050505] overflow-y-auto custom-scrollbar relative p-6">
+      <div className="flex-1 bg-[#050505] overflow-y-auto custom-scrollbar relative">
+        <div className="w-full h-[50vh] bg-[#0d1117] border-b border-[#30363d] relative shrink-0">
+           {/* Include Viewport3D to satisfy requirement to show 3D edits for NPC */}
+           <Viewport3D activeTool="NPCEdit" activeFile={undefined} />
+        </div>
+        
+        <div className="p-6">
         {(activeTab === 'NPCs' || activeTab === 'Monsters') && selectedNpcId && (
           <div className="max-w-4xl mx-auto flex flex-col gap-6">
              {(() => {
@@ -784,7 +791,7 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
                          </div>
                          <div className="grid grid-cols-3 gap-6">
                             <div className="flex flex-col gap-3">
-                               <h4 className="text-[#c9d1d9] text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Move3d size={13} className="text-[#58a6ff]"/> Kinematics & Collisions</h4>
+                               <h4 className="text-[#c9d1d9] text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Move3D size={13} className="text-[#58a6ff]"/> Kinematics & Collisions</h4>
                                <InputField label="Root Motion Translation Multiplier" value="1.0" onChange={() => {}} />
                                <InputField label="Hitbox Active Frames (e.g. 12-24)" value="14-26" onChange={() => {}} />
                                <div className="flex flex-col gap-1">
@@ -1200,6 +1207,7 @@ export default function DeepNPCSkillEditor({ initialTab = 'NPCs' }: { initialTab
           </div>
         )}
 
+      </div>
       </div>
     </div>
   );

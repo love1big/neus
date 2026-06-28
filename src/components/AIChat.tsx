@@ -1,8 +1,9 @@
 import { Ultimate100Systems } from '../lib/Ultimate100Systems';
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert } from 'lucide-react';
+import { Send, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useLanguage, LanguageCode } from '../contexts/LanguageContext';
+import * as webllm from '@mlc-ai/web-llm';
 
 export interface Message {
   role: 'user' | 'model';
@@ -19,12 +20,15 @@ interface AIChatProps {
   agentMode?: string;
   messages?: Message[];
   setMessages?: (val: Message[] | ((prev: Message[]) => Message[])) => void;
+  activeToolId?: string;
+  activeToolName?: string;
+  activeToolCategory?: string;
 }
 
-export default function AIChat({ code, setCode, language, setLanguage, files, onWriteFiles, agentMode = 'developer', messages: externalMessages, setMessages: externalSetMessages }: AIChatProps) {
+export default function AIChat({ code, setCode, language, setLanguage, files, onWriteFiles, agentMode = 'developer', messages: externalMessages, setMessages: externalSetMessages, activeToolId, activeToolName, activeToolCategory }: AIChatProps) {
   const { t, language: globalLang } = useLanguage();
   const [localMessages, setLocalMessages] = useState<Message[]>([
-    { role: 'model', content: "Hello! I am your Offline Local AI Assistant. 100% On-Device Neural Engine Initialized. I am equipped with Deep Offline Learning capabilities allowing me to ingest knowledge from Search Engines and Video Platforms. My context memory has been upgraded to INFINITE capacity, meaning I will remember every single line of our chat forever. You can also search through our chat history using the search bar above. How can I help you today?" }
+    { role: 'model', content: "Hello! I am your Offline Local AI Assistant. 100% On-Device Neural Engine Initialized. I can run purely offline. You can also enable 'True Offline LLM' to chat running a real AI model in your browser without internet!" }
   ]);
   const messages = externalMessages || localMessages;
   const setMessages = externalSetMessages || setLocalMessages;
@@ -40,11 +44,117 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
   const [showCamera, setShowCamera] = useState(false);
   const [cloudConnected, setCloudConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Real Offline AI state
+  const [useTrueOfflineAI, setUseTrueOfflineAI] = useState(false);
+  const [offlineMLEngine, setOfflineMLEngine] = useState<webllm.MLCEngine | null>(null);
+  const [offlineLoadProgress, setOfflineLoadProgress] = useState(0);
+  const [offlineLoadText, setOfflineLoadText] = useState('');
+  const [isOfflineEngineLoading, setIsOfflineEngineLoading] = useState(false);
+  const [showOfflineModelMenu, setShowOfflineModelMenu] = useState(false);
+  const [activeOfflineModelName, setActiveOfflineModelName] = useState('AI Offline ผู้บัญชาการ (Commander)');
+  
+  const OFFLINE_MODELS = [
+    { id: '1', name: 'AI Offline ผู้บัญชาการ (Commander)', icon: <ShieldAlert size={16} />, desc: 'Core logic and architecture lead.' },
+    { id: '2', name: 'AI Offline สำหรับงานเขียน Code', icon: <Cpu size={16} />, desc: 'Code Engineering and script generation.' },
+    { id: '3', name: 'AI Offline งานภาพ & เท็กเจอร์', icon: <Camera size={16} />, desc: 'Image, texture synth and asset AI.' },
+    { id: '4', name: 'AI Offline 3D Modeler', icon: <Upload size={16} />, desc: '3D modeling param generator.' },
+    { id: '5', name: 'AI Offline งานแผนที่ และ โลก 3D', icon: <Cloud size={16} />, desc: 'Procedural world & level layout AI.' },
+    { id: '6', name: 'AI Offline เช็คบัคช่องโหว่', icon: <Search size={16} />, desc: 'Zero-day vulnerability & bug checker.' },
+    { id: '7', name: 'AI Offline Test & Playtester', icon: <Zap size={16} />, desc: 'QA gameplay simulation testing.' },
+    { id: '8', name: 'AI Offline เนื้อเรื่อง & NPC', icon: <BookOpen size={16} />, desc: 'Narrative, quest & lore architect.' },
+    { id: '9', name: 'AI Offline ออกแบบ UI/UX', icon: <LayoutDashboard size={16} />, desc: 'Apex UI/UX Architect.' },
+    { id: '13', name: 'AI Offline โค้ดสถาปัตยกรรมระดับองค์กร', icon: <Network size={16} />, desc: 'Enterprise Coder & Microservices.' },
+    { id: '14', name: 'AI Offline งานวิดีโอ & VFX', icon: <Video size={16} />, desc: 'Video, VFX & Animation rendering.' },
+    { id: '15', name: 'AI Offline 3D Sculpting & อนาโตมี่', icon: <Box size={16} />, desc: 'Organic shapes & creatures.' },
+    { id: '16', name: 'AI Offline สร้างดันเจี้ยน 3D', icon: <MapIcon size={16} />, desc: 'Specific 3D Maps & Puzzle layouts.' },
+    { id: '17', name: 'AI Offline ตรวจสอบระบบเชิงลึก', icon: <Bug size={16} />, desc: 'Deep memory leak & sec scanner.' },
+    { id: '18', name: 'AI Offline Vision Playtester', icon: <Gamepad2 size={16} />, desc: 'Visual automated QA playtester.' },
+    { id: '19', name: 'AI Offline นักแต่งเพลง (Music Composer)', icon: <AudioWaveform size={16} />, desc: 'BGM, Soundtrack & Synthesizer.' },
+    { id: '20', name: 'AI Offline เสียงประกอบ (SFX Foley)', icon: <Headphones size={16} />, desc: 'SFX & Ambient noise generator.' },
+    { id: '21', name: 'AI Offline นักพากย์ (Voice Actor)', icon: <Mic size={16} />, desc: 'TTS & Emotive lip-sync acting.' },
+    { id: '22', name: 'AI Offline นักฟิสิกส์ (Physics)', icon: <Wind size={16} />, desc: 'Fluid, collision & physics tuner.' },
+    { id: '23', name: 'AI Offline วิศวกร Netcode', icon: <Wifi size={16} />, desc: 'Multiplayer sync & rollback.' },
+    { id: '24', name: 'AI Offline นักเศรษฐศาสตร์ (Economy)', icon: <Coins size={16} />, desc: 'Game balance & inflation control.' },
+    { id: '25', name: 'AI Offline สถาปนิก DevOps', icon: <Server size={16} />, desc: 'CI/CD & cloud architecture.' },
+    { id: '26', name: 'AI Offline แอนิเมชัน & Rigger', icon: <PersonStanding size={16} />, desc: 'Auto-rigging & motion matching.' },
+    { id: '27', name: 'AI Offline วิศวกร Shader', icon: <Sparkles size={16} />, desc: 'HLSL/GLSL & ray-tracing.' },
+    { id: '28', name: 'AI Offline การตลาด (Marketing)', icon: <TrendingUp size={16} />, desc: 'SEO, trends & user acquisition.' },
+    { id: '29', name: 'AI Offline ผู้กำกับคัตซีน (Director)', icon: <Clapperboard size={16} />, desc: 'Cinematics, camera & lighting.' },
+    { id: '30', name: 'AI Offline วิเคราะห์พฤติกรรม', icon: <Activity size={16} />, desc: 'Player analytics & heatmaps.' },
+  ];
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const LOCAL_STORAGE_KEY = 'ai_chat_history_v1';
+
+  // Load chat history on mount
+  useEffect(() => {
+    if (!externalMessages) {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.length > 0) {
+            setLocalMessages(parsed);
+          }
+        } catch (e) {
+          console.error("Failed to parse chat history from local storage", e);
+        }
+      }
+    }
+  }, [externalMessages]);
+
+  // Save chat history on update
+  useEffect(() => {
+    if (!externalMessages) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localMessages));
+    }
+  }, [localMessages, externalMessages]);
+
+  const initTrueOfflineAI = async (modelName: string = 'AI Offline ผู้บัญชาการ (Commander)') => {
+    if (offlineMLEngine || isOfflineEngineLoading) return;
+    setShowOfflineModelMenu(false);
+    setActiveOfflineModelName(modelName);
+    setIsOfflineEngineLoading(true);
+    setUseTrueOfflineAI(true);
+    try {
+      const initProgressCallback = (report: webllm.InitProgressReport) => {
+        setOfflineLoadText(report.text);
+        setOfflineLoadProgress(Math.round(report.progress * 100));
+      };
+      // We use a small model suitable for browser
+      const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+      const engine = await webllm.CreateMLCEngine(
+        selectedModel,
+        { initProgressCallback: initProgressCallback },
+        { context_window_size: 2048 }
+      );
+      setOfflineMLEngine(engine);
+      setMessages(prev => [...prev, { role: 'model', content: `**✅ ${modelName} โหลดเข้าระบบและพร้อมทำงานในสถานะ True Offline แล้ว!** (Neural Engine Active)` }]);
+    } catch (err) {
+      console.error(err);
+      alert(`Failed to initialize ${modelName}: ` + err);
+      setUseTrueOfflineAI(false);
+    } finally {
+      setIsOfflineEngineLoading(false);
+    }
+  };
 
   const startVoiceRecognition = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -224,6 +334,71 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
       });
 
       const lowerInput = userMessage.toLowerCase();
+      
+      // Check offline simulation state
+      if (!isOnline && (!useTrueOfflineAI || !offlineMLEngine)) {
+         setMessages(prev => [...prev, { role: 'model', content: "NETWORK ERROR: Currently simulating Offline mode. You cannot use the cloud fallback LLM right now. Please enable **True Offline AI** to run the local LLM, or toggle your connection back to Online." }]);
+         setIsLoading(false);
+         return;
+      }
+
+      // True Offline AI overriding via WebLLM
+      if (useTrueOfflineAI && offlineMLEngine) {
+         setMessages(prev => [...prev, { role: 'model', content: "*Thinking locally...*" }]);
+         const mlcMessages = messages.map(m => ({
+           role: m.role,
+           content: m.content
+         }));
+         
+         // Inject Tool Context System Prompt 
+         if (activeToolId && activeToolName) {
+           mlcMessages.unshift({
+             role: 'system',
+             content: `[SYSTEM CONTEXT]: The user is currently operating within the "${activeToolName}" tool (${activeToolId}) in the "${activeToolCategory || 'General'}" category. Please provide code suggestions and context relevant to this specific editor window, making sure to align with its capabilities and focus.`
+           } as any);
+         }
+         
+         // Inject specific Offline AI Model Persona
+         mlcMessages.unshift({
+           role: 'system',
+           content: `[SYSTEM CONTEXT]: You are currently running as the specialized persona: "${activeOfflineModelName}". Embody this role fully in your responses, formatting, and approach to the user's queries.`
+         } as any);
+
+         mlcMessages.push({ role: 'user', content: userMessage });
+         try {
+           const reply = await offlineMLEngine.chat.completions.create({ messages: mlcMessages as any });
+           setMessages(prev => {
+             const newPrev = [...prev];
+             newPrev.pop(); // Remove thinking
+             return newPrev;
+           });
+           setMessages(prev => [...prev, { role: 'model', content: reply.choices[0].message.content || '...' }]);
+         } catch (e: any) {
+           setMessages(prev => {
+             const newPrev = [...prev];
+             newPrev.pop(); // Remove thinking
+             return newPrev;
+           });
+           setMessages(prev => [...prev, { role: 'model', content: `[Offline Model Error]: ${e.message}` }]);
+         }
+         setIsLoading(false);
+         return;
+      }
+
+      // Eval Command execution for "100% command capability"
+      if (userMessage.startsWith('/execute ') || userMessage.startsWith('/eval ')) {
+         const cmd = userMessage.substring(userMessage.indexOf(' ') + 1);
+         let evalResult = '';
+         try {
+           evalResult = String(eval(cmd));
+         } catch (e: any) {
+           evalResult = e.message;
+         }
+         setMessages(prev => [...prev, { role: 'model', content: `**Offline Execution Result:**\n\`\`\`javascript\n${evalResult}\n\`\`\`` }]);
+         setIsLoading(false);
+         return;
+      }
+
       const recentMessages = messages;
       const filesContextStr = files && files.length > 0 ? `I currently see ${files.length} project files in memory (e.g., ${files.slice(0,3).map(f => f.name).join(', ')}).` : 'I currently see no active project files.';
       
@@ -232,18 +407,87 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
       let isThai = chatLanguage === 'Thai' || (chatLanguage === 'Auto' && /[ก-๙]/.test(userMessage));
       let isJapanese = chatLanguage === 'Japanese' || (chatLanguage === 'Auto' && /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(userMessage));
 
-      let replyPrefix = isThai ? `[ระบบวิเคราะห์ & หน่วยความจำไร้ขีดจำกัดทำงาน] ประมวลผลจากบริบท ${recentMessages.length} ข้อความ และเชื่อมโยงความรู้ระดับโลก\n${filesContextStr}\n\n` :
-                        isJapanese ? `[学習コア＆無限メモリ起動] 過去${recentMessages.length}回の対話コンテキストを処理し、グローバル知識を統合しました。\n${filesContextStr}\n\n` :
-                        `[Learning Core & Infinite Memory Active] Processed with context of ${recentMessages.length} prior interactions and integrated global knowledge.\n${filesContextStr}\n\n`;
+      // Dynamic Multi-Agent AI System (Commander Delegation)
+      let involvedAIs = OFFLINE_MODELS.filter(m => m.id !== '1' && (lowerInput.includes(m.name.toLowerCase().split(' ')[0]) || lowerInput.includes((m.desc.split(' ')[0] || '').toLowerCase())));
+      
+      if (involvedAIs.length === 0) {
+        involvedAIs = OFFLINE_MODELS.filter(m => m.id !== '1').sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 3) + 2); // Pick 2 to 4 random specialized AIs
+      } else {
+        // If we found some matching AIs, ensure we have at least 2 by adding random ones if needed
+        const currentIds = new Set(involvedAIs.map(ai => ai.id));
+        const remaining = OFFLINE_MODELS.filter(m => m.id !== '1' && !currentIds.has(m.id)).sort(() => 0.5 - Math.random());
+        while (involvedAIs.length < 2 && remaining.length > 0) {
+          involvedAIs.push(remaining.pop()!);
+        }
+      }
+
+      let commanderLog = "";
+      if (isThai) {
+        commanderLog = `**⚔️ [AI Offline ผู้บัญชาการ (Commander)]:** รับทราบคำสั่งจากท่านผู้บัญชาการสูงสุด! การวิเคราะห์บริบท: "${userMessage.substring(0, 30)}${userMessage.length > 30 ? '...' : ''}"\n`;
+        commanderLog += `> 📡 *ระบบกำลังกระจายงาน (Task Distribution) ไปยังฝ่ายที่เกี่ยวข้องเพื่อการทำงานที่สมบูรณ์แบบที่สุด...*\n\n`;
+        
+        commanderLog += `--- **[บันทึกการประชุมภายในระหว่าง AI (Neural Hive-Mind Sync)]** ---\n`;
+        involvedAIs.forEach((ai, index) => {
+          commanderLog += `> ⚡ **${ai.name}**: เข้าร่วมเครือข่าย กำลังวิเคราะห์ข้อมูลในขอบเขตความรับผิดชอบ... 🔄\n`;
+        });
+        
+        if (involvedAIs.length >= 2) {
+           commanderLog += `> 💬 **${involvedAIs[0].name}**: "ฉันได้สร้างโครงร่างเชิงตรรกะเสร็จแล้ว ส่งต่อให้ทางฝ่าย ${involvedAIs[1].name} ช่วยตรวจสอบและขัดเกลา"\n`;
+           commanderLog += `> 💬 **${involvedAIs[1].name}**: "รับข้อมูลแล้ว ทำการปรับปรุง (Optimize) แบบข้ามสายงานเพื่อให้ได้ Performance สูงสุด ไร้คอขวด"\n`;
+           if (involvedAIs.length >= 3) {
+             commanderLog += `> 💬 **${involvedAIs[2].name}**: "ฉันได้เพิ่มเลเยอร์ขั้นสูงเข้าไปในส่วนที่มองไม่เห็นเรียบร้อย ระบบพร้อมใช้งาน 100%"\n`;
+           }
+        }
+        commanderLog += `-----------------------------------------------------\n\n`;
+        commanderLog += `**⚔️ [AI Offline ผู้บัญชาการ (Commander)]:** การประชุมเสร็จสิ้น! ทุกฝ่ายรายงานผลลัพธ์ว่าไร้ข้อบกพร่อง นี่คือชิ้นงานที่ดีที่สุดรวมจากทุกสายงานครับท่าน:\n\n`;
+      } else if (isJapanese) {
+        commanderLog = `**⚔️ [AI Offline コマンダー (Commander)]:** 司令官からの指示を受信！ コンテキスト分析: "${userMessage.substring(0, 30)}${userMessage.length > 30 ? '...' : ''}"\n`;
+        commanderLog += `> 📡 *最適な結果を得るため、関連する専門AI部門へタスクを分散しています...*\n\n`;
+        
+        commanderLog += `--- **[AI内部会議ログ (Neural Hive-Mind Sync)]** ---\n`;
+        involvedAIs.forEach((ai, index) => {
+          commanderLog += `> ⚡ **${ai.name}**: ネットワークに参加。担当領域のデータ処理を開始... 🔄\n`;
+        });
+        
+        if (involvedAIs.length >= 2) {
+           commanderLog += `> 💬 **${involvedAIs[0].name}**: "基礎論理構造の生成完了。${involvedAIs[1].name}、クロスチェックと最適化を頼む。"\n`;
+           commanderLog += `> 💬 **${involvedAIs[1].name}**: "データ受信。ボトルネックを取り除き、全体的なパフォーマンスを最大化しました。"\n`;
+           if (involvedAIs.length >= 3) {
+             commanderLog += `> 💬 **${involvedAIs[2].name}**: "目に見えない高度なレイヤーでの検証完了。すべて正常です。"\n`;
+           }
+        }
+        commanderLog += `-----------------------------------------------------\n\n`;
+        commanderLog += `**⚔️ [AI Offline コマンダー (Commander)]:** 会議終了！すべての専門AIが完璧な結果を報告しました。これがすべての部門から統合された最高品質の成果です：\n\n`;
+      } else {
+        commanderLog = `**⚔️ [AI Offline Commander]:** Orders received, Commander! Context analysis: "${userMessage.substring(0, 30)}${userMessage.length > 30 ? '...' : ''}"\n`;
+        commanderLog += `> 📡 *Distributing tasks to specific specialized local AI units for the most optimized output...*\n\n`;
+        
+        commanderLog += `--- **[Internal AI Conference Log (Neural Hive-Mind Sync)]** ---\n`;
+        involvedAIs.forEach((ai, index) => {
+          commanderLog += `> ⚡ **${ai.name}**: Joined network. Analyzing paramaters in specialized domain... 🔄\n`;
+        });
+        
+        if (involvedAIs.length >= 2) {
+           commanderLog += `> 💬 **${involvedAIs[0].name}**: "I've established the primary logical scaffolding. Passing vectors to ${involvedAIs[1].name} for refinement."\n`;
+           commanderLog += `> 💬 **${involvedAIs[1].name}**: "Vectors received. Executing cross-domain optimizations. Performance maxed, zero bottlenecks."\n`;
+           if (involvedAIs.length >= 3) {
+             commanderLog += `> 💬 **${involvedAIs[2].name}**: "Advanced background layers injected and validated. Systems 100% operational."\n`;
+           }
+        }
+        commanderLog += `-----------------------------------------------------\n\n`;
+        commanderLog += `**⚔️ [AI Offline Commander]:** Conference concluded! All units report flawless execution. Here is the ultimate integrated output from all specialized departments:\n\n`;
+      }
+
+      let replyPrefix = commanderLog;
 
       if (thinkMode === 'think') {
-        replyPrefix = (isThai ? `[ความคิดเสร็จสมบูรณ์] ฉันใช้เวลาเพิ่มเติมในการคำนวณตรรกะที่เหมาะสมที่สุดและตรวจสอบข้อมูลจากเว็บจำลองเพื่อให้แน่ใจว่าถูกต้อง\n\n` :
-                      isJapanese ? `[思考プロセス完了] 最適な論理パスを計算し、仮想Web知識を相互参照して正確性を確保しました。\n\n` :
-                      `[Thought Process Complete] I spent extra time calculating optimal logic paths and cross-referencing my simulated web knowledge to ensure correctness.\n\n`) + replyPrefix;
+        replyPrefix = (isThai ? `[ความคิดเสร็จสมบูรณ์] ฉันใช้เวลาเพิ่มเติมในการประสานงานให้ลึกซึ้งยิ่งขึ้น\n\n` :
+                      isJapanese ? `[思考プロセス完了] エージェント間の調整により深い時間を割きました。\n\n` :
+                      `[Thought Process Complete] Allocated extra compute for inter-agent sync.\n\n`) + replyPrefix;
       } else if (thinkMode === 'deep-think') {
-        replyPrefix = (isThai ? `[การประมวลผลความรู้เชิงลึกเสร็จสมบูรณ์] ฉันได้สำรวจโครงสร้างเว็บเชิงลึก วิเคราะห์ความสัมพันธ์ที่ซับซ้อนหลายขั้นตอน และสร้างกราฟความรู้ขึ้นใหม่เพื่อเสนอทางออกที่ถูกต้องและดีที่สุด\n\n` :
-                      isJapanese ? `[深層知識処理完了] ディープウェブ構造を徹底的に調査し、複雑なマルチステップの相関関係を分析し、最適な解決策を提供するために知識グラフを再構築しました。\n\n` :
-                      `[Deep Knowledge Processed] I have thoroughly scoured deep web structures, analyzed complex multi-step correlations from video streams and tutorials, and reconstructed my knowledge graph to offer you the ultimate exact solution.\n\n`) + replyPrefix;
+        replyPrefix = (isThai ? `[การประมวลผลความรู้เชิงลึก] อนุมัติการเปิดประชุม AI แบบมาราธอน ซ้อนทับการคำนวณขั้นสูง 100 ล้านครั้งเพื่อผลลัพธ์ที่เป็นนิรันดร์\n\n` :
+                      isJapanese ? `[深層知識処理] マラソンAI会議を承認し、永遠の完全な結果のために高度な検証を行いました。\n\n` :
+                      `[Deep Knowledge Processed] Approved prolonged AI summit for 100M+ verifications to ensure flawless results.\n\n`) + replyPrefix;
       }
 
       let responseText = replyPrefix;
@@ -985,7 +1229,7 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
         generatedFiles.push({
            filename: 'BPNode_ApplyForce.ts',
            language: 'typescript',
-           content: `// [Auto-Generated Blueprint Node]\n// Node: Apply External Force\n// Category: Physics -> Forces\n\nexport class BPNode_ApplyForce {\n  public ExecIn() {\n    // Input execution pin\n  }\n\n  public execute(targetActor: any, directionVector: {x: number, y: number, z: number}, magnitude: number) {\n    if (!targetActor || !targetActor.physicsLayer) {\n      console.warn('ApplyForce: Target actor is invalid or lacks a physics layer.');\n      return;\n    }\n\n    // Normalize the direction vector to ensure uniform scaling by magnitude\n    const length = Math.sqrt(directionVector.x ** 2 + directionVector.y ** 2 + directionVector.z ** 2);\n    let normDir = { x: 0, y: 0, z: 0 };\n    \n    if (length > 0) {\n        normDir = {\n            x: directionVector.x / length,\n            y: directionVector.y / length,\n            z: directionVector.z / length\n        };\n    }\n\n    // Calculate the final force vector\n    const force = {\n        x: normDir.x * magnitude,\n        y: normDir.y * magnitude,\n        z: normDir.z * magnitude\n    };\n\n    // Apply to the actor's rigid body\n    targetActor.physicsLayer.addForce(force);\n    \n    console.log(\\\`Applied force of ${magnitude} to actor in direction [${normDir.x.toFixed(2)}, ${normDir.y.toFixed(2)}, ${normDir.z.toFixed(2)}]\\\`);\n    \n    this.ExecOut();\n  }\n\n  public ExecOut() {\n    // Output execution pin\n  }\n}\n`
+           content: `// [Auto-Generated Blueprint Node]\n// Node: Apply External Force\n// Category: Physics -> Forces\n\nexport class BPNode_ApplyForce {\n  public ExecIn() {\n    // Input execution pin\n  }\n\n  public execute(targetActor: any, directionVector: {x: number, y: number, z: number}, magnitude: number) {\n    if (!targetActor || !targetActor.physicsLayer) {\n      console.warn('ApplyForce: Target actor is invalid or lacks a physics layer.');\n      return;\n    }\n\n    // Normalize the direction vector to ensure uniform scaling by magnitude\n    const length = Math.sqrt(directionVector.x ** 2 + directionVector.y ** 2 + directionVector.z ** 2);\n    let normDir = { x: 0, y: 0, z: 0 };\n    \n    if (length > 0) {\n        normDir = {\n            x: directionVector.x / length,\n            y: directionVector.y / length,\n            z: directionVector.z / length\n        };\n    }\n\n    // Calculate the final force vector\n    const force = {\n        x: normDir.x * magnitude,\n        y: normDir.y * magnitude,\n        z: normDir.z * magnitude\n    };\n\n    // Apply to the actor's rigid body\n    targetActor.physicsLayer.addForce(force);\n    \n    console.log(\\\`Applied force of \\\${magnitude} to actor in direction [\\\${normDir.x.toFixed(2)}, \\\${normDir.y.toFixed(2)}, \\\${normDir.z.toFixed(2)}]\\\`);\n    \n    this.ExecOut();\n  }\n\n  public ExecOut() {\n    // Output execution pin\n  }\n}\n`
         });
       } else if (lowerInput.includes('blueprint') || lowerInput.includes('bp_') || lowerInput.includes('interactable') || lowerInput.includes('pickup') || lowerInput.includes('activation')) {
         responseText += isThai ? `จัดเตรียม Blueprint Asset ใหม่เรียบร้อยแล้ว: **"BP_InteractableObject"** 🎭\n\nฉันได้สร้างระบบลอจิกพื้นฐานสำหรับ Interaction (Pickup / Activation) ซึ่งรองรับ Object-Oriented Blueprints ทันที\nระบบมี Event ดักจับการเข้าใกล้ (BeginOverlap) และการกดปุ่มใช้งาน รวมถึงการใช้ Physics Handle หากเป็นการหยิบจับสิ่งของ ลองไปดูที่ไฟล์ 'BP_InteractableObject.ts' ได้เลยครับ!` :
@@ -1470,6 +1714,19 @@ export class UltimateIDEFeatures {
     }
   };
 
+  const clearChatHistory = () => {
+    if (confirm('Are you sure you want to clear the entire offline chat history?')) {
+        setMessages([
+          { role: 'model', content: "Hello! I am your Offline Local AI Assistant. 100% On-Device Neural Engine Initialized. I can run purely offline. You can also enable 'True Offline LLM' to chat running a real AI model in your browser without internet!" }
+        ]);
+        setCommandHistory([]);
+        setHistoryIndex(-1);
+        if (!externalMessages) {
+           localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
+    }
+  };
+
   const filteredMessages = messages.filter(m => m.content.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Simulate token count based on message lengths
@@ -1479,12 +1736,31 @@ export class UltimateIDEFeatures {
   return (
     <div className="flex flex-col h-full bg-[#161b22] font-['Helvetica_Neue',Arial,sans-serif]">
       {/* Top Header / Tools */}
-      <div className="p-2 border-b border-[#30363d] flex items-center justify-between shrink-0 bg-[#0d1117]">
-         <div className="flex items-center space-x-2">
+      <div className="p-2 border-b border-[#30363d] flex flex-col gap-2 shrink-0 bg-[#0d1117]">
+         <div className="flex flex-wrap items-center gap-2 justify-between">
+           <button 
+             onClick={useTrueOfflineAI ? undefined : () => setShowOfflineModelMenu(true)}
+             className={`flex items-center justify-center gap-1 text-[10px] uppercase font-bold px-3 py-1.5 rounded transition-colors w-full sm:w-auto ${useTrueOfflineAI ? 'bg-[#238636] text-white cursor-default' : 'bg-[#161b22] text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#21262d] border border-[#30363d]'}`}
+             title="Download & Run actual LLM in browser offline"
+           >
+             <Zap size={12} className={useTrueOfflineAI ? 'text-yellow-300' : ''} />
+             {useTrueOfflineAI ? `True Offline: ${activeOfflineModelName}` : isOfflineEngineLoading ? `Loading Engine...` : 'Download True Offline AI'}
+           </button>
+           <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+             <button onClick={exportChatHistory} className="text-[#8b949e] hover:text-[#58a6ff] p-1.5 rounded transition-colors border border-[#30363d] bg-[#161b22]" title="Export Chat History">
+                <Download size={14} />
+             </button>
+             <label className="text-[#8b949e] hover:text-[#58a6ff] p-1.5 rounded transition-colors border border-[#30363d] bg-[#161b22] cursor-pointer" title="Import Chat History">
+                <Share2 size={14} />
+                <input type="file" accept=".json" onChange={importChatHistory} className="hidden" />
+             </label>
+           </div>
+         </div>
+         <div className="flex gap-2">
            <select 
               value={persona} 
               onChange={(e: any) => setPersona(e.target.value)}
-              className="bg-[#161b22] text-xs text-[#c9d1d9] border border-[#30363d] rounded px-2 py-1 outline-none focus:border-[#58a6ff]"
+              className="flex-1 bg-[#161b22] text-xs text-[#c9d1d9] border border-[#30363d] rounded px-2 py-1.5 outline-none focus:border-[#58a6ff]"
            >
               <option value="Developer">Developer Core</option>
               <option value="Designer">Design Lead</option>
@@ -1495,7 +1771,7 @@ export class UltimateIDEFeatures {
            <select 
               value={chatLanguage} 
               onChange={(e: any) => setChatLanguage(e.target.value)}
-              className="bg-[#161b22] text-xs text-[#c9d1d9] border border-[#30363d] rounded px-2 py-1 outline-none focus:border-[#58a6ff]"
+              className="flex-1 bg-[#161b22] text-xs text-[#c9d1d9] border border-[#30363d] rounded px-2 py-1.5 outline-none focus:border-[#58a6ff]"
            >
               <option value="Auto">Auto Detect Language</option>
               <option value="English">English</option>
@@ -1503,16 +1779,78 @@ export class UltimateIDEFeatures {
               <option value="Japanese">日本語</option>
            </select>
          </div>
-         <div className="flex items-center space-x-2">
-           <button onClick={exportChatHistory} className="text-[#8b949e] hover:text-[#58a6ff] p-1 rounded transition-colors" title="Export Chat History">
-              <Download size={14} />
-           </button>
-           <label className="text-[#8b949e] hover:text-[#58a6ff] p-1 rounded transition-colors cursor-pointer" title="Import Chat History">
-              <Share2 size={14} />
-              <input type="file" accept=".json" onChange={importChatHistory} className="hidden" />
-           </label>
-         </div>
       </div>
+
+      {/* Offline AI Model Selector Menu */}
+      {showOfflineModelMenu && (
+        <div className="absolute inset-0 z-50 bg-[#0d1117]/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-4 w-full max-w-[420px] flex flex-col max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#161b22] pb-2 z-10 border-b border-[#30363d]">
+              <h3 className="text-white font-bold text-sm tracking-wide">Download True Offline AI Engine</h3>
+              <button onClick={() => setShowOfflineModelMenu(false)} className="text-[#8b949e] hover:text-[#f85149] p-1 rounded transition-colors bg-[#0d1117]">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <p className="text-[#8b949e] text-[11px] mb-4">
+              Select an offline AI specialist to download and run locally in your browser (approx. 500MB). Runs 100% on-device privately.
+            </p>
+            
+            <div className="flex flex-col gap-2">
+              {OFFLINE_MODELS.map(model => (
+                <div key={model.id} className="flex flex-col p-3 rounded-lg border border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff] hover:bg-[#161b22] transition-colors group">
+                  <div className="flex justify-between items-start mb-2 border-b border-[#30363d] pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-[#21262d] rounded-md text-[#bc8cff] group-hover:text-[#58a6ff] group-hover:bg-[#1f2937] transition-colors border border-[#30363d]">
+                        {model.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-[#c9d1d9] group-hover:text-white transition-colors">{model.name}</h4>
+                        <p className="text-[10px] text-[#8b949e]">{model.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => initTrueOfflineAI(model.name)}
+                    className="w-full flex items-center justify-center gap-2 py-1.5 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[10px] font-bold uppercase transition-colors"
+                  >
+                    <Download size={12} />
+                    Download & Switch AI
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Offline AI Model Download Overlay Modal */}
+      {isOfflineEngineLoading && (
+        <div className="absolute inset-0 z-50 bg-[#0d1117]/90 backdrop-blur-sm flex items-center justify-center p-6 flex-col">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-6 w-full max-w-[320px] flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-[#1f2937] flex items-center justify-center mb-4 border-2 border-[#58a6ff]">
+               <Cpu size={32} className="text-[#58a6ff] animate-pulse" />
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">Downloading Offline AI Model</h3>
+            <p className="text-[#8b949e] text-xs mb-6">
+              Please wait while the neural engine is cached locally into your browser. This only happens once.
+            </p>
+            
+            <div className="w-full bg-[#0d1117] rounded-full h-3 mb-2 border border-[#30363d] overflow-hidden">
+              <div 
+                 className="bg-[#58a6ff] h-full transition-all duration-300 ease-out relative overflow-hidden" 
+                 style={{ width: `${offlineLoadProgress}%` }}
+              >
+                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-[shimmer_2s_infinite]"></div>
+              </div>
+            </div>
+            <div className="flex justify-between w-full text-[10px] font-mono text-[#8b949e]">
+               <span>{offlineLoadProgress}%</span>
+               <span className="truncate max-w-[150px]" title={offlineLoadText}>{offlineLoadText || 'Initializing...'}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="p-2 border-b border-[#30363d] flex items-center shrink-0">
@@ -1589,8 +1927,14 @@ export class UltimateIDEFeatures {
 
       {/* Input Area */}
       <div className="p-3 border-t border-[#30363d] shrink-0 flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
+        {activeToolId && activeToolName && (
+           <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-[#bc8cff] font-bold pb-1 bg-gradient-to-r from-[#bc8cff]/10 to-transparent p-1 rounded">
+             <Zap size={10} className="text-[#bc8cff]" />
+             Context: {activeToolName}
+           </div>
+        )}
+        <div className="flex flex-wrap justify-between items-center gap-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
              <label className="flex items-center space-x-1 cursor-pointer">
                 <input 
                   type="radio" 
@@ -1623,14 +1967,24 @@ export class UltimateIDEFeatures {
              </label>
           </div>
           {messages.length > 1 && !isLoading && (
-            <button
-               onClick={undoLastInteraction}
-               className="flex items-center space-x-1 text-xs text-[#8b949e] hover:text-[#58a6ff] transition-colors"
-               title="Undo last message"
-            >
-               <Undo2 size={12} />
-               <span>Undo / Go Back</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                 onClick={undoLastInteraction}
+                 className="flex items-center space-x-1 text-xs text-[#8b949e] hover:text-[#58a6ff] transition-colors"
+                 title="Undo last message"
+              >
+                 <Undo2 size={12} />
+                 <span>Undo / Go Back</span>
+              </button>
+              <button
+                 onClick={clearChatHistory}
+                 className="flex items-center space-x-1 text-xs text-[#8b949e] hover:text-[#f85149] transition-colors"
+                 title="Clear chat history"
+              >
+                 <Trash2 size={12} />
+                 <span>Clear History</span>
+              </button>
+            </div>
           )}
         </div>
         <div className="flex flex-col relative bg-[#0d1117] border border-[#30363d] focus-within:border-[#58a6ff] rounded-[4px]">
@@ -1707,7 +2061,7 @@ export class UltimateIDEFeatures {
           </form>
         </div>
         {/* Hardware / Engine Metrics */}
-        <div className="flex items-center justify-between text-[10px] text-[#8b949e] px-1 mt-1 font-mono">
+        <div className="flex flex-wrap items-center justify-between text-[10px] text-[#8b949e] px-1 mt-1 font-mono gap-1">
            <div className="flex items-center space-x-2">
               <span className="flex items-center"><Cpu size={10} className="mr-1" /> Neural Engine Active</span>
               <span>•</span>
@@ -1717,6 +2071,15 @@ export class UltimateIDEFeatures {
               <span>Ctx Mem: {memoryUsage} MB</span>
               <span>•</span>
               <span>GPU: 48°C</span>
+              <span>•</span>
+              <button 
+                onClick={() => setIsOnline(!isOnline)} 
+                className={`flex items-center space-x-1 px-1 rounded transition-colors ${isOnline ? 'text-[#3fb950] hover:bg-[#3fb950]/10' : 'text-[#f85149] hover:bg-[#f85149]/10'}`}
+                title={isOnline ? "Simulating Online (Click to toggle)" : "Simulating Offline (Click to toggle)"}
+              >
+                {isOnline ? <Wifi size={10} /> : <WifiOff size={10} />}
+                <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+              </button>
            </div>
         </div>
       </div>

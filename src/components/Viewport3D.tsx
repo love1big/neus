@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save, ExternalLink } from 'lucide-react';
+import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save, ExternalLink, BarChart2 } from 'lucide-react';
 import PopOutPanel from './PopOutPanel';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { TransformControls, OrbitControls, MapControls, OrthographicCamera, PerspectiveCamera, Environment, ContactShadows, Stars, Sparkles, Line, Sphere } from '@react-three/drei';
@@ -8,6 +8,7 @@ import { EffectComposer, Bloom, BrightnessContrast, HueSaturation, Vignette, SSA
 import * as THREE from 'three';
 
 import BasicSkeletonModel from './BasicSkeletonModel';
+import PhysicsDebuggerPanel from './PhysicsDebuggerPanel';
 
 interface Viewport3DProps {
   activeTool: string;
@@ -39,7 +40,7 @@ interface PhysicsProps {
   type: 'dynamic' | 'fixed' | 'kinematicPosition';
 }
 
-function SceneObject({ mode, transform, material, setTransform, meshType = 'torus', skelAnimState = 'Idle' }: { mode: ToolMode, transform: TransformProps, material: MaterialProps, setTransform: (t: TransformProps) => void, meshType?: 'torus' | 'skeletal' | 'cube', skelAnimState?: any }) {
+function SceneObject({ mode, transform, material, setTransform, meshType = 'torus', skelAnimState = 'Idle', wireframe = false }: { mode: ToolMode, transform: TransformProps, material: MaterialProps, setTransform: (t: TransformProps) => void, meshType?: 'torus' | 'skeletal' | 'cube', skelAnimState?: any, wireframe?: boolean }) {
   const meshRef = useRef<THREE.Group>(null);
   const rigidBodyRef = useRef<any>(null);
   const [hovered, setHover] = useState(false);
@@ -85,7 +86,7 @@ function SceneObject({ mode, transform, material, setTransform, meshType = 'toru
             <torusKnotGeometry args={[1, 0.3, 128, 16]} />
             <meshStandardMaterial 
               color={hovered ? '#bc8cff' : material.color} 
-              wireframe={false} 
+              wireframe={wireframe} 
               roughness={material.roughness}
               metalness={material.metalness}
               emissive={hovered ? '#bc8cff' : material.emissive}
@@ -110,7 +111,7 @@ function SceneObject({ mode, transform, material, setTransform, meshType = 'toru
             <boxGeometry args={[1.5, 1.5, 1.5]} />
             <meshStandardMaterial 
               color={hovered ? '#bc8cff' : material.color} 
-              wireframe={false} 
+              wireframe={wireframe} 
               roughness={material.roughness}
               metalness={material.metalness}
               emissive={hovered ? '#bc8cff' : material.emissive}
@@ -245,6 +246,13 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
   const [meshType, setMeshType] = useState<'torus' | 'skeletal' | 'cube'>('cube');
   const [skelAnimState, setSkelAnimState] = useState<'Idle' | 'Walk' | 'Run' | 'Jump' | 'Attack' | 'HitReaction' | 'Death'>('Idle');
 
+  const [physicsConfig, setPhysicsConfig] = useState({
+    debugVisible: false,
+    wireframe: false,
+    gravityVectors: false,
+    gravityScale: 1.0
+  });
+
   const [collisionEvent, setCollisionEvent] = useState<string | null>(null);
 
   const [extraBodies, setExtraBodies] = useState<{ id: number, x: number, y: number, z: number, color: string }[]>([]);
@@ -281,6 +289,8 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
   const [showPhysicsDebug, setShowPhysicsDebug] = useState(false);
   const [simulatePhysics, setSimulatePhysics] = useState(true);
   const [showNavMeshPath, setShowNavMeshPath] = useState(true);
+  const [showOptimizationHeatmap, setShowOptimizationHeatmap] = useState(false);
+  const [renderPathPreset, setRenderPathPreset] = useState<'Forward' | 'Deferred' | 'Forward+'>('Forward');
   
   // AI Animation State
   const [isGeneratingAnim, setIsGeneratingAnim] = useState(false);
@@ -427,6 +437,10 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
                       <span>NavMesh Path</span>
                       {showNavMeshPath && <span className="text-[#3fb950] font-bold text-[10px]">ON</span>}
                    </button>
+                   <button onClick={() => setShowOptimizationHeatmap(!showOptimizationHeatmap)} className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#c9d1d9] flex justify-between items-center">
+                      <span>Draw Call Heatmap</span>
+                      {showOptimizationHeatmap && <span className="text-[#3fb950] font-bold text-[10px]">ON</span>}
+                   </button>
                    <button className="text-left px-3 py-1.5 text-[12px] hover:bg-[#21262d] transition-colors text-[#8b949e] flex justify-between items-center cursor-not-allowed">
                       <span>Show Contact Points</span>
                    </button>
@@ -456,6 +470,8 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
       {/* 3D Render Area + Inspector */}
       <div className="flex-1 relative overflow-hidden flex flex-row">
         <div className="flex-1 relative bg-[#0d1117] overflow-hidden">
+        
+         <PhysicsDebuggerPanel physicsConfig={physicsConfig} setPhysicsConfig={setPhysicsConfig} />
 
          {/* Instance Edit Override Banner */}
          {isInstanceEditMode && (
@@ -542,6 +558,79 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
             </p>
          </div>
 
+         {/* Optimization Heatmap Overlay */}
+         {showOptimizationHeatmap && (
+           <div className="absolute inset-0 z-30 pointer-events-none mix-blend-screen bg-gradient-to-tr from-rose-500/10 via-transparent to-transparent">
+              <div className="absolute bottom-6 left-6 p-4 bg-[#0d1117]/80 backdrop-blur-md border border-[#30363d] rounded-lg flex flex-col gap-2 min-w-[240px] pointer-events-auto">
+                <div className="text-[11px] font-bold text-white uppercase flex items-center gap-2 mb-2"><BarChart2 size={14} className="text-[#ff7b72]" /> Draw Call Heatmap</div>
+                
+                <div className="flex gap-1 mb-2 bg-[#161b22] p-1 rounded">
+                   <button onClick={() => setRenderPathPreset('Forward')} className={`flex-1 text-[9px] py-1 rounded font-bold uppercase transition-colors ${renderPathPreset === 'Forward' ? 'bg-[#58a6ff] text-black' : 'text-gray-400 hover:text-white'}`}>Forward</button>
+                   <button onClick={() => setRenderPathPreset('Deferred')} className={`flex-1 text-[9px] py-1 rounded font-bold uppercase transition-colors ${renderPathPreset === 'Deferred' ? 'bg-[#3fb950] text-black' : 'text-gray-400 hover:text-white'}`}>Deferred</button>
+                   <button onClick={() => setRenderPathPreset('Forward+')} className={`flex-1 text-[9px] py-1 rounded font-bold uppercase transition-colors ${renderPathPreset === 'Forward+' ? 'bg-[#ff944d] text-black' : 'text-gray-400 hover:text-white'}`}>Forward+</button>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] text-gray-400 gap-6">
+                  <span>Draw Calls:</span>
+                  <span className="text-[#ff7b72] font-mono">
+                     {renderPathPreset === 'Forward' ? '1,492' : renderPathPreset === 'Deferred' ? '412' : '840'} / 2,000
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-gray-400 gap-6">
+                  <span>Vertices:</span>
+                  <span className="text-[#ff944d] font-mono">2.8M / 3.0M</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-gray-400 gap-6">
+                  <span>Batches:</span>
+                  <span className="text-[#58a6ff] font-mono">
+                     {renderPathPreset === 'Forward' ? '124' : renderPathPreset === 'Deferred' ? '45' : '82'}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-[#161b22] rounded-full mt-2 overflow-hidden flex">
+                   <div className="bg-[#ff7b72] h-full transition-all duration-300" style={{ width: renderPathPreset === 'Deferred' ? '40%' : '74%' }} title="Opaque Pass"></div>
+                   <div className="bg-[#ff944d] h-full transition-all duration-300" style={{ width: renderPathPreset === 'Deferred' ? '50%' : '20%' }} title="Transparent Pass"></div>
+                   <div className="bg-[#58a6ff] h-full transition-all duration-300" style={{ width: renderPathPreset === 'Deferred' ? '10%' : '6%' }} title="Post Processing"></div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-[#30363d]">
+                   <div className="text-[10px] font-bold text-gray-300 mb-2">Draw Call Breakdown (Sorted by State Changes)</div>
+                   <div className="flex flex-col gap-1 max-h-[140px] overflow-y-auto custom-scrollbar">
+                      <div className="flex text-[9px] bg-[#161b22] border border-[#30363d] rounded items-center p-1 font-mono">
+                         <div className="w-16 text-gray-400 truncate">Mesh_Terrain</div>
+                         <div className="flex-1 text-center text-[#ff7b72]">Shader Pass</div>
+                         <div className="w-12 text-right text-white">241</div>
+                      </div>
+                      <div className="flex text-[9px] bg-[#161b22] border border-[#30363d] rounded items-center p-1 font-mono">
+                         <div className="w-16 text-gray-400 truncate">Trees_Inst</div>
+                         <div className="flex-1 text-center text-[#ff944d]">Material Bind</div>
+                         <div className="w-12 text-right text-white">185</div>
+                      </div>
+                      <div className="flex text-[9px] bg-[#161b22] border border-[#30363d] rounded items-center p-1 font-mono">
+                         <div className="w-16 text-gray-400 truncate">Water_Surfc</div>
+                         <div className="flex-1 text-center text-[#58a6ff]">Blend State</div>
+                         <div className="w-12 text-right text-white">92</div>
+                      </div>
+                      <div className="flex text-[9px] bg-[#161b22] border border-[#30363d] rounded items-center p-1 font-mono">
+                         <div className="w-16 text-gray-400 truncate">Bldgs_Opaq</div>
+                         <div className="flex-1 text-center text-[#3fb950]">Texture Bind</div>
+                         <div className="w-12 text-right text-white">43</div>
+                      </div>
+                      <div className="flex text-[9px] bg-[#161b22] border border-[#30363d] rounded items-center p-1 font-mono">
+                         <div className="w-16 text-gray-400 truncate">Decals_Proj</div>
+                         <div className="flex-1 text-center text-[#d2a8ff]">Depth/Stencil</div>
+                         <div className="w-12 text-right text-white">22</div>
+                      </div>
+                   </div>
+                </div>
+              </div>
+              
+              {/* Fake visual heatmap blobs indicating dense geometry */}
+              <div className="absolute top-[30%] left-[40%] w-64 h-64 bg-red-500/20 rounded-full blur-[80px] transition-all duration-500" style={{ opacity: renderPathPreset === 'Deferred' ? 0.3 : 1 }}></div>
+              <div className="absolute top-[50%] left-[60%] w-48 h-48 bg-orange-500/20 rounded-full blur-[60px] transition-all duration-500" style={{ opacity: renderPathPreset === 'Deferred' ? 0.2 : 1 }}></div>
+              <div className="absolute bottom-[20%] right-[30%] w-56 h-56 bg-rose-500/20 rounded-full blur-[70px] transition-all duration-500" style={{ opacity: renderPathPreset === 'Deferred' ? 0.4 : 1 }}></div>
+           </div>
+         )}
+
          <Canvas>
             {cameraMode === 'Perspective' ? (
               <>
@@ -578,7 +667,7 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
             <directionalLight position={[10, 10, 10]} intensity={1} castShadow />
             
             <Suspense fallback={null}>
-               <Physics paused={!simulatePhysics} debug={showPhysicsDebug} gravity={[0, -9.81, 0]}>
+               <Physics paused={!simulatePhysics} debug={physicsConfig.debugVisible || showPhysicsDebug} gravity={[0, -9.81 * physicsConfig.gravityScale, 0]}>
                   <RigidBody 
                      colliders={agentPhysics.colliderShape === 'hull' ? 'hull' : false} 
                      mass={agentPhysics.mass} 
@@ -616,6 +705,7 @@ export default function Viewport3D({ activeTool, activeFile, globalActiveTransfo
                         setTransform={setObjTransform}
                         meshType={meshType}
                         skelAnimState={skelAnimState}
+                        wireframe={physicsConfig.wireframe}
                      />
                   </RigidBody>
                   

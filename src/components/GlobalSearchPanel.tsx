@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, File as FileIcon, X, CornerDownLeft } from 'lucide-react';
+import { Search, File as FileIcon, X, CornerDownLeft, History } from 'lucide-react';
 import { IDEFile } from '../lib/project';
 import { Message as ChatMessage } from './AIChat';
 
@@ -17,7 +17,25 @@ interface GlobalSearchPanelProps {
 export default function GlobalSearchPanel({ files, messages = [], graphNodes = [], isOpen, onClose, onSelectFile, onSelectNode, onSelectMessage }: GlobalSearchPanelProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [recentQueries, setRecentQueries] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('ide_recent_queries');
+    if (stored) {
+      try {
+        setRecentQueries(JSON.parse(stored));
+      } catch (e) {}
+    }
+  }, []);
+
+  const saveQuery = (q: string) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    const newQueries = [trimmed, ...recentQueries.filter(x => x !== trimmed)].slice(0, 5);
+    setRecentQueries(newQueries);
+    localStorage.setItem('ide_recent_queries', JSON.stringify(newQueries));
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,6 +103,9 @@ export default function GlobalSearchPanel({ files, messages = [], graphNodes = [
       e.preventDefault();
       setSelectedIndex(prev => (prev - 1 < 0 ? results.length - 1 : prev - 1));
     } else if (e.key === 'Enter') {
+      if (query.length > 0) {
+        saveQuery(query);
+      }
       if (results.length > 0 && results[selectedIndex]) {
         const item = results[selectedIndex];
         if (item.type === 'file') {
@@ -116,6 +137,31 @@ export default function GlobalSearchPanel({ files, messages = [], graphNodes = [
           <button onClick={onClose} className="p-1 rounded hover:bg-[#21262d] text-[#8b949e]"><X size={16} /></button>
         </div>
         
+        {query.length === 0 && recentQueries.length > 0 && (
+          <div className="p-3 bg-[#0d1117] border-b border-[#30363d]">
+             <div className="flex items-center justify-between mb-2 px-1">
+               <h4 className="text-[10px] uppercase font-bold text-[#8b949e] flex items-center gap-1"><History size={12} /> Recent Queries</h4>
+               <button 
+                 onClick={() => { setRecentQueries([]); localStorage.removeItem('ide_recent_queries'); }} 
+                 className="text-[9px] text-[#8b949e] hover:text-[#f85149] uppercase font-bold"
+               >
+                  Clear
+               </button>
+             </div>
+             <div className="flex flex-wrap gap-2">
+                {recentQueries.map((q, i) => (
+                  <button 
+                     key={i}
+                     onClick={() => { setQuery(q); setTimeout(() => inputRef.current?.focus(), 10); }}
+                     className="text-[11px] bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] px-2.5 py-1 rounded-full border border-[#30363d] transition-colors shadow-sm"
+                  >
+                     {q}
+                  </button>
+                ))}
+             </div>
+          </div>
+        )}
+
         {query.length > 0 && (
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-2">
             {results.length === 0 ? (
@@ -127,6 +173,9 @@ export default function GlobalSearchPanel({ files, messages = [], graphNodes = [
                     key={res.type === 'file' ? `${res.fileId}-${res.line}-${i}` : (res.type === 'node' ? `node-${res.id}-${i}` : `msg-${res.index}-${i}`)}
                     className={`flex items-start gap-3 p-2 rounded cursor-pointer ${i === selectedIndex ? 'bg-[#21262d] border-l-2 border-[#58a6ff]' : 'hover:bg-[#21262d] border-l-2 border-transparent'}`}
                     onClick={() => {
+                       if (query.length > 0) {
+                         saveQuery(query);
+                       }
                        if (res.type === 'file') {
                          onSelectFile(res.fileId);
                        } else if (res.type === 'node' && onSelectNode) {

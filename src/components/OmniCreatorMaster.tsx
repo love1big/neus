@@ -1,6 +1,73 @@
 import React, { useState } from 'react';
 import { Network, Cpu, Settings, Infinity, Layers, Brain, Gamepad2, Database, Wifi, Shield, Box, Zap, Clapperboard, Globe, Cloud, LayoutDashboard, Activity, Terminal, Code2, Orbit, Aperture, Fingerprint, Radar, Target, Focus, Hexagon, Component, Workflow, Atom, Combine, Waves, Mic2, Music, Smile, Map } from 'lucide-react';
 
+function SystemResourcesWidget() {
+  const [cpuUsage, setCpuUsage] = useState(82);
+  const [ramUsage, setRamUsage] = useState(24.5);
+  const [gpuUsage, setGpuUsage] = useState(11.2);
+  const [threadLoad, setThreadLoad] = useState<number[]>(Array.from({length: 64}, () => Math.random()));
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCpuUsage(prev => Math.max(10, Math.min(100, prev + (Math.random() * 10 - 5))));
+      setRamUsage(prev => Math.max(10, Math.min(64, prev + (Math.random() * 2 - 1))));
+      setGpuUsage(prev => Math.max(5, Math.min(24, prev + (Math.random() * 1 - 0.5))));
+      setThreadLoad(Array.from({length: 64}, () => Math.random()));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <>
+      <div className="bg-[#0a0a0c] border border-white/5 rounded p-3">
+         <div className="flex justify-between items-center mb-2">
+            <span className="text-[9px] uppercase text-[#666] font-bold">Memory Pool Allocation (RAM)</span>
+            <span className="text-[9px] text-[#58a6ff] font-mono">{ramUsage.toFixed(1)} GB / 64 GB</span>
+         </div>
+         <div className="w-full bg-black h-1.5 rounded-full overflow-hidden flex">
+            <div className="bg-[#58a6ff] h-full shadow-[0_0_10px_#58a6ff] transition-all duration-1000 outline-none" style={{width: `${(ramUsage/64)*100}%`}}></div>
+            <div className="bg-[#e3b341] h-full transition-all duration-1000" style={{width: `${(ramUsage/64)*15}%`}}></div>
+            <div className="bg-[#f85149] h-full transition-all duration-1000" style={{width: `${(ramUsage/64)*5}%`}}></div>
+         </div>
+         <div className="flex justify-between mt-1 text-[8px] text-[#555] font-mono">
+           <span>GC: 1.2ms</span>
+           <span>Page Faults: 0</span>
+         </div>
+      </div>
+      
+      <div className="bg-[#0a0a0c] border border-white/5 rounded p-3">
+         <div className="flex justify-between items-center mb-2">
+            <span className="text-[9px] uppercase text-[#666] font-bold">GPU VRAM Streaming</span>
+            <span className="text-[9px] text-[#bc8cff] font-mono">{gpuUsage.toFixed(1)} GB / 24 GB</span>
+         </div>
+         <div className="w-full bg-black h-1.5 rounded-full overflow-hidden flex">
+            <div className="bg-[#bc8cff] h-full shadow-[0_0_10px_#bc8cff] transition-all duration-1000" style={{width: `${(gpuUsage/24)*100}%`}}></div>
+            <div className="bg-purple-900 h-full transition-all duration-1000" style={{width: `${(gpuUsage/24)*10}%`}}></div>
+         </div>
+         <div className="flex justify-between mt-1 text-[8px] text-[#555] font-mono">
+           <span>Tex Streaming: Active</span>
+           <span>Buffer: 128MB</span>
+         </div>
+      </div>
+
+      <div className="bg-[#0a0a0c] border border-white/5 rounded p-3">
+         <div className="flex justify-between items-center mb-2">
+            <span className="text-[9px] uppercase text-[#666] font-bold">Thread Utilization (CPU)</span>
+            <span className="text-[9px] text-[#3fb950] font-mono">{cpuUsage.toFixed(0)}%</span>
+         </div>
+         <div className="grid grid-cols-8 gap-[1px]">
+            {threadLoad.map((load, i) => {
+               let color = 'bg-[#1a3d24]';
+               if (load > 0.8) color = 'bg-[#f85149]';
+               else if (load > 0.4) color = 'bg-[#3fb950]';
+               return <div key={i} className={`h-1.5 rounded-[1px] transition-colors duration-500 ${color}`}></div>;
+            })}
+         </div>
+      </div>
+    </>
+  );
+}
+
 export default function OmniCreatorMaster({ onSelectTool }: { onSelectTool?: (tool: string) => void }) {
   const [activeNode, setActiveNode] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -34,7 +101,7 @@ export default function OmniCreatorMaster({ onSelectTool }: { onSelectTool?: (to
     { 
       id: 'world', title: 'World Architecture & Level Design', icon: <Map />, color: 'text-green-500', 
       desc: 'Manual BSP brush blockouts, grid mapping, hydraulic erosion, and infinite voxel terrain streaming.', 
-      tools: ['BSPBrushArchitect', 'NavMeshRouter', 'MegaWorldArchitect', 'UltimateMapBuilder', 'AdvancedTerrain', 'PCG', 'HydraulicErosion', 'FoliageScatter', 'BiomePainter', 'CityGenerator', 'RoadSplineSystem', 'RiverMeshGen'] 
+      tools: ['MapEdit', 'BSPBrushArchitect', 'NavMeshRouter', 'MegaWorldArchitect', 'UltimateMapBuilder', 'AdvancedTerrain', 'PCG', 'HydraulicErosion', 'FoliageScatter', 'BiomePainter', 'CityGenerator', 'RoadSplineSystem', 'RiverMeshGen'] 
     },
     { 
       id: 'vfx', title: 'VFX & Fluid Dynamics Simulation', icon: <Atom />, color: 'text-[#fb8500]', 
@@ -44,17 +111,17 @@ export default function OmniCreatorMaster({ onSelectTool }: { onSelectTool?: (to
     { 
       id: 'audio', title: 'Acoustics & DSP Audio Engine', icon: <Waves />, color: 'text-blue-300', 
       desc: 'Professional multi-track VST hosting, convolution reverb, manual foley mixing, and HRTF 3D spatialization.', 
-      tools: ['VstMixerRack', 'AudioDAW', 'MetaSound', 'AudioDSP', 'WwiseIntegrator', 'AmbisonicsMix', 'DopplerShiftNode', 'AcousticRaytracer', 'SynthesizerFM'] 
+      tools: ['AudioEditor', 'VstMixerRack', 'AudioDAW', 'MetaSound', 'AudioDSP', 'WwiseIntegrator', 'AmbisonicsMix', 'DopplerShiftNode', 'AcousticRaytracer', 'SynthesizerFM'] 
     },
     { 
       id: 'voice_music', title: 'AI & Manual Voice/Music Studio', icon: <Mic2 />, color: 'text-[#bc8cff]', 
       desc: 'Manual MIDI piano roll orchestration, lip-sync extractors, and neural voice dubbing.', 
-      tools: ['MidiPianoRoll', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'VocalSynthCore', 'FoleyGeneratorAI', 'MidiOrchestrator', 'SheetMusicExporter'] 
+      tools: ['VoiceMusicStudio', 'MidiPianoRoll', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'VocalSynthCore', 'FoleyGeneratorAI', 'MidiOrchestrator', 'SheetMusicExporter'] 
     },
     { 
       id: 'ai', title: 'Sentient AI & Neural Behavior', icon: <Brain />, color: 'text-purple-500', 
       desc: 'Reinforcement learning environments, GOAP (Goal-Oriented Action Planning), behavior trees, and LLM-driven NPC diplomacy.', 
-      tools: ['SentientAI', 'MLAgents', 'BehaviorTree', 'AIBrowser', 'GOAP_Planner', 'NavMeshCrowd', 'LLM_Conversations', 'SteeringBehaviors', 'SensoryPerception'] 
+      tools: ['AIOfflineDownloader', 'AICommandCenter', 'LocalAIStudio', 'Workflow', 'BatchAIImporter', 'OmniAIAssistantStudio', 'SentientAI', 'MLAgents', 'BehaviorTree', 'AIBrowser', 'GOAP_Planner', 'NavMeshCrowd', 'LLM_Conversations', 'SteeringBehaviors', 'SensoryPerception'] 
     },
     { 
       id: 'uiux', title: 'UI/UX Prototypes & QA', icon: <LayoutDashboard />, color: 'text-teal-400', 
@@ -175,52 +242,7 @@ export default function OmniCreatorMaster({ onSelectTool }: { onSelectTool?: (to
                     <Activity size={12}/> Live Micro-Telemetry
                  </div>
 
-                 <div className="bg-[#0a0a0c] border border-white/5 rounded p-3">
-                    <div className="flex justify-between items-center mb-2">
-                       <span className="text-[9px] uppercase text-[#666] font-bold">Memory Pool Allocation (L3 Cache)</span>
-                       <span className="text-[9px] text-[#58a6ff] font-mono">24.5 GB / 64 GB</span>
-                    </div>
-                    <div className="w-full bg-black h-1.5 rounded-full overflow-hidden flex">
-                       <div className="bg-[#58a6ff] h-full w-[28%] shadow-[0_0_10px_#58a6ff]"></div>
-                       <div className="bg-[#e3b341] h-full w-[6%]"></div>
-                       <div className="bg-[#f85149] h-full w-[4%]"></div>
-                    </div>
-                    <div className="flex justify-between mt-1 text-[8px] text-[#555] font-mono">
-                      <span>GC: 1.2ms</span>
-                      <span>Page Faults: 0</span>
-                    </div>
-                 </div>
-                 
-                 <div className="bg-[#0a0a0c] border border-white/5 rounded p-3">
-                    <div className="flex justify-between items-center mb-2">
-                       <span className="text-[9px] uppercase text-[#666] font-bold">GPU VRAM Streaming (PCIe Gen5)</span>
-                       <span className="text-[9px] text-[#bc8cff] font-mono">11.2 GB / 24 GB</span>
-                    </div>
-                    <div className="w-full bg-black h-1.5 rounded-full overflow-hidden flex">
-                       <div className="bg-[#bc8cff] h-full w-[40%] shadow-[0_0_10px_#bc8cff]"></div>
-                       <div className="bg-purple-900 h-full w-[6%]"></div>
-                    </div>
-                    <div className="flex justify-between mt-1 text-[8px] text-[#555] font-mono">
-                      <span>Tex Streaming: Active</span>
-                      <span>Buffer: 128MB</span>
-                    </div>
-                 </div>
-
-                 <div className="bg-[#0a0a0c] border border-white/5 rounded p-3">
-                    <div className="flex justify-between items-center mb-2">
-                       <span className="text-[9px] uppercase text-[#666] font-bold">Thread Utilization (128 Cores)</span>
-                       <span className="text-[9px] text-[#3fb950] font-mono">82%</span>
-                    </div>
-                    <div className="grid grid-cols-8 gap-[1px]">
-                       {Array.from({length: 64}).map((_, i) => {
-                          const load = Math.random();
-                          let color = 'bg-[#1a3d24]';
-                          if (load > 0.8) color = 'bg-[#f85149]';
-                          else if (load > 0.4) color = 'bg-[#3fb950]';
-                          return <div key={i} className={`h-1.5 rounded-[1px] ${color}`}></div>;
-                       })}
-                    </div>
-                 </div>
+                 <SystemResourcesWidget />
 
                  {/* System Log Stream */}
                  <div className="bg-[#050505] border border-white/5 rounded p-2 h-32 overflow-hidden flex flex-col pt-1 relative">

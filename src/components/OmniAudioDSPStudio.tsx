@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Mic2, Music, Sliders, Volume2, Play, Pause, Square, SkipBack, SkipForward,
-  Settings2, Activity, Save, Disc, Radio, Waveform, Keyboard, 
-  AlignLeft, Download, Upload, Scissors, Copy, Layers, AudioWaveform
+  Settings2, Activity, Save, Disc, Radio, Keyboard, 
+  AlignLeft, Download, Upload, Scissors, Copy, Layers, AudioWaveform, Globe, Sparkles
 } from 'lucide-react';
 
 export default function OmniAudioDSPStudio() {

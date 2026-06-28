@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Layers, MousePointer2, Move3d, Maximize, Scissors, CircleOff, Pencil, Eraser, Brush, Palette, MonitorPlay, Save, Download, Sliders, Contrast, Droplet } from 'lucide-react';
+import { Box, Layers, MousePointer2, Move3D, Maximize, Scissors, CircleOff, Pencil, Eraser, Brush, Palette, MonitorPlay, Save, Download, Sliders, Contrast, Droplet, RefreshCw } from 'lucide-react';
 
 export default function ZBrushStyleSculptingStudio() {
   const [activeBrush, setActiveBrush] = useState('clayBuildUp');
@@ -54,7 +54,7 @@ export default function ZBrushStyleSculptingStudio() {
                <Scissors size={20}/>
             </button>
             <button onClick={() => setActiveBrush('move')} className={`w-10 h-10 rounded flex items-center justify-center transition-all ${activeBrush === 'move' ? 'bg-[#c94b4b] text-white shadow-inner' : 'bg-[#333] hover:bg-[#444] text-[#aaa]'}`} title="Move">
-               <Move3d size={20}/>
+               <Move3D size={20}/>
             </button>
             <button onClick={() => setActiveBrush('smooth')} className={`w-10 h-10 rounded flex items-center justify-center transition-all ${activeBrush === 'smooth' ? 'bg-[#c94b4b] text-white shadow-inner' : 'bg-[#333] hover:bg-[#444] text-[#aaa]'}`} title="Smooth">
                <Droplet size={20}/>
@@ -85,7 +85,7 @@ export default function ZBrushStyleSculptingStudio() {
             {/* Viewport Controls Overlays */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                <button className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded flex items-center justify-center text-white font-bold text-[10px] flex-col"><Maximize size={16}/> Frame</button>
-               <button className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded flex flex-col items-center justify-center text-white font-bold text-[10px]"><Move3d size={16}/> Move</button>
+               <button className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded flex flex-col items-center justify-center text-white font-bold text-[10px]"><Move3D size={16}/> Move</button>
                <button className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded flex flex-col items-center justify-center text-white font-bold text-[10px]"><Box size={16}/> Scale</button>
                <button className="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded flex flex-col items-center justify-center text-white font-bold text-[10px]"><RefreshCw size={16}/> Rot</button>
             </div>

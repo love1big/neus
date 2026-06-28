@@ -20,27 +20,64 @@ interface AIModel {
 }
 
 const initialModels: AIModel[] = [
-  { id: 'core', name: 'NexusCode Core (Copilot)', description: 'Core LLM for 50+ languages, logic solving, and bug fixing.', size: '4.2 GB', status: 'downloaded' },
-  { id: 'commander', name: 'Nexus Prime (Swarm Overlord)', description: 'Master AI Orchestrator. Evaluates outputs, runs QA checks (95%+ match), assigns tasks to other nodes.', size: '18.1 GB', status: 'not_downloaded' },
-  { id: 'uiux', name: 'DesignNet-Pro (UI/UX)', description: 'Specialized in frontend, layout rhythms, and accessibility for Apps & Games.', size: '2.8 GB', status: 'downloaded' },
-  { id: 'story', name: 'LoreMaster Infinite (Story AI)', description: 'Generates 100,000+ hours of lore, narratives, and endless scalable quests.', size: '32.4 GB', status: 'not_downloaded' },
-  { id: 'game', name: 'GameDir Engine (Game Design)', description: 'Orchestrates game logic, systems, rules, state machines, and level flow.', size: '6.1 GB', status: 'not_downloaded' },
-  { id: 'world', name: 'TerraGen (Massive Maps & Worlds)', description: 'Algorithmically generates giant 3D & 2D maps, landscapes, and dungeon layouts.', size: '12.4 GB', status: 'not_downloaded' },
-  { id: 'terrain', name: 'TerrainDiffusion XL', description: 'Advanced terrain and landscape generation, deep biome integration.', size: '6.4 GB', status: 'not_downloaded' },
-  { id: 'craftsman3d', name: 'CraftsMan 3D', description: 'High-fidelity 3D modeling and sculpting AI for precise geometry.', size: '5.2 GB', status: 'not_downloaded' },
-  { id: 'mesh', name: 'MeshGenius (3D & 2D Models)', description: 'Generates OBJ/GLTF and 2D sprite sheets. Auto-rigs and maps UVs.', size: '8.7 GB', status: 'not_downloaded' },
-  { id: 'rvc', name: 'RVC v2 Voice Clone', description: 'Real-time voice cloning and conversion for characters.', size: '2.1 GB', status: 'not_downloaded' },
-  { id: 'voicecraft', name: 'VoiceCraft Pro', description: 'Professional voice generation and deep emotional speech synthesis.', size: '4.8 GB', status: 'not_downloaded' },
-  { id: 'stableaudio', name: 'Stable Audio 2.0', description: 'Generates high-quality audio tracks, music, and dynamic sound effects.', size: '7.3 GB', status: 'not_downloaded' },
-  { id: 'audio', name: 'SoundNet-7.0 (Music & Sound)', description: 'Procedural audio generation, game music composition, and DSP node networks.', size: '3.9 GB', status: 'not_downloaded' },
-  { id: 'commandr', name: 'Command R+ 104B', description: 'Massive enterprise-tier LLM for complex logic, scripting, and extreme tasks.', size: '45.1 GB', status: 'not_downloaded' },
-  { id: 'poseformer', name: 'PoseFormer Pro', description: 'AI-driven rapid animation rigging and complex pose generation.', size: '3.6 GB', status: 'not_downloaded' },
-  { id: 'agenttester', name: 'AgentTester AI', description: 'Automated QA testing via multi-persona AI agents.', size: '2.4 GB', status: 'not_downloaded' },
-  { id: 'npcbrain', name: 'NPC-Brain LLM', description: 'Specialized LLM for deep immersive NPC dialogue and persistent personalities.', size: '8.2 GB', status: 'not_downloaded' },
-  { id: 'combatai', name: 'CombatAI Trainer', description: 'Trains combat behaviors and strategic adaptation for NPC agents.', size: '5.1 GB', status: 'not_downloaded' },
-  { id: 'vuln', name: 'VulnScan-Zero (Security & Bug Bounty)', description: 'Aggressive vulnerability scanner and auto-patcher for exploits and 0-days.', size: '5.5 GB', status: 'not_downloaded' },
-  { id: 'vision', name: 'TextureDiff (Images & Base Textures)', description: 'Stable Diffusion variant optimized for seamless PBR materials and 2D sprites.', size: '15.6 GB', status: 'not_downloaded' },
-  { id: 'swarm', name: 'Multi-Agent Swarm Logic', description: 'Allows offline AIs to communicate seamlessly to co-develop projects independently.', size: '1.2 GB', status: 'not_downloaded' },
+  // CODER & ARCHITECTURE
+  { id: 'core', name: '1. NexusCode Core (Copilot)', description: 'Core LLM for 50+ languages, logic solving, and bug fixing.', size: '4.2 GB', status: 'downloaded' },
+  { id: 'commander', name: '2. Nexus Prime (Swarm Overlord)', description: 'Master AI Orchestrator. Evaluates outputs, runs QA checks (95%+ match), assigns tasks to other nodes.', size: '18.1 GB', status: 'not_downloaded' },
+  { id: 'ai_coder_pro', name: '3. Enterprise Coder (StarCoder2)', description: 'Supports multi-million line projects, API linking, and Microservices design.', size: '8.2 GB', status: 'not_downloaded' },
+  { id: 'ai_coder_lite', name: '4. Apex Lite (DeepSeek-Coder)', description: 'Low VRAM model for high-speed autocomplete and line predictions.', size: '1.2 GB', status: 'not_downloaded' },
+  { id: 'ai_devops', name: '5. DevOps & Cloud Architect', description: 'Handles Docker, Kubernetes, CI/CD, and Server Auto-scaling manifests.', size: '4.2 GB', status: 'not_downloaded' },
+  { id: 'ai_semgrep', name: '6. Security & Reverse Eng (CodeQL)', description: 'Runs Static Analysis and Vulnerability scanning on source code.', size: '2.1 GB', status: 'not_downloaded' },
+  { id: 'ai_ghidra', name: '7. Ghidra Decompiler AI', description: 'Reverse-engineering suite AI for deep decompilation and binary reading.', size: '1.4 GB', status: 'not_downloaded' },
+  { id: 'commandr', name: '8. Command R+ 104B', description: 'Massive enterprise-tier LLM for complex logic, scripting, and extreme tasks.', size: '45.1 GB', status: 'not_downloaded' },
+  
+  // UI/UX & DESIGN
+  { id: 'uiux', name: '9. DesignNet-Pro (UI/UX Architect)', description: 'Specialized in frontend, layout rhythms, Figma auto-gen, and accessibility.', size: '2.8 GB', status: 'downloaded' },
+  { id: 'ai_uiux_heat', name: '10. UX Cognitive Load Sim', description: 'Simulates human attention and heatmaps to judge UI elements.', size: '3.1 GB', status: 'not_downloaded' },
+
+  // WORLD, LORE & NARRATIVE
+  { id: 'story', name: '11. LoreMaster Infinite (Story AI)', description: 'Generates 100,000+ hours of lore, narratives, and endless scalable quests.', size: '32.4 GB', status: 'not_downloaded' },
+  { id: 'npcbrain', name: '12. NPC-Brain LLM (Personality)', description: 'Specialized LLM for deep immersive NPC dialogue and persistent personalities.', size: '8.2 GB', status: 'not_downloaded' },
+  { id: 'world', name: '13. TerraGen (Massive Maps)', description: 'Algorithmically generates giant 3D & 2D maps, landscapes, and dungeon layouts.', size: '12.4 GB', status: 'not_downloaded' },
+  { id: 'ai_map_builder_pro', name: '14. Dungeon & Specific Maps', description: 'Focuses on interior environments, puzzle placements, and mazes.', size: '5.6 GB', status: 'not_downloaded' },
+  { id: 'terrain', name: '15. TerrainDiffusion XL', description: 'Advanced terrain and landscape generation, deep biome integration.', size: '6.4 GB', status: 'not_downloaded' },
+  
+  // GAME DESIGN & LOGIC
+  { id: 'game', name: '16. GameDir Engine (Game Design)', description: 'Orchestrates game logic, systems, rules, state machines, and level flow.', size: '6.1 GB', status: 'not_downloaded' },
+  { id: 'ai_economy', name: '17. Economy & Progression Balancer', description: 'Calculates inflation, loot tables, XP curves, and Gacha economies.', size: '1.8 GB', status: 'not_downloaded' },
+  { id: 'ai_physics_tuner', name: '18. Physics & Fluid Dynamics', description: 'Simulates complex collisions, fluid meshes, and soft-body logic.', size: '2.9 GB', status: 'not_downloaded' },
+  { id: 'combatai', name: '19. CombatAI Trainer', description: 'Trains combat behaviors and strategic adaptation for NPC agents.', size: '5.1 GB', status: 'not_downloaded' },
+  
+  // 3D, ART, ANIMATION
+  { id: 'mesh', name: '20. MeshGenius (3D & 2D Models)', description: 'Generates OBJ/GLTF and 2D sprite sheets. Auto-rigs and maps UVs.', size: '8.7 GB', status: 'not_downloaded' },
+  { id: 'craftsman3d', name: '21. CraftsMan 3D (Hard-Surface)', description: 'High-fidelity 3D modeling and sculpting AI for precise geometry.', size: '5.2 GB', status: 'not_downloaded' },
+  { id: 'ai_organic_3d', name: '22. Organic 3D Character Gen', description: 'Focuses on muscles, mythical beasts, and deep anatomy modeling.', size: '3.1 GB', status: 'not_downloaded' },
+  { id: 'ai_animator', name: '23. Auto-Rigger & Blend Space AI', description: 'Builds skeletons, paints vertex weights, and generates animations.', size: '5.1 GB', status: 'not_downloaded' },
+  { id: 'poseformer', name: '24. PoseFormer Pro', description: 'AI-driven rapid animation rigging and complex pose generation.', size: '3.6 GB', status: 'not_downloaded' },
+  { id: 'ai_comfyui_flux', name: '25. ComfyUI + FLUX (Image/Texture)', description: 'Ultimate AI asset pipeline. Seamless 8K textures, sprites, PBR maps.', size: '11.5 GB', status: 'not_downloaded' },
+  { id: 'vision', name: '26. TextureDiff (Legacy Textures)', description: 'Optimized for seamless PBR materials and 2D pixel art.', size: '8.6 GB', status: 'not_downloaded' },
+  
+  // VFX, VIDEO, CINEMATICS
+  { id: 'ai_video_vfx', name: '27. PostFX & Video Generators', description: 'Handles Text-to-Video, Particle sims, and Volumetric Light algorithms.', size: '6.5 GB', status: 'not_downloaded' },
+  { id: 'ai_cinematic_director', name: '28. Cinematic Sequencer AI', description: 'Manages camera pans, timelines, depths of field, and cutscenes.', size: '4.6 GB', status: 'not_downloaded' },
+  { id: 'ai_shader_dev', name: '29. Shader & Ray-Tracing Architect', description: 'Converts ideas into HLSL/GLSL shaders, custom ray-marching routines.', size: '3.7 GB', status: 'not_downloaded' },
+
+  // AUDIO & VOICE
+  { id: 'rvc', name: '30. RVC v2 Voice Clone', description: 'Real-time voice cloning and conversion for characters.', size: '2.1 GB', status: 'not_downloaded' },
+  { id: 'voicecraft', name: '31. VoiceCraft Pro (Emotive TTS)', description: 'Professional voice generation, screaming, whispering, 100+ languages.', size: '4.8 GB', status: 'not_downloaded' },
+  { id: 'stableaudio', name: '32. Stable Audio 2.0', description: 'Generates high-quality audio tracks, music, and dynamic sound effects.', size: '7.3 GB', status: 'not_downloaded' },
+  { id: 'audio', name: '33. SoundNet-7.0 (Procedural Music)', description: 'Procedural audio generation, game music composition, and DSP node networks.', size: '3.9 GB', status: 'not_downloaded' },
+  { id: 'ai_sfx_foley', name: '34. Dynamic SFX Foley Engine', description: 'Action-bound SFX: footstep materials, physics collision sounds.', size: '2.3 GB', status: 'not_downloaded' },
+
+  // QA, TESTING & ANALYTICS
+  { id: 'agenttester', name: '35. Automated QA Simulator AI', description: 'QA testing via multi-persona AI agents crawling through your app mechanics.', size: '2.4 GB', status: 'not_downloaded' },
+  { id: 'ai_vision_playtester', name: '36. Vision Playtester', description: 'Actually observes the screen visually, detecting z-fighting, UI overlaps.', size: '4.1 GB', status: 'not_downloaded' },
+  { id: 'vuln', name: '37. VulnScan-Zero (Deep Sec)', description: 'Aggressive vulnerability scanner and auto-patcher for exploits and 0-days.', size: '5.5 GB', status: 'not_downloaded' },
+  { id: 'ai_game_analytics', name: '38. Player Telemetry Predictor', description: 'Predicts choke points, player drop-off, and heatmaps without real players.', size: '2.5 GB', status: 'not_downloaded' },
+  { id: 'ai_marketing', name: '39. ASO/SEO Marketing Gen', description: 'Generates ad-campaigns, metadata, description bodies, and store pages.', size: '2.1 GB', status: 'not_downloaded' },
+  
+  // NETWORKING & INFRA
+  { id: 'ai_netcode', name: '40. Rollback Netcode Synchronizer', description: 'Builds secure multiplayer environments, anti-cheat barriers, matched packets.', size: '3.5 GB', status: 'not_downloaded' },
+  { id: 'swarm', name: '41. Multi-Agent Swarm Pipeline Engine', description: 'Allows offline AIs to communicate seamlessly to co-develop projects independently.', size: '1.2 GB', status: 'not_downloaded' },
 ];
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
@@ -852,7 +889,76 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             )}
 
-            {activeTab !== 'models' && activeTab !== 'general' && activeTab !== 'swarm' && activeTab !== 'acceleration' && (
+            {activeTab === 'keys' && (
+              <div className="flex flex-col gap-8 max-w-4xl pb-10">
+                <div>
+                  <h3 className="text-[#c9d1d9] text-[18px] font-semibold mb-1 flex items-center gap-2"><ShieldCheck size={20} className="text-[#e3b341]"/> Enterprise API Credentials & Cloud Bindings</h3>
+                  <p className="text-[#8b949e] text-[13px] mb-4">Secure isolated vault for external API credentials. Keys are encrypted at rest using AES-GCM-256 and never sent to our servers. Local swarm nodes receive limited-time bearer tokens.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {/* Google / GCP */}
+                     <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5 hover:border-[#58a6ff] transition-colors">
+                        <div className="flex justify-between items-center mb-3">
+                           <div className="font-bold text-[#c9d1d9] text-[14px]">Google Cloud / Gemini API</div>
+                           <span className="text-[9px] bg-[#3fb950]/20 text-[#3fb950] px-2 py-0.5 rounded border border-[#3fb950]/30 font-bold tracking-wider">CONNECTED</span>
+                        </div>
+                        <input type="password" value="****************************************" disabled className="w-full bg-[#0d1117] border border-[#30363d] text-[#8b949e] text-[11px] font-mono rounded px-3 py-2 mb-2" />
+                        <div className="flex gap-2">
+                           <button className="flex-1 bg-[#21262d] hover:bg-[#30363d] text-[11px] py-1.5 rounded text-[#c9d1d9] font-semibold transition-colors">Rotate Key</button>
+                           <button className="flex-1 bg-[#21262d] hover:bg-[#30363d] text-[11px] py-1.5 rounded text-[#c9d1d9] font-semibold transition-colors">Revoke</button>
+                        </div>
+                     </div>
+                     
+                     {/* Anthropic */}
+                     <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5 hover:border-[#bc8cff] transition-colors">
+                        <div className="flex justify-between items-center mb-3">
+                           <div className="font-bold text-[#c9d1d9] text-[14px]">Anthropic / Claude API</div>
+                           <span className="text-[9px] bg-[#8b949e]/20 text-[#8b949e] px-2 py-0.5 rounded border border-[#8b949e]/30 font-bold tracking-wider">UNCONFIGURED</span>
+                        </div>
+                        <input type="password" placeholder="sk-ant-..." className="w-full bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] text-[11px] font-mono rounded px-3 py-2 mb-2 focus:border-[#bc8cff] outline-none transition-colors" />
+                        <button className="w-full bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/30 text-[11px] py-1.5 rounded font-semibold transition-colors">Save & Authenticate</button>
+                     </div>
+
+                     {/* OpenAI */}
+                     <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5 hover:border-[#3fb950] transition-colors">
+                        <div className="flex justify-between items-center mb-3">
+                           <div className="font-bold text-[#c9d1d9] text-[14px]">OpenAI API</div>
+                           <span className="text-[9px] bg-[#8b949e]/20 text-[#8b949e] px-2 py-0.5 rounded border border-[#8b949e]/30 font-bold tracking-wider">UNCONFIGURED</span>
+                        </div>
+                        <input type="password" placeholder="sk-..." className="w-full bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] text-[11px] font-mono rounded px-3 py-2 mb-2 focus:border-[#3fb950] outline-none transition-colors" />
+                        <button className="w-full bg-[#3fb950]/10 hover:bg-[#3fb950]/20 text-[#3fb950] border border-[#3fb950]/30 text-[11px] py-1.5 rounded font-semibold transition-colors">Save & Authenticate</button>
+                     </div>
+                     
+                     {/* AWS / S3 */}
+                     <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5 hover:border-[#e3b341] transition-colors">
+                        <div className="flex justify-between items-center mb-3">
+                           <div className="font-bold text-[#c9d1d9] text-[14px]">AWS IAM / S3 Bucket</div>
+                           <span className="text-[9px] bg-[#8b949e]/20 text-[#8b949e] px-2 py-0.5 rounded border border-[#8b949e]/30 font-bold tracking-wider">UNCONFIGURED</span>
+                        </div>
+                        <div className="flex gap-2 mb-2">
+                           <input type="text" placeholder="Access Key" className="w-1/2 bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] text-[11px] font-mono rounded px-3 py-2 focus:border-[#e3b341] outline-none transition-colors" />
+                           <input type="password" placeholder="Secret Key" className="w-1/2 bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] text-[11px] font-mono rounded px-3 py-2 focus:border-[#e3b341] outline-none transition-colors" />
+                        </div>
+                        <button className="w-full bg-[#e3b341]/10 hover:bg-[#e3b341]/20 text-[#e3b341] border border-[#e3b341]/30 text-[11px] py-1.5 rounded font-semibold transition-colors">Bind AWS Services</button>
+                     </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#161b22] border border-[#e3b341]/50 rounded-lg p-4 shadow-[0_0_15px_rgba(227,179,65,0.05)] relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#e3b341]"></div>
+                    <div className="pl-3">
+                       <h3 className="text-[#c9d1d9] text-[14px] font-bold mb-1">Key Delegation for Offline Agents</h3>
+                       <p className="text-[#8b949e] text-[12px] mb-3">When the Multi-Agent Swarm is disconnected from the internet, offline models need access to mock services or relay tunnels. Enable proxy-relaying to grant them secure sandboxed API access via the host.</p>
+                       <label className="flex items-center gap-3 cursor-pointer">
+                          <input type="checkbox" className="w-4 h-4 accent-[#e3b341]" />
+                          <span className="text-[13px] text-[#c9d1d9] font-medium">Enable LAN-Proxy Key Inheritance</span>
+                       </label>
+                    </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab !== 'models' && activeTab !== 'general' && activeTab !== 'swarm' && activeTab !== 'acceleration' && activeTab !== 'keys' && (
               <div className="flex items-center justify-center h-full text-[#8b949e] text-[13px]">
                 Settings under development for {activeTab}. Check Local AI Models.
               </div>

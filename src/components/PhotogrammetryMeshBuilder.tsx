@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, Blocks, Save, Eye, Map as MapIcon, Sliders, Play, Maximize, Target, Aperture, Combine, Trash2, Crosshair, Cloud, ShieldCheck } from 'lucide-react';
+import { Camera, Blocks, Save, Eye, Map as MapIcon, Sliders, Play, Maximize, Target, Aperture, Combine, Trash2, Crosshair, Cloud, ShieldCheck, CheckCircle, Activity } from 'lucide-react';
 
 export default function PhotogrammetryMeshBuilder() {
   return (
@@ -99,9 +99,9 @@ export default function PhotogrammetryMeshBuilder() {
                   </div>
                   <div className="flex justify-between items-center text-[#aeaeb2]">
                      <span>Accuracy</span>
-                     <select className="bg-[#2c2c2e] border border-[#48484a] text-white p-1 rounded font-mono w-24">
+                     <select defaultValue="High" className="bg-[#2c2c2e] border border-[#48484a] text-white p-1 rounded font-mono w-24">
                         <option>Highest</option>
-                        <option selected>High</option>
+                        <option>High</option>
                         <option>Medium</option>
                         <option>Low</option>
                      </select>
@@ -120,18 +120,18 @@ export default function PhotogrammetryMeshBuilder() {
                   </div>
                   <div className="flex justify-between items-center text-[#aeaeb2]">
                      <span>Quality</span>
-                     <select className="bg-[#2c2c2e] border border-[#48484a] text-white p-1 rounded font-mono w-24">
+                     <select defaultValue="High" className="bg-[#2c2c2e] border border-[#48484a] text-white p-1 rounded font-mono w-24">
                         <option>Ultra High</option>
-                        <option selected>High</option>
+                        <option>High</option>
                         <option>Medium</option>
                         <option>Low</option>
                      </select>
                   </div>
                   <div className="flex justify-between items-center text-[#aeaeb2]">
                      <span>Depth filtering</span>
-                     <select className="bg-[#2c2c2e] border border-[#48484a] text-white p-1 rounded font-mono w-24">
+                     <select defaultValue="Mild" className="bg-[#2c2c2e] border border-[#48484a] text-white p-1 rounded font-mono w-24">
                         <option>Disabled</option>
-                        <option selected>Mild</option>
+                        <option>Mild</option>
                         <option>Moderate</option>
                         <option>Aggressive</option>
                      </select>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   FlaskConical, Ear, ImageIcon, Droplets, Flame, Wind, 
-  Settings2, Activity, Play, Download, Wand2, Image as ImageIcon2, Focus
+  Settings2, Activity, Play, Download, Wand2, Image as ImageIcon2, Focus, Loader2
 } from 'lucide-react';
 
 export default function ProceduralAssetStudio() {
@@ -125,45 +125,89 @@ function FoleyEditor() {
 }
 
 function PromptToAsset() {
+   const [prompt, setPrompt] = useState('');
+   const [isGenerating, setIsGenerating] = useState(false);
+   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+   const [error, setError] = useState('');
+
+   const handleGenerate = async () => {
+     if (!prompt) return;
+     setIsGenerating(true);
+     setError('');
+     try {
+       const res = await fetch('/api/generate-asset', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ prompt })
+       });
+       const data = await res.json();
+       if (!res.ok) {
+         throw new Error(data.error || 'Failed to generate asset');
+       }
+       setGeneratedImage(data.imageUrl);
+     } catch (err: any) {
+       setError(err.message);
+     } finally {
+       setIsGenerating(false);
+     }
+   };
+
    return (
       <div className="flex h-full flex-col bg-[#050505]">
          <div className="p-6 pb-0 border-b border-[#30363d] flex gap-4">
             <div className="flex-1 flex flex-col gap-2 mb-6">
-               <label className="text-[10px] font-bold text-[#8b949e] uppercase">Offline Local Diffusion Model (e.g. SD-XL, Flux)</label>
+               <label className="text-[10px] font-bold text-[#8b949e] uppercase">AI Asset Generation (Sprites & Textures)</label>
                <div className="relative">
-                  <input type="text" className="w-full bg-[#161b22] border border-[#30363d] p-4 rounded-lg outline-none text-white focus:border-[#bc8cff]" placeholder="A medieval rusted broadsword with an emerald embedded in the hilt..." />
-                  <button className="absolute right-2 top-2 bg-[#bc8cff] text-black font-bold px-4 py-2 rounded uppercase text-[11px] shadow-[0_0_10px_rgba(188,140,255,0.4)] flex items-center gap-2">
-                     <Focus size={14} /> Generate 3D Asset
+                  <input 
+                     type="text" 
+                     value={prompt}
+                     onChange={e => setPrompt(e.target.value)}
+                     onKeyDown={e => {
+                        if (e.key === 'Enter') handleGenerate();
+                     }}
+                     className="w-full bg-[#161b22] border border-[#30363d] p-4 rounded-lg outline-none text-white focus:border-[#bc8cff]" 
+                     placeholder="A medieval rusted broadsword with an emerald embedded in the hilt..." 
+                  />
+                  <button 
+                     onClick={handleGenerate}
+                     disabled={isGenerating || !prompt}
+                     className="absolute right-2 top-2 bg-[#bc8cff] text-black font-bold px-4 py-2 rounded uppercase text-[11px] shadow-[0_0_10px_rgba(188,140,255,0.4)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                     {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Focus size={14} />} 
+                     Generate Asset
                   </button>
                </div>
                <div className="flex gap-4 mt-2">
-                  <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" checked className="accent-[#bc8cff]" /> Auto-separate Geometry (Hilt, Blade, Gem)</label>
-                  <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" checked className="accent-[#bc8cff]" /> Generate 4K PBR Textures</label>
+                  <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" checked readOnly className="accent-[#bc8cff]" /> 2D Sprite Sheet Mode</label>
+                  <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" className="accent-[#bc8cff]" /> Seamless Texture Mode</label>
                </div>
+               {error && <div className="text-red-500 text-[11px] mt-2">{error}</div>}
             </div>
          </div>
 
          <div className="flex-1 p-6 grid grid-cols-3 gap-6">
-             <div className="col-span-2 bg-[#161b22] border border-[#30363d] rounded-lg relative overflow-hidden flex items-center justify-center shadow-inner">
-                <span className="text-[#8b949e] font-mono text-[12px]">3D Viewport Generator Canvas</span>
-                <div className="absolute top-4 right-4 flex gap-2">
-                   <button className="bg-[#0a0a0a] border border-[#30363d] text-[#c9d1d9] p-2 rounded hover:text-white"><Download size={14} /></button>
-                </div>
+             <div className="col-span-2 bg-[#161b22] border border-[#30363d] rounded-lg relative overflow-hidden flex items-center justify-center shadow-inner group">
+                {generatedImage ? (
+                   <img src={generatedImage} alt="Generated Asset" referrerPolicy="no-referrer" className="w-full h-full object-contain max-h-[500px]" />
+                ) : (
+                   <span className="text-[#8b949e] font-mono text-[12px]">Canvas Awaiting Generation...</span>
+                )}
+                {generatedImage && (
+                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="bg-[#0a0a0a] border border-[#30363d] text-[#c9d1d9] p-2 rounded hover:text-white"><Download size={14} /></button>
+                   </div>
+                )}
              </div>
              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 flex flex-col">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9d1d9] mb-4">Generation Layers</span>
                 <div className="flex flex-col gap-2">
                    <div className="flex items-center gap-3 p-2 bg-[#0a0a0a] border border-[#30363d] rounded text-[11px] text-[#8b949e] hover:text-white cursor-pointer">
-                      <ImageIcon2 size={14} /> Base_Mesh_Output.obj
+                      <ImageIcon2 size={14} /> Diffuse_Albedo.png
                    </div>
                    <div className="flex items-center gap-3 p-2 bg-[#0a0a0a] border border-[#30363d] rounded text-[11px] text-[#8b949e] hover:text-white cursor-pointer ml-4">
-                      <ImageIcon2 size={14} className="text-[#8b949e]" /> Diffuse_4K.png
+                      <ImageIcon2 size={14} className="text-[#8b949e]" /> Normal_Map.png (Pending)
                    </div>
                    <div className="flex items-center gap-3 p-2 bg-[#0a0a0a] border border-[#30363d] rounded text-[11px] text-[#8b949e] hover:text-white cursor-pointer ml-4">
-                      <ImageIcon2 size={14} className="text-[#8b949e]" /> Normal_Map_4K.png
-                   </div>
-                   <div className="flex items-center gap-3 p-2 bg-[#0a0a0a] border border-[#30363d] rounded text-[11px] text-[#8b949e] hover:text-white cursor-pointer ml-4">
-                      <ImageIcon2 size={14} className="text-[#8b949e]" /> Roughness_Metal_4K.png
+                      <ImageIcon2 size={14} className="text-[#8b949e]" /> Roughness_Metal.png (Pending)
                    </div>
                 </div>
              </div>

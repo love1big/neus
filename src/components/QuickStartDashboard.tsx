@@ -1,7 +1,10 @@
 import React from 'react';
-import { Play, FileCode2, Map, Users, Settings, BookOpen, Clock, Plus, Zap, Box, Layers } from 'lucide-react';
+import { Play, FileCode2, Map, Users, Settings, BookOpen, Clock, Plus, Zap, Box, Layers, Cpu, MemoryStick, Activity, HardDrive, Network } from 'lucide-react';
+import { useSystemTelemetry } from '../lib/telemetry';
 
 export default function QuickStartDashboard({ onSelectTool }: { onSelectTool?: (tool: string) => void }) {
+  const { stats: systemStats, threadLoads } = useSystemTelemetry();
+
   const recentProjects = [
     { name: 'Fantasy RPG Sandbox', path: 'D:/Projects/FantasyRPG', date: '10 mins ago', type: '3D Project' },
     { name: 'Cyberpunk Metroidvania', path: 'D:/Projects/Cybervania', date: '2 days ago', type: '2D / HD-2D' },
@@ -81,6 +84,90 @@ export default function QuickStartDashboard({ onSelectTool }: { onSelectTool?: (
                         <span className="text-[#f85149] font-bold">OFFLINE</span>
                       </div>
                       <p className="text-[10px] text-[#8b949e] italic mt-1">If AI features are disabled, the system operates as a standard high-performance engine IDE.</p>
+                   </div>
+                </div>
+
+                {/* Real-time System Resource Monitor */}
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+                   <h2 className="font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wider text-xs">
+                     <Activity size={16} className="text-[#8b949e]" />
+                     System Resource Telemetry
+                   </h2>
+                   
+                   <div className="flex flex-col gap-4">
+                      {/* CPU */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-[#c9d1d9]"><Cpu size={13} className="text-[#58a6ff]"/> CPU (AMD Ryzen 9)</span>
+                          <div className="flex gap-3">
+                             <span className="font-mono text-[#8b949e]">{(45 + (systemStats.cpu * 0.4)).toFixed(0)}°C</span>
+                             <span className="font-mono text-[#58a6ff]">{systemStats.cpu.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-[#0d1117] h-2 rounded-full overflow-hidden border border-[#30363d] flex relative">
+                          <div className="h-full bg-gradient-to-r from-[#1f6feb] to-[#58a6ff] transition-all duration-300" style={{ width: `${systemStats.cpu}%` }}></div>
+                        </div>
+                        {/* Threads mini bar */}
+                        <div className="flex gap-[1px] mt-1.5">
+                           {threadLoads.map((load, i) => (
+                             <div key={i} className="h-[6px] flex-1 bg-[#0d1117] border border-[#30363d] rounded-[1px] overflow-hidden">
+                                <div className="h-full bg-[#58a6ff] transition-all duration-300 opacity-80" style={{ width: `${load}%` }}></div>
+                             </div>
+                           ))}
+                        </div>
+                      </div>
+
+                      {/* RAM */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-[#c9d1d9]"><MemoryStick size={13} className="text-[#3fb950]"/> System RAM (DDR5)</span>
+                          <span className="font-mono text-[#3fb950]">{((systemStats.ram / 100) * 64).toFixed(1)} GB / 64 GB</span>
+                        </div>
+                        <div className="w-full bg-[#0d1117] h-2 rounded-full overflow-hidden border border-[#30363d] relative">
+                          <div className="h-full bg-[#238636] transition-all duration-300 absolute left-0 top-0" style={{ width: `${systemStats.ram}%` }}></div>
+                          {/* Swap bar */}
+                          <div className="h-full bg-[#8b949e] opacity-40 transition-all duration-300 absolute left-0 top-0" style={{ width: `${Math.min(100, systemStats.ram + 10)}%`, zIndex: 0 }}></div>
+                        </div>
+                      </div>
+
+                      {/* GPU */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-[#c9d1d9]"><Box size={13} className="text-[#bc8cff]"/> GPU Core (RTX 4090)</span>
+                          <div className="flex gap-3">
+                             <span className="font-mono text-[#8b949e]">{(30 + (systemStats.gpu * 0.5)).toFixed(0)}°C</span>
+                             <span className="font-mono text-[#bc8cff]">{systemStats.gpu.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-[#0d1117] h-2 rounded-full overflow-hidden border border-[#30363d]">
+                          <div className="h-full bg-gradient-to-r from-[#8957e5] to-[#bc8cff] transition-all duration-300" style={{ width: `${systemStats.gpu}%` }}></div>
+                        </div>
+                      </div>
+
+                      {/* VRAM */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="flex items-center gap-1.5 text-[#c9d1d9]"><Layers size={13} className="text-[#e3b341]"/> GPU VRAM Alloc</span>
+                          <span className="font-mono text-[#e3b341]">{((systemStats.vram / 100) * 24).toFixed(1)} GB / 24 GB</span>
+                        </div>
+                        <div className="w-full bg-[#0d1117] h-2 rounded-full overflow-hidden border border-[#30363d]">
+                          <div className="h-full bg-[#d29922] transition-all duration-300" style={{ width: `${systemStats.vram}%` }}></div>
+                        </div>
+                      </div>
+
+                      {/* Disk I/O & Network */}
+                      <div className="grid grid-cols-2 gap-4 mt-2 border-t border-[#30363d] pt-3">
+                         <div>
+                            <div className="text-[10px] text-[#8b949e] mb-1 flex items-center gap-1"><HardDrive size={10}/> Disk IOPS (Gen5 CVMe)</div>
+                            <div className="font-mono text-[#c9d1d9] text-[11px]">R: {(systemStats.cpu * 12).toFixed(0)} MB/s</div>
+                            <div className="font-mono text-[#c9d1d9] text-[11px]">W: {(systemStats.cpu * 2).toFixed(0)} MB/s</div>
+                         </div>
+                         <div>
+                            <div className="text-[10px] text-[#8b949e] mb-1 flex items-center gap-1"><Network size={10}/> P2P NetIO (Host)</div>
+                            <div className="font-mono text-[#c9d1d9] text-[11px]">↓ {(systemStats.ram * 0.5).toFixed(1)} Kbps</div>
+                            <div className="font-mono text-[#c9d1d9] text-[11px]">↑ {(systemStats.ram * 0.1).toFixed(1)} Kbps</div>
+                         </div>
+                      </div>
                    </div>
                 </div>
 
