@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Map, Grid3X3, Layers, Settings, ZoomIn, ZoomOut, Save, Plus, Target, Compass, Cloud, MapPin, Search, Edit3, Type, X, BrainCircuit, Scan, Trees, Droplets, Thermometer, Mountain, Brush, Eye, EyeOff, BarChart2, Lock, Unlock, Trash2, History, Undo2, User, Clock, BedDouble, Hammer, Coffee, GripVertical, CalendarDays, Sun, Wind, Camera, Box, Move, Route, Activity, Video, Aperture, Play, Rewind, FastForward, GitBranch, MessageSquare, Network, Zap, Database, Terminal, Webhook, BoxSelect, Cpu, CheckSquare, Braces, GitCommit } from 'lucide-react';
+import { Map, Grid3X3, Layers, Settings, ZoomIn, ZoomOut, Save, Plus, Target, Compass, Cloud, MapPin, Search, Edit3, Type, X, BrainCircuit, Scan, Trees, Droplets, Thermometer, Mountain, Brush, Eye, EyeOff, BarChart2, Lock, Unlock, Trash2, History, Undo2, User, Clock, BedDouble, Hammer, Coffee, GripVertical, CalendarDays, Sun, Wind, Camera, Box, Move, Route, Activity, Video, Aperture, Play, Pause, Rewind, FastForward, GitBranch, MessageSquare, Network, Zap, Database, Terminal, Webhook, BoxSelect, Cpu, CheckSquare, Braces, GitCommit, Circle, Square, Edit2, Snowflake, Flame, CloudRain, Star, Pointer, Pickaxe, Sprout, Building, Building2, TreePine, Fence, Paintbrush, Pipette, PaintBucket, Maximize, Minimize, Crosshair, Grab, Shield, ShieldAlert, Skull, Radio, Anchor, Moon, Scissors, Copy, ClipboardPaste, ArrowUpFromLine, ArrowDownToLine, MousePointer2, Wand2, ArrowUp, ArrowDown, Leaf, Sparkles, Hexagon, Ruler, Magnet, Volume2, Eraser, Dices, Shuffle, AlignCenter, LayoutGrid, TramFront, Droplet, Layers3, ActivitySquare, Waves, CloudFog, DownloadCloud } from 'lucide-react';
 import TaskStatusBoard from './TaskStatusBoard';
 import Viewport3D from './Viewport3D';
+import MapAssetBrowser from './MapAssetBrowser';
+import MapEntityEditor from './MapEntityEditor';
+import MapCinematicEditor from './MapCinematicEditor';
+import MapAudioTools from './MapAudioTools';
 
 function MiniMapCanvas({ styleType, biomeStrokes, width, height, mapLayers, markers }: { styleType: string, biomeStrokes: any[], width: number, height: number, mapLayers: any[], markers?: any[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -223,6 +227,7 @@ export default function MapEdit() {
   const [mainViewMode, setMainViewMode] = useState<'2D' | '3D'>('2D');
   const [hoveredCoord, setHoveredCoord] = useState<{x: number, y: number, elevation: number} | null>(null);
   const [selectedToolItem, setSelectedToolItem] = useState<string>('Castle');
+  const [brushSize, setBrushSize] = useState<number>(2);
   
   // Detailed Grid Settings
   const [gridChunkSize, setGridChunkSize] = useState(16);
@@ -427,6 +432,12 @@ export default function MapEdit() {
 
           <div className="w-8 h-[1px] bg-[#2a2b3d] my-1 shrink-0"></div>
 
+          <button onClick={() => setActiveTab('assets')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'assets' ? 'bg-[#3fb950]/20 text-[#3fb950] border border-[#3fb950]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Asset Store & Model Browser">
+            <DownloadCloud size={20} />
+          </button>
+          <button onClick={() => setActiveTab('maptools')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'maptools' ? 'bg-[#ff7b72]/20 text-[#ff7b72] border border-[#ff7b72]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Map Edit Tools & Areas">
+            <BoxSelect size={20} />
+          </button>
           <button onClick={() => setActiveTab('terrain')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'terrain' ? 'bg-[#d2a8ff]/20 text-[#d2a8ff] border border-[#d2a8ff]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Terrain Sculpting">
             <Mountain size={20} />
           </button>
@@ -484,6 +495,19 @@ export default function MapEdit() {
           </button>
           <button onClick={() => setActiveTab('ai')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'ai' ? 'bg-[#bc8cff]/20 text-[#bc8cff] border border-[#bc8cff]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="AI Generator Engine">
             <BrainCircuit size={20} />
+          </button>
+          <div className="w-8 h-[1px] bg-[#2a2b3d] my-1 shrink-0"></div>
+          <button onClick={() => setActiveTab('pcg')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'pcg' ? 'bg-[#58a6ff]/20 text-[#58a6ff] border border-[#58a6ff]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Advanced Procedural Content Generation (PCG)">
+            <Dices size={20} />
+          </button>
+          <button onClick={() => setActiveTab('physics')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'physics' ? 'bg-[#ff7b72]/20 text-[#ff7b72] border border-[#ff7b72]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Physics, Fluid & Chaos Destruction">
+            <Flame size={20} />
+          </button>
+          <button onClick={() => setActiveTab('audio')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'audio' ? 'bg-[#e3b341]/20 text-[#e3b341] border border-[#e3b341]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Spatial Audio & Adaptive Foley">
+            <Volume2 size={20} />
+          </button>
+          <button onClick={() => setActiveTab('debugger')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'debugger' ? 'bg-[#f85149]/20 text-[#f85149] border border-[#f85149]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Visual Flow Debugger">
+            <Activity size={20} />
           </button>
         </div>
 
@@ -831,6 +855,440 @@ export default function MapEdit() {
                    </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'maptools' && (
+            <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+              <h2 className="text-sm font-bold text-[#ff7b72] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2">
+                <BoxSelect size={16} /> Advanced Map Tools
+              </h2>
+              
+              {/* Measurement & Utilities */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Utilities</span>
+                   <span className="text-[8px] text-[#8b949e] bg-[#8b949e]/20 px-1.5 py-0.5 rounded">Measure</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Measure Distance">
+                       <Ruler size={14} />
+                       <span className="text-[8px]">Distance</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Grid Snap">
+                       <Magnet size={14} />
+                       <span className="text-[8px]">Snap</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Align to Surface">
+                       <AlignCenter size={14} />
+                       <span className="text-[8px]">Align</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Toggle Grid">
+                       <LayoutGrid size={14} />
+                       <span className="text-[8px]">Grid</span>
+                    </button>
+                 </div>
+              </div>
+
+              {/* Selection Mode */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Selection Mode</span>
+                   <span className="text-[8px] text-[#ff7b72] bg-[#ff7b72]/20 px-1.5 py-0.5 rounded">Core</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#ff7b72]/50 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Circle Selection">
+                       <Circle size={14} className="text-[#ff7b72]" />
+                       <span className="text-[8px]">Circle</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Square Selection">
+                       <Square size={14} />
+                       <span className="text-[8px]">Square</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Freehand Lasso">
+                       <Edit2 size={14} />
+                       <span className="text-[8px]">Lasso</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Magic Wand">
+                       <Wand2 size={14} />
+                       <span className="text-[8px]">Magic</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Select by Height">
+                       <ArrowUpFromLine size={14} />
+                       <span className="text-[8px]">Height</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Select by Slope">
+                       <ActivitySquare size={14} />
+                       <span className="text-[8px]">Slope</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Select by Material">
+                       <Pipette size={14} />
+                       <span className="text-[8px]">Material</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#ff7b72]/30 p-2 rounded flex flex-col items-center gap-1 transition-all" title="Clear Selection">
+                       <X size={14} />
+                       <span className="text-[8px]">Clear</span>
+                    </button>
+                 </div>
+
+                 <div className="grid grid-cols-4 gap-2 mt-1">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] p-1.5 rounded flex flex-col items-center justify-center gap-1 transition-all" title="Grow Selection">
+                       <Maximize size={12} /> <span className="text-[8px]">Expand</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] p-1.5 rounded flex flex-col items-center justify-center gap-1 transition-all" title="Shrink Selection">
+                       <Minimize size={12} /> <span className="text-[8px]">Shrink</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] p-1.5 rounded flex flex-col items-center justify-center gap-1 transition-all" title="Invert Selection">
+                       <Zap size={12} /> <span className="text-[8px]">Invert</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] p-1.5 rounded flex flex-col items-center justify-center gap-1 transition-all" title="Feather Selection">
+                       <CloudRain size={12} /> <span className="text-[8px]">Feather</span>
+                    </button>
+                 </div>
+              </div>
+
+              {/* Brush Engine Settings */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Brush Settings</span>
+                   <span className="text-[8px] text-[#ff7b72] bg-[#ff7b72]/20 px-1.5 py-0.5 rounded">Engine</span>
+                 </h3>
+                 <div>
+                    <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Radius (Size)</span> <span className="text-white">25m</span></label>
+                    <input type="range" min="1" max="100" defaultValue="25" className="w-full accent-[#ff7b72]" />
+                 </div>
+                 <div>
+                    <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Falloff (Hardness)</span> <span className="text-white">50%</span></label>
+                    <input type="range" min="0" max="100" defaultValue="50" className="w-full accent-[#ff7b72]" />
+                 </div>
+                 <div>
+                    <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Flow / Opacity</span> <span className="text-white">100%</span></label>
+                    <input type="range" min="0" max="100" defaultValue="100" className="w-full accent-[#ff7b72]" />
+                 </div>
+                 <div>
+                    <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Jitter (Randomness)</span> <span className="text-white">0%</span></label>
+                    <input type="range" min="0" max="100" defaultValue="0" className="w-full accent-[#ff7b72]" />
+                 </div>
+                 
+                 <div>
+                    <label className="text-[10px] text-[#8b949e] mb-1 block">Brush Alpha / Shape</label>
+                    <select className="w-full bg-[#1a1a24] text-xs text-white border border-[#2a2b3d] rounded p-1">
+                      <option>Solid Circle</option>
+                      <option>Soft Circle</option>
+                      <option>Square Noise</option>
+                      <option>Fractal Cloud</option>
+                      <option>Cracked Earth</option>
+                    </select>
+                 </div>
+              </div>
+
+              {/* Transform Tools */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Transform & Scale</span>
+                   <span className="text-[8px] text-[#e3b341] bg-[#e3b341]/20 px-1.5 py-0.5 rounded">Gizmo</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#8b949e] p-2 rounded flex flex-col items-center gap-1 transition-all" title="Select Tool">
+                       <MousePointer2 size={14} />
+                       <span className="text-[8px]">Select</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#8b949e] p-2 rounded flex flex-col items-center gap-1 transition-all" title="Move Tool">
+                       <Move size={14} />
+                       <span className="text-[8px]">Move</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#8b949e] p-2 rounded flex flex-col items-center gap-1 transition-all" title="Rotate Tool">
+                       <Clock size={14} />
+                       <span className="text-[8px]">Rotate</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#e3b341] border border-[#e3b341]/50 p-2 rounded flex flex-col items-center gap-1 transition-all shadow-[0_0_8px_rgba(227,179,65,0.2)]" title="Scale Tool">
+                       <Maximize size={14} />
+                       <span className="text-[8px]">Scale</span>
+                    </button>
+                 </div>
+                 
+                 <div className="mt-1 space-y-2">
+                    <div className="flex items-center justify-between text-[10px] text-[#8b949e]">
+                       <span>Uniform Scale</span>
+                       <input type="checkbox" defaultChecked className="accent-[#e3b341]" />
+                    </div>
+                    <div>
+                       <label className="text-[9px] text-[#8b949e] mb-1 flex justify-between"><span>X (Width)</span> <span className="text-white">1.0x</span></label>
+                       <input type="range" min="1" max="500" defaultValue="100" className="w-full accent-[#f85149] h-1" />
+                    </div>
+                    <div>
+                       <label className="text-[9px] text-[#8b949e] mb-1 flex justify-between"><span>Y (Height)</span> <span className="text-white">1.0x</span></label>
+                       <input type="range" min="1" max="500" defaultValue="100" className="w-full accent-[#3fb950] h-1" />
+                    </div>
+                    <div>
+                       <label className="text-[9px] text-[#8b949e] mb-1 flex justify-between"><span>Z (Depth)</span> <span className="text-white">1.0x</span></label>
+                       <input type="range" min="1" max="500" defaultValue="100" className="w-full accent-[#58a6ff] h-1" />
+                    </div>
+                    <button className="w-full bg-[#1a1a24] border border-[#2a2b3d] py-1 rounded text-[9px] text-white hover:bg-[#2a2b3d]">Reset Transform</button>
+                 </div>
+              </div>
+
+              {/* Advanced Terrain Modification */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Terrain Modification</span>
+                   <span className="text-[8px] text-[#d2a8ff] bg-[#d2a8ff]/20 px-1.5 py-0.5 rounded">Topology</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <ArrowUp size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Raise</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <ArrowDown size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Lower</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <ArrowDownToLine size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Flatten</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <Waves size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Smooth</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <Activity size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Roughen</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <Mountain size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Ramp</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <Layers3 size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Terrace</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all group">
+                       <Droplet size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Erode</span>
+                    </button>
+                 </div>
+                 
+                 <div>
+                    <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Power / Intensity</span> <span className="text-white">1.5x</span></label>
+                    <input type="range" min="0" max="100" defaultValue="15" className="w-full accent-[#d2a8ff]" />
+                 </div>
+              </div>
+
+              {/* Environment Materials */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Environment Materials</span>
+                   <span className="text-[8px] text-[#79c0ff] bg-[#79c0ff]/20 px-1.5 py-0.5 rounded">Material</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#79c0ff]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Droplets size={14} className="text-[#79c0ff]" />
+                       <span className="text-[8px]">Water</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#a5d6ff]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Snowflake size={14} className="text-[#a5d6ff]" />
+                       <span className="text-[8px]">Snow</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#ff7b72]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Flame size={14} className="text-[#ff7b72]" />
+                       <span className="text-[8px]">Lava</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#58a6ff]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <CloudRain size={14} className="text-[#58a6ff]" />
+                       <span className="text-[8px]">Rain</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#3fb950]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Leaf size={14} className="text-[#3fb950]" />
+                       <span className="text-[8px]">Grass</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Sparkles size={14} className="text-[#d2a8ff]" />
+                       <span className="text-[8px]">Magic</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#e3b341]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Wind size={14} className="text-[#e3b341]" />
+                       <span className="text-[8px]">Sand</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#8b949e]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Hexagon size={14} className="text-[#8b949e]" />
+                       <span className="text-[8px]">Rock</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#c9d1d9]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Building2 size={14} className="text-[#c9d1d9]" />
+                       <span className="text-[8px]">Concrete</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#8b949e]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Droplet size={14} className="text-[#8b949e]" />
+                       <span className="text-[8px]">Mud</span>
+                    </button>
+                 </div>
+                 
+                 <div className="flex flex-col gap-2 bg-[#1a1a24] p-2 rounded border border-[#2a2b3d]">
+                    <div className="flex justify-between items-center">
+                       <span className="text-[10px] font-medium text-white flex items-center gap-1"><Layers size={12} className="text-[#79c0ff]"/> Layer Blending</span>
+                       <span className="text-[9px] text-[#8b949e] bg-[#1e1e2d] px-1.5 py-0.5 rounded border border-[#2a2b3d]">Paint over base</span>
+                    </div>
+                    <div>
+                       <label className="text-[9px] text-[#8b949e] mb-1 flex justify-between"><span>Brush Opacity</span> <span className="text-white">65%</span></label>
+                       <input type="range" min="0" max="100" defaultValue="65" className="w-full accent-[#79c0ff]" />
+                    </div>
+                 </div>
+
+                 <div className="flex gap-2">
+                    <button className="flex-1 bg-[#1a1a24] border border-[#2a2b3d] py-1 rounded flex justify-center items-center gap-1 text-[9px] text-[#8b949e] hover:text-white"><PaintBucket size={12}/> Fill Selection</button>
+                    <button className="flex-1 bg-[#1a1a24] border border-[#2a2b3d] py-1 rounded flex justify-center items-center gap-1 text-[9px] text-[#8b949e] hover:text-white"><Eraser size={12}/> Erase</button>
+                    <button className="flex-1 bg-[#1a1a24] border border-[#2a2b3d] py-1 rounded flex justify-center items-center gap-1 text-[9px] text-[#8b949e] hover:text-white"><Pipette size={12}/> Sample</button>
+                 </div>
+              </div>
+
+              {/* Advanced Prop Scattering */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Prop & Foliage Scatter</span>
+                   <span className="text-[8px] text-[#3fb950] bg-[#3fb950]/20 px-1.5 py-0.5 rounded">Foliage</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#3fb950]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Trees size={14} />
+                       <span className="text-[8px]">Forest</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#3fb950]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <TreePine size={14} />
+                       <span className="text-[8px]">Pine</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#3fb950]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Sprout size={14} />
+                       <span className="text-[8px]">Bushes</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#3fb950]/50 p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Pickaxe size={14} />
+                       <span className="text-[8px]">Rocks</span>
+                    </button>
+                 </div>
+                 
+                 <div className="flex flex-col gap-2 mt-1">
+                   <div>
+                      <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Scatter Density</span> <span className="text-white">High</span></label>
+                      <input type="range" min="1" max="100" defaultValue="80" className="w-full accent-[#3fb950]" />
+                   </div>
+                   <div>
+                      <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Scale Variation</span> <span className="text-white">±20%</span></label>
+                      <input type="range" min="0" max="100" defaultValue="20" className="w-full accent-[#3fb950]" />
+                   </div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-[10px] text-[#8b949e]">Align to Terrain Normal</span>
+                     <input type="checkbox" defaultChecked className="accent-[#3fb950]" />
+                   </div>
+                   <div className="flex gap-2 mt-2">
+                      <button className="flex-1 bg-[#1a1a24] border border-[#2a2b3d] py-1.5 rounded flex justify-center items-center gap-1 text-[9px] text-[#3fb950] hover:text-white"><Shuffle size={12}/> Re-seed</button>
+                      <button className="flex-1 bg-[#1a1a24] border border-[#2a2b3d] py-1.5 rounded flex justify-center items-center gap-1 text-[9px] text-[#f85149] hover:text-white"><Eraser size={12}/> Erase Props</button>
+                   </div>
+                 </div>
+              </div>
+
+              {/* Advanced Splines & Networks */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Splines & Networks</span>
+                   <span className="text-[8px] text-[#c9d1d9] bg-[#c9d1d9]/20 px-1.5 py-0.5 rounded">Vector</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Route size={14} />
+                       <span className="text-[8px]">Roads</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Waves size={14} />
+                       <span className="text-[8px]">Rivers</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Fence size={14} />
+                       <span className="text-[8px]">Fences</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <TramFront size={14} />
+                       <span className="text-[8px]">Rails</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Zap size={14} />
+                       <span className="text-[8px]">Powerlines</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Square size={14} />
+                       <span className="text-[8px]">Bridges</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#c9d1d9] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Box size={14} />
+                       <span className="text-[8px]">Walls</span>
+                    </button>
+                 </div>
+              </div>
+
+              {/* Atmosphere & Volumes */}
+              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
+                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex justify-between items-center">
+                   <span>Atmosphere & Effects</span>
+                   <span className="text-[8px] text-[#a5d6ff] bg-[#a5d6ff]/20 px-1.5 py-0.5 rounded">Volumes</span>
+                 </h3>
+                 <div className="grid grid-cols-4 gap-2">
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#a5d6ff] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <CloudFog size={14} />
+                       <span className="text-[8px]">Fog Vol</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#a5d6ff] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Camera size={14} />
+                       <span className="text-[8px]">Post-Proc</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#a5d6ff] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <Volume2 size={14} />
+                       <span className="text-[8px]">Audio Zone</span>
+                    </button>
+                    <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-gray-400 border border-[#2a2b3d] hover:border-[#a5d6ff] p-2 rounded flex flex-col items-center gap-1 transition-all">
+                       <BoxSelect size={14} />
+                       <span className="text-[8px]">Light Block</span>
+                    </button>
+                 </div>
+              </div>
+
+              {/* Gameplay Logic Zones */}
+              <div className="bg-gradient-to-br from-[#1e1e2d] to-[#161621] border border-[#e3b341]/30 p-3 rounded flex flex-col gap-3 shadow-[0_0_15px_rgba(227,179,65,0.05)] pb-6 mt-2">
+                 <h3 className="text-[10px] font-bold text-[#e3b341] uppercase border-b border-[#e3b341]/20 pb-1 flex items-center gap-1.5">
+                    <Star size={12} /> Gameplay & Core Zones
+                 </h3>
+                 
+                 <div className="grid grid-cols-3 gap-2">
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#e3b341] border border-[#e3b341]/30 hover:border-[#e3b341] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="General Gameplay Zone">
+                      <MapPin size={14} /> <span className="text-[8px]">General Zone</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#f85149] border border-[#f85149]/30 hover:border-[#f85149] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="Procedural Dungeon Entry">
+                      <Target size={14} /> <span className="text-[8px]">Dungeon Core</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#3fb950] border border-[#3fb950]/30 hover:border-[#3fb950] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="No Combat Zone">
+                      <Shield size={14} /> <span className="text-[8px]">Safe Zone</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#ff7b72] border border-[#ff7b72]/30 hover:border-[#ff7b72] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="PvP Enabled Area">
+                      <Skull size={14} /> <span className="text-[8px]">PvP Arena</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#d2a8ff] border border-[#d2a8ff]/30 hover:border-[#d2a8ff] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="Player/Entity Spawn">
+                      <Radio size={14} /> <span className="text-[8px]">Spawn Point</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#a5d6ff] border border-[#a5d6ff]/30 hover:border-[#a5d6ff] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="Block Player Building">
+                      <ShieldAlert size={14} /> <span className="text-[8px]">No-Build Zone</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#ff7b72] border border-[#ff7b72]/30 hover:border-[#ff7b72] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="Script Trigger Volume">
+                      <Zap size={14} /> <span className="text-[8px]">Trigger Box</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#8b949e] border border-[#8b949e]/30 hover:border-[#8b949e] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="Modify AI Nav Cost">
+                      <ActivitySquare size={14} /> <span className="text-[8px]">Nav Modifier</span>
+                   </button>
+                   <button className="bg-[#1a1a24] hover:bg-[#2a2b3d] text-[#e3b341] border border-[#e3b341]/30 hover:border-[#e3b341] p-2 rounded text-[10px] transition-colors flex flex-col items-center justify-center gap-1" title="Spawn Random Loot">
+                      <Box size={14} /> <span className="text-[8px]">Loot Spawn</span>
+                   </button>
+                 </div>
+                 <p className="text-[9px] text-[#8b949e] text-center mt-1">Select an area using selection tools, then assign a special zone type.</p>
+              </div>
+
             </div>
           )}
 
@@ -3121,6 +3579,370 @@ export default function MapEdit() {
                             DAEMON: TICK RATE 60Hz - ALIVE
                         </div>
                     </div>
+                </div>
+            </div>
+          )}
+
+          {/* Massive Feature Overlays */}
+          {activeTab === 'assets' && <MapAssetBrowser />}
+          {activeTab === 'entities' && <MapEntityEditor />}
+          {activeTab === 'camera' && <MapCinematicEditor />}
+          {activeTab === 'audio' && <MapAudioTools />}
+
+          {/* PCG Overlay */}
+          {activeTab === 'pcg' && (
+            <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0f111a] flex">
+                <div className="w-[350px] border-r border-[#2a2b3d] bg-[#11111b] p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar shadow-xl z-10 relative">
+                     <h2 className="text-sm font-bold text-[#58a6ff] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2">
+                        <Dices size={16} /> Advanced PCG Engine
+                     </h2>
+                     <p className="text-[10px] text-gray-400 mb-2">Procedural Content Generation toolset for massive automated environment creation.</p>
+                     
+                     <div className="bg-[#1e1e2d] border border-[#58a6ff]/30 p-3 rounded flex flex-col gap-3">
+                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#58a6ff]/30 pb-1 flex justify-between items-center">
+                            <span>City Builder</span> <Building2 size={12} className="text-[#58a6ff]" />
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[10px] text-gray-400">Architecture Style</label>
+                            <select className="bg-[#0a0a0f] border border-[#2a2b3d] text-white text-xs p-1.5 rounded">
+                                <option>Cyberpunk / High-Tech</option>
+                                <option>Medieval Fantasy</option>
+                                <option>Modern Metro</option>
+                                <option>Ruined Post-Apocalyptic</option>
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-2 mt-1">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Auto-generate Road Networks</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Place Props (Streetlights, Trash)</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Bake NavMesh for NPCs</span>
+                            </label>
+                        </div>
+                        <button className="bg-[#58a6ff]/10 hover:bg-[#58a6ff]/20 text-[#58a6ff] border border-[#58a6ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
+                            <Target size={14} /> Generate City Block
+                        </button>
+                     </div>
+
+                     <div className="bg-[#1e1e2d] border border-[#d2a8ff]/30 p-3 rounded flex flex-col gap-3">
+                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#d2a8ff]/30 pb-1 flex justify-between items-center">
+                            <span>Dungeon Architect</span> <Layers3 size={12} className="text-[#d2a8ff]" />
+                        </h3>
+                        <div>
+                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Complexity / Branching</span> <span className="text-white">High</span></label>
+                            <input type="range" min="1" max="10" defaultValue="8" className="w-full accent-[#d2a8ff]" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Room Density</span> <span className="text-white">60%</span></label>
+                            <input type="range" min="0" max="100" defaultValue="60" className="w-full accent-[#d2a8ff]" />
+                        </div>
+                        <button className="bg-[#d2a8ff]/10 hover:bg-[#d2a8ff]/20 text-[#d2a8ff] border border-[#d2a8ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
+                            <Shuffle size={14} /> Generate Dungeon Maze
+                        </button>
+                     </div>
+                </div>
+                
+                {/* Visualizer Canvas Area for PCG */}
+                <div className="flex-1 relative flex items-center justify-center p-8">
+                     <div className="w-full h-full max-w-4xl max-h-[800px] border border-[#2a2b3d] bg-[#11111b] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shadow-2xl">
+                          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#58a6ff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                          <Network size={64} className="text-[#58a6ff]/20 mb-4 animate-pulse" />
+                          <h3 className="text-[#58a6ff] font-mono text-xl tracking-widest uppercase">PCG Visualization Viewport</h3>
+                          <p className="text-gray-500 font-mono text-sm mt-2">Awaiting Generation Input</p>
+                          
+                          <div className="absolute top-4 left-4 flex gap-2">
+                              <span className="bg-[#0a0a0f] text-[#58a6ff] text-[10px] px-2 py-1 rounded border border-[#58a6ff]/30 font-mono">SEED: 8XF9-2A</span>
+                              <span className="bg-[#0a0a0f] text-gray-400 text-[10px] px-2 py-1 rounded border border-[#2a2b3d] font-mono">RULES: 142 LOADED</span>
+                          </div>
+                     </div>
+                </div>
+            </div>
+          )}
+
+          {/* Physics Overlay */}
+          {activeTab === 'physics' && (
+            <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0f111a] flex">
+                <div className="w-[350px] border-r border-[#2a2b3d] bg-[#11111b] p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar shadow-xl z-10 relative">
+                     <h2 className="text-sm font-bold text-[#ff7b72] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2">
+                        <Flame size={16} /> Physics & Chaos Engine
+                     </h2>
+                     <p className="text-[10px] text-gray-400 mb-2">Cinematic-level destruction, fluid dynamics, and ragdoll simulations.</p>
+                     
+                     <div className="bg-[#1e1e2d] border border-[#ff7b72]/30 p-3 rounded flex flex-col gap-3">
+                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#ff7b72]/30 pb-1 flex justify-between items-center">
+                            <span>Chaos Destruction</span> <Pickaxe size={12} className="text-[#ff7b72]" />
+                        </h3>
+                        <div>
+                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Fracture Level (Voronoi)</span> <span className="text-white">LOD 3</span></label>
+                            <input type="range" min="1" max="5" defaultValue="3" className="w-full accent-[#ff7b72]" />
+                        </div>
+                        <div className="flex flex-col gap-2 mt-1">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#ff7b72] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Enable Structural Integrity</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#ff7b72] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Generate Debris Particles</span>
+                            </label>
+                        </div>
+                        <button className="bg-[#ff7b72]/10 hover:bg-[#ff7b72]/20 text-[#ff7b72] border border-[#ff7b72]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
+                            <Grab size={14} /> Fracture Selected Mesh
+                        </button>
+                     </div>
+
+                     <div className="bg-[#1e1e2d] border border-[#79c0ff]/30 p-3 rounded flex flex-col gap-3">
+                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#79c0ff]/30 pb-1 flex justify-between items-center">
+                            <span>Fluid Dynamics (SPH)</span> <Droplets size={12} className="text-[#79c0ff]" />
+                        </h3>
+                        <div>
+                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Viscosity</span> <span className="text-white">Water</span></label>
+                            <input type="range" min="0" max="100" defaultValue="10" className="w-full accent-[#79c0ff]" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Particle Count</span> <span className="text-white">100k</span></label>
+                            <input type="range" min="1" max="500" defaultValue="100" className="w-full accent-[#79c0ff]" />
+                        </div>
+                        <button className="bg-[#79c0ff]/10 hover:bg-[#79c0ff]/20 text-[#79c0ff] border border-[#79c0ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
+                            <Play size={14} /> Simulate Fluid Frame
+                        </button>
+                     </div>
+                </div>
+                
+                {/* Visualizer Canvas Area for Physics */}
+                <div className="flex-1 relative flex items-center justify-center p-8">
+                     <div className="w-full h-full max-w-4xl max-h-[800px] border border-[#2a2b3d] bg-[#11111b] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shadow-2xl">
+                          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#ff7b72 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                          <Activity size={64} className="text-[#ff7b72]/20 mb-4 animate-pulse" />
+                          <h3 className="text-[#ff7b72] font-mono text-xl tracking-widest uppercase">Physics Simulation Viewport</h3>
+                          <p className="text-gray-500 font-mono text-sm mt-2">Real-time solver active</p>
+                          
+                          <div className="absolute top-4 left-4 flex gap-2">
+                              <span className="bg-[#0a0a0f] text-[#ff7b72] text-[10px] px-2 py-1 rounded border border-[#ff7b72]/30 font-mono">SOLVER: CHAI-3D</span>
+                              <span className="bg-[#0a0a0f] text-[#79c0ff] text-[10px] px-2 py-1 rounded border border-[#79c0ff]/30 font-mono">SPH: ACTIVE</span>
+                          </div>
+                     </div>
+                </div>
+            </div>
+          )}
+
+          {/* Audio Overlay */}
+          {activeTab === 'audio' && (
+            <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0f111a] flex">
+                <div className="w-[350px] border-r border-[#2a2b3d] bg-[#11111b] p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar shadow-xl z-10 relative">
+                     <h2 className="text-sm font-bold text-[#e3b341] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2">
+                        <Volume2 size={16} /> Spatial Audio & Foley
+                     </h2>
+                     <p className="text-[10px] text-gray-400 mb-2">Advanced acoustic propagation, reverb volumes, and adaptive soundscapes.</p>
+                     
+                     <div className="bg-[#1e1e2d] border border-[#e3b341]/30 p-3 rounded flex flex-col gap-3">
+                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#e3b341]/30 pb-1 flex justify-between items-center">
+                            <span>Acoustic Raytracing</span> <Radio size={12} className="text-[#e3b341]" />
+                        </h3>
+                        <div>
+                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Bounce Limit</span> <span className="text-white">4 Bounces</span></label>
+                            <input type="range" min="1" max="10" defaultValue="4" className="w-full accent-[#e3b341]" />
+                        </div>
+                        <div className="flex flex-col gap-2 mt-1">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#e3b341] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Calculate Material Absorption</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                               <input type="checkbox" defaultChecked className="accent-[#e3b341] w-3 h-3" />
+                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Doppler Effect Simulation</span>
+                            </label>
+                        </div>
+                     </div>
+
+                     <div className="bg-[#1e1e2d] border border-[#a5d6ff]/30 p-3 rounded flex flex-col gap-3">
+                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#a5d6ff]/30 pb-1 flex justify-between items-center">
+                            <span>Adaptive Foley</span> <ActivitySquare size={12} className="text-[#a5d6ff]" />
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[10px] text-gray-400">Surface Material</label>
+                            <select className="bg-[#0a0a0f] border border-[#2a2b3d] text-white text-xs p-1.5 rounded">
+                                <option>Auto-Detect (Physics Mat)</option>
+                                <option>Gravel / Dirt</option>
+                                <option>Wet Concrete</option>
+                                <option>Hollow Wood</option>
+                            </select>
+                        </div>
+                        <button className="bg-[#a5d6ff]/10 hover:bg-[#a5d6ff]/20 text-[#a5d6ff] border border-[#a5d6ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
+                            <Play size={14} /> Preview Footsteps
+                        </button>
+                     </div>
+                </div>
+                
+                {/* Visualizer Canvas Area for Audio */}
+                <div className="flex-1 relative flex items-center justify-center p-8">
+                     <div className="w-full h-full max-w-4xl max-h-[800px] border border-[#2a2b3d] bg-[#11111b] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shadow-2xl">
+                          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#e3b341 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+                          
+                          {/* Simulated Sound Waves */}
+                          <div className="w-[400px] h-[400px] border border-[#e3b341]/10 rounded-full absolute flex items-center justify-center animate-[ping_4s_ease-out_infinite]"></div>
+                          <div className="w-[200px] h-[200px] border border-[#e3b341]/20 rounded-full absolute flex items-center justify-center animate-[ping_4s_ease-out_infinite_delay-1s]"></div>
+                          <div className="w-[100px] h-[100px] border border-[#e3b341]/40 rounded-full absolute flex items-center justify-center animate-[ping_4s_ease-out_infinite_delay-2s]"></div>
+
+                          <Volume2 size={48} className="text-[#e3b341] z-10" />
+                          <h3 className="text-[#e3b341] font-mono text-xl tracking-widest uppercase mt-6 z-10 bg-[#11111b] px-4 py-1 rounded">Audio Spatializer Viewport</h3>
+                          <p className="text-gray-500 font-mono text-sm mt-2 z-10 bg-[#11111b] px-2 py-1 rounded">Mapping acoustic nodes</p>
+                          
+                          <div className="absolute top-4 left-4 flex gap-2 z-10">
+                              <span className="bg-[#0a0a0f] text-[#e3b341] text-[10px] px-2 py-1 rounded border border-[#e3b341]/30 font-mono">HRTF: ENABLED</span>
+                              <span className="bg-[#0a0a0f] text-gray-400 text-[10px] px-2 py-1 rounded border border-[#2a2b3d] font-mono">CHANNELS: 7.1.4 ATMOS</span>
+                          </div>
+                     </div>
+                </div>
+            </div>
+          )}
+
+          {/* Visual Flow Debugger Overlay */}
+          {activeTab === 'debugger' && (
+            <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0a0a0f] flex">
+                <div className="w-[350px] border-r border-[#2a2b3d] bg-[#11111b] flex flex-col shadow-xl z-20 relative">
+                     <div className="p-4 border-b border-[#2a2b3d]">
+                         <h2 className="text-sm font-bold text-[#f85149] flex items-center gap-2 mb-1">
+                            <Activity size={16} className="animate-pulse" /> Visual Flow Debugger
+                         </h2>
+                         <p className="text-[10px] text-gray-400 leading-tight">Real-time script execution tracing, node inspection, and state variables.</p>
+                     </div>
+                     
+                     <div className="p-3 border-b border-[#2a2b3d] flex items-center gap-2 bg-[#1e1e2d]">
+                         <button className="bg-[#3fb950]/20 text-[#3fb950] border border-[#3fb950]/50 hover:bg-[#3fb950]/30 p-1.5 rounded flex-1 flex justify-center items-center transition-colors" title="Resume Execution">
+                             <Play size={14} />
+                         </button>
+                         <button className="bg-[#f85149]/20 text-[#f85149] border border-[#f85149]/50 hover:bg-[#f85149]/30 p-1.5 rounded flex-1 flex justify-center items-center transition-colors" title="Pause Execution">
+                             <Pause size={14} />
+                         </button>
+                         <button className="bg-[#2a2b3d] text-white border border-[#3fb950]/50 hover:bg-[#3a3b4d] p-1.5 rounded flex-1 flex justify-center items-center transition-colors" title="Step Over">
+                             <FastForward size={14} />
+                         </button>
+                     </div>
+                     
+                     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
+                         <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded">
+                             <h3 className="text-[10px] font-bold text-[#8b949e] uppercase mb-2">Current Context</h3>
+                             <div className="flex flex-col gap-1.5 text-xs font-mono">
+                                 <div className="flex justify-between"><span className="text-[#8b949e]">Script ID:</span><span className="text-[#a5d6ff]">AI_PATROL_042</span></div>
+                                 <div className="flex justify-between"><span className="text-[#8b949e]">Entity:</span><span className="text-[#d2a8ff]">NPC_Guard_01</span></div>
+                                 <div className="flex justify-between"><span className="text-[#8b949e]">State:</span><span className="text-[#ff7b72] animate-pulse">PAUSED (BREAKPOINT)</span></div>
+                                 <div className="flex justify-between"><span className="text-[#8b949e]">Tick:</span><span className="text-white">1,489,021</span></div>
+                             </div>
+                         </div>
+                         
+                         <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex-1">
+                             <h3 className="text-[10px] font-bold text-[#8b949e] uppercase mb-2">Call Stack</h3>
+                             <div className="flex flex-col gap-1">
+                                 <div className="bg-[#f85149]/10 border border-[#f85149]/30 p-1.5 rounded text-[10px] font-mono text-[#f85149]">
+                                     CheckLineOfSight() : line 42
+                                 </div>
+                                 <div className="bg-[#0a0a0f] p-1.5 rounded text-[10px] font-mono text-gray-400">
+                                     UpdatePatrolNode() : line 18
+                                 </div>
+                                 <div className="bg-[#0a0a0f] p-1.5 rounded text-[10px] font-mono text-gray-400">
+                                     MainAILoop() : line 105
+                                 </div>
+                             </div>
+                             
+                             <h3 className="text-[10px] font-bold text-[#8b949e] uppercase mb-2 mt-4">Local Variables</h3>
+                             <div className="flex flex-col gap-1 text-[10px] font-mono">
+                                 <div className="flex justify-between p-1 bg-[#0a0a0f] rounded">
+                                     <span className="text-[#79c0ff]">player_dist</span>
+                                     <span className="text-[#ff7b72]">4.52m</span>
+                                 </div>
+                                 <div className="flex justify-between p-1 bg-[#0a0a0f] rounded">
+                                     <span className="text-[#79c0ff]">alert_level</span>
+                                     <span className="text-[#e3b341]">0.85</span>
+                                 </div>
+                                 <div className="flex justify-between p-1 bg-[#0a0a0f] rounded">
+                                     <span className="text-[#79c0ff]">has_weapon</span>
+                                     <span className="text-[#3fb950]">true</span>
+                                 </div>
+                                 <div className="flex justify-between p-1 bg-[#0a0a0f] rounded">
+                                     <span className="text-[#79c0ff]">target_vec</span>
+                                     <span className="text-[#d2a8ff]">[12.4, 0, -5.2]</span>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                </div>
+
+                <div className="flex-1 relative overflow-hidden bg-[#0a0a0f]">
+                     <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#8b949e 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+                     
+                     <div className="absolute top-4 right-4 bg-[#1e1e2d]/90 backdrop-blur border border-[#f85149]/50 rounded p-2 z-10 shadow-lg shadow-[#f85149]/10">
+                         <div className="flex items-center gap-2 text-[10px] text-[#f85149] font-mono">
+                             <Activity size={12} className="animate-pulse" /> DEBUGGER ATTACHED
+                         </div>
+                     </div>
+
+                     <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                         <defs>
+                             <marker id="arrow-dbg" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                 <polygon points="0 0, 10 3.5, 0 7" fill="#8b949e" />
+                             </marker>
+                             <marker id="arrow-dbg-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                 <polygon points="0 0, 10 3.5, 0 7" fill="#f85149" />
+                             </marker>
+                         </defs>
+                         <path d="M 150 200 C 250 200, 250 100, 350 100" stroke="#8b949e" strokeWidth="2" fill="none" markerEnd="url(#arrow-dbg)" />
+                         <path d="M 150 200 C 250 200, 250 300, 350 300" stroke="#f85149" strokeWidth="3" fill="none" markerEnd="url(#arrow-dbg-active)" />
+                         <path d="M 500 300 C 600 300, 600 200, 700 200" stroke="#8b949e" strokeWidth="2" strokeDasharray="4,4" fill="none" markerEnd="url(#arrow-dbg)" />
+                     </svg>
+
+                     {/* Start Node */}
+                     <div className="absolute top-[170px] left-[50px] w-[100px] bg-[#1e1e2d] border border-[#2a2b3d] rounded-md shadow-lg flex flex-col pointer-events-auto">
+                          <div className="bg-[#1a1a24] p-2 flex items-center justify-center rounded-t-md border-b border-[#2a2b3d]">
+                              <span className="text-[10px] font-bold text-gray-400">Initialize</span>
+                          </div>
+                          <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-[#8b949e] border-2 border-[#1e1e2d]"></div>
+                     </div>
+
+                     {/* Branch Node */}
+                     <div className="absolute top-[260px] left-[350px] w-[150px] bg-[#1e1e2d] border-2 border-[#f85149] rounded-md shadow-xl shadow-[#f85149]/20 flex flex-col pointer-events-auto">
+                          <div className="bg-[#f85149]/20 p-2 flex items-center justify-between rounded-t-md border-b border-[#f85149]/50">
+                              <span className="text-[10px] font-bold text-white flex items-center gap-1"><Scan size={10} className="text-[#f85149]"/> Evaluate Sight</span>
+                              <span className="w-2 h-2 bg-[#f85149] rounded-full animate-ping"></span>
+                          </div>
+                          <div className="p-2 bg-[#1e1e2d] text-[9px] font-mono text-gray-300 rounded-b-md">
+                              <div>if (distance &lt; 5m)</div>
+                              <div className="text-[#ff7b72] bg-[#f85149]/10 px-1 rounded inline-block mt-1">=&gt; TRUE</div>
+                          </div>
+                          <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-[#f85149] border-2 border-[#1e1e2d]"></div>
+                          <div className="absolute top-[20%] -right-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-[#8b949e] border-2 border-[#1e1e2d]"></div>
+                          <div className="absolute top-[80%] -right-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-[#ff7b72] border-2 border-[#1e1e2d] shadow-[0_0_8px_#ff7b72]"></div>
+                     </div>
+
+                     {/* Idle Node */}
+                     <div className="absolute top-[60px] left-[350px] w-[120px] bg-[#1e1e2d] border border-[#2a2b3d] rounded-md shadow-lg flex flex-col pointer-events-auto opacity-50">
+                          <div className="bg-[#1a1a24] p-2 flex items-center justify-center rounded-t-md border-b border-[#2a2b3d]">
+                              <span className="text-[10px] font-bold text-gray-400">Idle Behavior</span>
+                          </div>
+                          <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-[#8b949e] border-2 border-[#1e1e2d]"></div>
+                     </div>
+                     
+                     {/* Attack Node */}
+                     <div className="absolute top-[170px] left-[700px] w-[140px] bg-[#1e1e2d] border border-[#2a2b3d] rounded-md shadow-lg flex flex-col pointer-events-auto">
+                          <div className="bg-[#1a1a24] p-2 flex items-center justify-center rounded-t-md border-b border-[#2a2b3d]">
+                              <span className="text-[10px] font-bold text-gray-400">Trigger Combat</span>
+                          </div>
+                          <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 rounded-full bg-[#8b949e] border-2 border-[#1e1e2d]"></div>
+                     </div>
+
+                     <div className="absolute bottom-4 left-4 bg-[#11111b] border border-[#2a2b3d] rounded-lg p-2 text-[10px] font-mono text-gray-400 shadow-xl max-w-lg">
+                          <div className="text-[#f85149] mb-1 font-bold">Log Output:</div>
+                          <div>[10:42:01] System: Spawned NPC_Guard_01 at [0, 10, 0]</div>
+                          <div>[10:42:05] AI: Navigating to waypoint Alpha</div>
+                          <div className="text-[#e3b341]">[10:42:12] Sensor: Player entered detection radius (4.52m)</div>
+                          <div className="text-[#f85149]">[10:42:12] DEBUG: Breakpoint hit in CheckLineOfSight()</div>
+                     </div>
                 </div>
             </div>
           )}

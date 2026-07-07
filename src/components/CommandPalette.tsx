@@ -46,14 +46,26 @@ export default function CommandPalette({ tools, onSelect }: CommandPaletteProps)
 
   if (!isOpen) return null;
 
+  const allTools = tools.reduce((acc: Tool[], t) => {
+    acc.push(t);
+    if ((t as any).subTools) {
+      acc.push(...(t as any).subTools.map((sub: any) => ({
+        ...sub,
+        category: t.category,
+        activeColor: t.activeColor
+      })));
+    }
+    return acc;
+  }, []);
+
   const filteredTools = query
-    ? tools.filter(
+    ? allTools.filter(
         (t) =>
           t.title.toLowerCase().includes(query.toLowerCase()) ||
           t.id.toLowerCase().includes(query.toLowerCase()) ||
           t.category.toLowerCase().includes(query.toLowerCase())
       )
-    : tools;
+    : allTools;
 
   const handleSelect = (id: string) => {
     onSelect(id);

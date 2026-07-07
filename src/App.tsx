@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import {
   Zap,
   Command,
@@ -68,143 +68,200 @@ import {
   Wifi,
   Puzzle,
   CircuitBoard,
-} from "lucide-react";
+  Sparkles,
+  MessageCircle,
+  Ear,
+  Mountain,
+  Volume2,
+  Code2,
+Dna, FileText} from "lucide-react";
 import { LanguageCode } from "./contexts/LanguageContext";
-import ArchitectureDevOpsEditor from "./components/ArchitectureDevOpsEditor";
-import AssetStore from "./components/AssetStore";
-import BasicSkeletonModel from "./components/BasicSkeletonModel";
-import BlueprintEditor from "./components/BlueprintEditor";
-import BuildPublishEditor from "./components/BuildPublishEditor";
-import ChronoDebugger from "./components/ChronoDebugger";
-import CinematicDirector from "./components/CinematicDirector";
-import CinematicLightingEditor from "./components/CinematicLightingEditor";
-import CinematicSequencerEditor from "./components/CinematicSequencerEditor";
-import CodeEditor from "./components/CodeEditor";
-import CodeProfilerTracer from "./components/CodeProfilerTracer";
-import ContentBrowser from "./components/ContentBrowser";
-import CutsceneEditor from "./components/CutsceneEditor";
-import DataTableEditor from "./components/DataTableEditor";
-import DeviceDriverConfigPanel from "./components/DeviceDriverConfigPanel";
-import EconomicBalancer from "./components/EconomicBalancer";
-import EngineCoreEditor from "./components/EngineCoreEditor";
-import FigmaStyleCanvas from "./components/FigmaStyleCanvas";
-import GameEconomyBalancer from "./components/GameEconomyBalancer";
-import GameEngineProfiler from "./components/GameEngineProfiler";
-import GamePreview from "./components/GamePreview";
-import GameSystemsEditor from "./components/GameSystemsEditor";
-import PCGEditor from "./components/PCGEditor";
-import LocalAIStudio from "./components/LocalAIStudio";
-import BatchAIImporter from "./components/BatchAIImporter";
-import VoiceMusicStudio from "./components/VoiceMusicStudio";
-import GPUComputeCluster from "./components/GPUComputeCluster";
-import AIOfflinePCBStudio from "./components/AIOfflinePCBStudio";
-import AICommandCenter from "./components/AICommandCenter";
-import AudioEditor from "./components/AudioEditor";
-import GitPanel from "./components/GitPanel";
-import GlobalSearchPanel from "./components/GlobalSearchPanel";
-import GlobalUniversalDetailsPanel from "./components/GlobalUniversalDetailsPanel";
-import GraphicsRenderEditor from "./components/GraphicsRenderEditor";
-import HardwareProfilerOverlay from "./components/HardwareProfilerOverlay";
-import HoudiniStyleProceduralNode from "./components/HoudiniStyleProceduralNode";
-import IDECompilerCore from "./components/IDECompilerCore";
-import ImageEditor from "./components/ImageEditor";
-import LiveOpsDashboard from "./components/LiveOpsDashboard";
-import LiveOpsEventScheduler from "./components/LiveOpsEventScheduler";
-import LogViewer from "./components/LogViewer";
-import MLAgentsEditor from "./components/MLAgentsEditor";
-import MapEdit from "./components/MapEdit";
-import ManualSequenceRecorder from "./components/ManualSequenceRecorder";
-import MaterialEditor from "./components/MaterialEditor";
-import MetaHumanEditor from "./components/MetaHumanEditor";
-import ModdingWorkshopPublisher from "./components/ModdingWorkshopPublisher";
-import ModelingEditor from "./components/ModelingEditor";
-import NPCEditor from "./components/NPCEditor";
-import NavMeshRouter from "./components/NavMeshRouter";
-import NetcodeEditor from "./components/NetcodeEditor";
-import NetworkReplicationSim from "./components/NetworkReplicationSim";
-import NetworkSim from "./components/NetworkSim";
-import AIWorkflowEditor from "./components/AIWorkflowEditor";
-import Offline3DModeler from "./components/Offline3DModeler";
-import AIOfflineDownloader from "./components/AIOfflineDownloader";
-import OmniAIAssistantStudio from "./components/OmniAIAssistantStudio";
-import OmniAnimationStudio from "./components/OmniAnimationStudio";
-import OmniAudioDSPStudio from "./components/OmniAudioDSPStudio";
-import OmniBackendNetworkingStudio from "./components/OmniBackendNetworkingStudio";
-import OmniCreatorMaster from "./components/OmniCreatorMaster";
-import OmniEngineIDE from "./components/OmniEngineIDE";
-import OmniMegaWorldBuilder from "./components/OmniMegaWorldBuilder";
-import OmniNarrativeQuestStudio from "./components/OmniNarrativeQuestStudio";
-import OmniVFXCompositorStudio from "./components/OmniVFXCompositorStudio";
-import OmniVFXParticleStudio from "./components/OmniVFXParticleStudio";
-import OmniVisualScriptingEngine from "./components/OmniVisualScriptingEngine";
-import OptimizationEncyclopedia from "./components/OptimizationEncyclopedia";
-import OptimizationOverview from "./components/OptimizationOverview";
-import PerformanceProfiler from "./components/PerformanceProfiler";
-import Photogrammetry3DScanner from "./components/Photogrammetry3DScanner";
-import PhotogrammetryMeshBuilder from "./components/PhotogrammetryMeshBuilder";
-import PipelineEditor from "./components/PipelineEditor";
-import PopOutPanel from "./components/PopOutPanel";
-import ProceduralAssetStudio from "./components/ProceduralAssetStudio";
-import ProjectSettingsEditor from "./components/ProjectSettingsEditor";
-import QuickStartDashboard from "./components/QuickStartDashboard";
-import RenderFarmManager from "./components/RenderFarmManager";
-import ResourceUsageTab from "./components/ResourceUsageTab";
-import ScriptEditor from "./components/ScriptEditor";
-import SettingsModal from "./components/SettingsModal";
-import SkillForgeEditor from "./components/SkillForgeEditor";
-import SubstanceStyleTexturePainter from "./components/SubstanceStyleTexturePainter";
-import TaskPanel from "./components/TaskPanel";
-import TerrainGenerator from "./components/TerrainGenerator";
-import ThaiPhoneticsEngine from "./components/ThaiPhoneticsEngine";
-import NexusPluginArchitect from "./components/NexusPluginArchitect";
-import TopologyUVPro from "./components/TopologyUVPro";
-import UIUXEditor from "./components/UIUXEditor";
-import UXCognitiveLoadSim from "./components/UXCognitiveLoadSim";
-import VRXREngineEditor from "./components/VRXREngineEditor";
-import VehicleDynamicsEditor from "./components/VehicleDynamicsEditor";
-import VehicleDynamicsTuner from "./components/VehicleDynamicsTuner";
-import Viewport3D from "./components/Viewport3D";
-import WorldLoreEditor from "./components/WorldLoreEditor";
-import ZBrushStyleSculptingStudio from "./components/ZBrushStyleSculptingStudio";
-import CommandPalette from "./components/CommandPalette";
-import RegexTesterPanel from "./components/RegexTesterPanel";
-import FontEditor from "./components/FontEditor";
-import EyeTrackingHeatmap from "./components/EyeTrackingHeatmap";
-import MonsterEditor from "./components/MonsterEditor";
-import InputMapping from "./components/InputMappingEditor";
-import AccessibilityTester from "./components/AccessibilityTester";
-import VideoEncoderStudio from "./components/VideoEncoderStudio";
-import HexEditorPanel from "./components/HexEditorPanel";
-import ASTNodeWeaver from "./components/ASTNodeWeaver";
-import GenericToolPanel from "./components/GenericToolPanel";
-import KernelDebugger from "./components/KernelDebugger";
-import MemoryProfiler from "./components/MemoryProfiler";
-import SystemTap from "./components/SystemTap";
-import AppProfiler from "./components/AppProfiler";
-import VCSConflict from "./components/VCSConflict";
-import HardwareConfig from "./components/HardwareConfig";
-import TerminalSvr from "./components/TerminalSvr";
-import DockerManager from "./components/DockerManager";
-import BuildMonitor from "./components/BuildMonitor";
-import CompilerTool from "./components/CompilerTool";
-import CloudBuildPipeline from "./components/CloudBuildPipeline";
-import VectorHybrid from "./components/VectorHybrid";
-import SpriteSheetGen from "./components/SpriteSheetGen";
-import InteractionPrototyper from "./components/InteractionPrototyper";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-import AIChat from "./components/AIChat";
-import { MessageCircle } from "lucide-react";
+const AdvancedPhysicsEngine = React.lazy(() => import("./components/AdvancedPhysicsEngine"));
+const AdvancedEvolutionSystem = React.lazy(() => import("./components/AdvancedEvolutionSystem"));
+const ArchitectureDevOpsEditor = React.lazy(() => import("./components/ArchitectureDevOpsEditor"));
+const AssetStore = React.lazy(() => import("./components/AssetStore"));
+const BasicSkeletonModel = React.lazy(() => import("./components/BasicSkeletonModel"));
+const BlueprintEditor = React.lazy(() => import("./components/BlueprintEditor"));
+const BuildPublishEditor = React.lazy(() => import("./components/BuildPublishEditor"));
+const ChronoDebugger = React.lazy(() => import("./components/ChronoDebugger"));
+const CinematicDirector = React.lazy(() => import("./components/CinematicDirector"));
+const CinematicLightingEditor = React.lazy(() => import("./components/CinematicLightingEditor"));
+const CinematicSequencerEditor = React.lazy(() => import("./components/CinematicSequencerEditor"));
+const CodeEditor = React.lazy(() => import("./components/CodeEditor"));
+const CodeProfilerTracer = React.lazy(() => import("./components/CodeProfilerTracer"));
+const ContentBrowser = React.lazy(() => import("./components/ContentBrowser"));
+const CutsceneEditor = React.lazy(() => import("./components/CutsceneEditor"));
+const DataTableEditor = React.lazy(() => import("./components/DataTableEditor"));
+const DeviceDriverConfigPanel = React.lazy(() => import("./components/DeviceDriverConfigPanel"));
+const EconomicBalancer = React.lazy(() => import("./components/EconomicBalancer"));
+const EngineCoreEditor = React.lazy(() => import("./components/EngineCoreEditor"));
+const FigmaStyleCanvas = React.lazy(() => import("./components/FigmaStyleCanvas"));
+const GameEconomyBalancer = React.lazy(() => import("./components/GameEconomyBalancer"));
+const GameEngineProfiler = React.lazy(() => import("./components/GameEngineProfiler"));
+const GamePreview = React.lazy(() => import("./components/GamePreview"));
+const GameSystemsEditor = React.lazy(() => import("./components/GameSystemsEditor"));
+const PCGEditor = React.lazy(() => import("./components/PCGEditor"));
+const LocalAIStudio = React.lazy(() => import("./components/LocalAIStudio"));
+const BatchAIImporter = React.lazy(() => import("./components/BatchAIImporter"));
+const VoiceMusicStudio = React.lazy(() => import("./components/VoiceMusicStudio"));
+const GPUComputeCluster = React.lazy(() => import("./components/GPUComputeCluster"));
+
+const AIOfflineOCREngine = React.lazy(() => import("./components/AIOfflineOCREngine"));
+const AIOfflinePCBStudio = React.lazy(() => import("./components/AIOfflinePCBStudio"));
+const AICommandCenter = React.lazy(() => import("./components/AICommandCenter"));
+const AudioEditor = React.lazy(() => import("./components/AudioEditor"));
+const GitPanel = React.lazy(() => import("./components/GitPanel"));
+const GlobalSearchPanel = React.lazy(() => import("./components/GlobalSearchPanel"));
+const PerformanceDashboard = React.lazy(() => import("./components/PerformanceDashboard"));
+const GlobalUniversalDetailsPanel = React.lazy(() => import("./components/GlobalUniversalDetailsPanel"));
+const GraphicsRenderEditor = React.lazy(() => import("./components/GraphicsRenderEditor"));
+const HardwareProfilerOverlay = React.lazy(() => import("./components/HardwareProfilerOverlay"));
+const HoudiniStyleProceduralNode = React.lazy(() => import("./components/HoudiniStyleProceduralNode"));
+const IDECompilerCore = React.lazy(() => import("./components/IDECompilerCore"));
+const ImageEditor = React.lazy(() => import("./components/ImageEditor"));
+const LiveOpsDashboard = React.lazy(() => import("./components/LiveOpsDashboard"));
+const LiveOpsEventScheduler = React.lazy(() => import("./components/LiveOpsEventScheduler"));
+const LogViewer = React.lazy(() => import("./components/LogViewer"));
+const MLAgentsEditor = React.lazy(() => import("./components/MLAgentsEditor"));
+const MapEdit = React.lazy(() => import("./components/MapEdit"));
+const ManualSequenceRecorder = React.lazy(() => import("./components/ManualSequenceRecorder"));
+const MaterialEditor = React.lazy(() => import("./components/MaterialEditor"));
+const MetaHumanEditor = React.lazy(() => import("./components/MetaHumanEditor"));
+const ModdingWorkshopPublisher = React.lazy(() => import("./components/ModdingWorkshopPublisher"));
+const ModelingEditor = React.lazy(() => import("./components/ModelingEditor"));
+const NPCEditor = React.lazy(() => import("./components/NPCEditor"));
+const NavMeshRouter = React.lazy(() => import("./components/NavMeshRouter"));
+const NetcodeEditor = React.lazy(() => import("./components/NetcodeEditor"));
+const NetworkReplicationSim = React.lazy(() => import("./components/NetworkReplicationSim"));
+const NetworkSim = React.lazy(() => import("./components/NetworkSim"));
+const AIWorkflowEditor = React.lazy(() => import("./components/AIWorkflowEditor"));
+const Offline3DModeler = React.lazy(() => import("./components/Offline3DModeler"));
+const AIOfflineDownloader = React.lazy(() => import("./components/AIOfflineDownloader"));
+const OmniAIAssistantStudio = React.lazy(() => import("./components/OmniAIAssistantStudio"));
+const OmniAnimationStudio = React.lazy(() => import("./components/OmniAnimationStudio"));
+const OmniAudioDSPStudio = React.lazy(() => import("./components/OmniAudioDSPStudio"));
+const OmniBackendNetworkingStudio = React.lazy(() => import("./components/OmniBackendNetworkingStudio"));
+const OmniCreatorMaster = React.lazy(() => import("./components/OmniCreatorMaster"));
+const OmniEngineIDE = React.lazy(() => import("./components/OmniEngineIDE"));
+const OmniMegaWorldBuilder = React.lazy(() => import("./components/OmniMegaWorldBuilder"));
+const OmniNarrativeQuestStudio = React.lazy(() => import("./components/OmniNarrativeQuestStudio"));
+const OmniVFXCompositorStudio = React.lazy(() => import("./components/OmniVFXCompositorStudio"));
+const OmniVFXParticleStudio = React.lazy(() => import("./components/OmniVFXParticleStudio"));
+const OmniVisualScriptingEngine = React.lazy(() => import("./components/OmniVisualScriptingEngine"));
+const OptimizationEncyclopedia = React.lazy(() => import("./components/OptimizationEncyclopedia"));
+const OptimizationOverview = React.lazy(() => import("./components/OptimizationOverview"));
+const PerformanceProfiler = React.lazy(() => import("./components/PerformanceProfiler"));
+const Photogrammetry3DScanner = React.lazy(() => import("./components/Photogrammetry3DScanner"));
+const PhotogrammetryMeshBuilder = React.lazy(() => import("./components/PhotogrammetryMeshBuilder"));
+const PipelineEditor = React.lazy(() => import("./components/PipelineEditor"));
+const PopOutPanel = React.lazy(() => import("./components/PopOutPanel"));
+const ProceduralAssetStudio = React.lazy(() => import("./components/ProceduralAssetStudio"));
+const ProjectSettingsEditor = React.lazy(() => import("./components/ProjectSettingsEditor"));
+const QuickStartDashboard = React.lazy(() => import("./components/QuickStartDashboard"));
+const RenderFarmManager = React.lazy(() => import("./components/RenderFarmManager"));
+const ResourceUsageTab = React.lazy(() => import("./components/ResourceUsageTab"));
+const ScriptEditor = React.lazy(() => import("./components/ScriptEditor"));
+const SettingsModal = React.lazy(() => import("./components/SettingsModal"));
+const SkillForgeEditor = React.lazy(() => import("./components/SkillForgeEditor"));
+const SubstanceStyleTexturePainter = React.lazy(() => import("./components/SubstanceStyleTexturePainter"));
+const TaskPanel = React.lazy(() => import("./components/TaskPanel"));
+
+const TerrainImportUtility = React.lazy(() => import("./components/TerrainImportUtility"));
+const TerrainGenerator = React.lazy(() => import("./components/TerrainGenerator"));
+const ThaiPhoneticsEngine = React.lazy(() => import("./components/ThaiPhoneticsEngine"));
+const NexusPluginArchitect = React.lazy(() => import("./components/NexusPluginArchitect"));
+const TopologyUVPro = React.lazy(() => import("./components/TopologyUVPro"));
+const AIHubMasterMenu = React.lazy(() => import("./components/AIHubMasterMenu"));
+const UIUXEditor = React.lazy(() => import("./components/UIUXEditor"));
+const UXCognitiveLoadSim = React.lazy(() => import("./components/UXCognitiveLoadSim"));
+const VRXREngineEditor = React.lazy(() => import("./components/VRXREngineEditor"));
+const VehicleDynamicsEditor = React.lazy(() => import("./components/VehicleDynamicsEditor"));
+const VehicleDynamicsTuner = React.lazy(() => import("./components/VehicleDynamicsTuner"));
+const Viewport3D = React.lazy(() => import("./components/Viewport3D"));
+const WorldLoreEditor = React.lazy(() => import("./components/WorldLoreEditor"));
+const ZBrushStyleSculptingStudio = React.lazy(() => import("./components/ZBrushStyleSculptingStudio"));
+const CommandPalette = React.lazy(() => import("./components/CommandPalette"));
+const RegexTesterPanel = React.lazy(() => import("./components/RegexTesterPanel"));
+const FontEditor = React.lazy(() => import("./components/FontEditor"));
+const EyeTrackingHeatmap = React.lazy(() => import("./components/EyeTrackingHeatmap"));
+const MonsterEditor = React.lazy(() => import("./components/MonsterEditor"));
+const InputMapping = React.lazy(() => import("./components/InputMappingEditor"));
+const AccessibilityTester = React.lazy(() => import("./components/AccessibilityTester"));
+const VideoEncoderStudio = React.lazy(() => import("./components/VideoEncoderStudio"));
+const HexEditorPanel = React.lazy(() => import("./components/HexEditorPanel"));
+const ASTNodeWeaver = React.lazy(() => import("./components/ASTNodeWeaver"));
+const GenericToolPanel = React.lazy(() => import("./components/GenericToolPanel"));
+const KernelDebugger = React.lazy(() => import("./components/KernelDebugger"));
+const MemoryProfiler = React.lazy(() => import("./components/MemoryProfiler"));
+const SystemTap = React.lazy(() => import("./components/SystemTap"));
+const AppProfiler = React.lazy(() => import("./components/AppProfiler"));
+const VCSConflict = React.lazy(() => import("./components/VCSConflict"));
+const HardwareConfig = React.lazy(() => import("./components/HardwareConfig"));
+const TerminalSvr = React.lazy(() => import("./components/TerminalSvr"));
+const DockerManager = React.lazy(() => import("./components/DockerManager"));
+const BuildMonitor = React.lazy(() => import("./components/BuildMonitor"));
+const CompilerTool = React.lazy(() => import("./components/CompilerTool"));
+const CloudBuildPipeline = React.lazy(() => import("./components/CloudBuildPipeline"));
+const VectorHybrid = React.lazy(() => import("./components/VectorHybrid"));
+const SpriteSheetGen = React.lazy(() => import("./components/SpriteSheetGen"));
+const InteractionPrototyper = React.lazy(() => import("./components/InteractionPrototyper"));
+
+const UltimateOfflineAIStudio = React.lazy(() => import("./components/UltimateOfflineAIStudio"));
+
+const AIChat = React.lazy(() => import("./components/AIChat"));
+
+const AdvancedPCGEngine = React.lazy(() => import("./components/AdvancedPCGEngine"));
+const ChaosPhysicsFluidEngine = React.lazy(() => import("./components/ChaosPhysicsFluidEngine"));
+const SpatialAudioFoleyStudio = React.lazy(() => import("./components/SpatialAudioFoleyStudio"));
+const VisualFlowDebugger = React.lazy(() => import("./components/VisualFlowDebugger"));
+const AdvancedSceneEditor = React.lazy(() => import("./components/AdvancedSceneEditor"));
+const VisualScriptEditor = React.lazy(() => import("./components/VisualScriptEditor"));
+const ParticleEffectEditor = React.lazy(() => import("./components/ParticleEffectEditor"));
+
+
+const AdvancedTimelineEditor = React.lazy(() => import("./components/AdvancedTimelineEditor"));
+const TerrainEditor = React.lazy(() => import("./components/TerrainEditor"));
+const AdvancedDialogueSystem = React.lazy(() => import("./components/AdvancedDialogueSystem"));
+const QuestDesigner = React.lazy(() => import("./components/QuestDesigner"));
+const AdvancedAudioEditor = React.lazy(() => import("./components/AdvancedAudioEditor"));
+const AdvancedAnimationBlender = React.lazy(() => import("./components/AdvancedAnimationBlender"));
+const AdvancedShaderEditor = React.lazy(() => import("./components/AdvancedShaderEditor"));
+const AdvancedDebuggingTools = React.lazy(() => import("./components/AdvancedDebuggingTools"));
+const MachineLearningIntegration = React.lazy(() => import("./components/MachineLearningIntegration"));
+const AdvancedSecuritySystem = React.lazy(() => import("./components/AdvancedSecuritySystem"));
+const AdvancedLocalizationSystem = React.lazy(() => import("./components/AdvancedLocalizationSystem"));
+const AdvancedAnalyticsTelemetry = React.lazy(() => import("./components/AdvancedAnalyticsTelemetry"));
+const AdvancedMarketplaceSystem = React.lazy(() => import("./components/AdvancedMarketplaceSystem"));
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState("OmniCreatorMaster");
-  const [showGlobalChat, setShowGlobalChat] = useState(false);
+  const [activeTool, setActiveTool] = useState(() => {
+    return localStorage.getItem("omni_activeTool") || "OmniCreatorMaster";
+  });
+  const [showGlobalChat, setShowGlobalChat] = useState(() => {
+    return localStorage.getItem("omni_showGlobalChat") === "true";
+  });
   const [globalCode, setGlobalCode] = useState("");
-  const [globalLanguage, setGlobalLanguage] = useState<LanguageCode>(
-    "cpp" as any,
-  );
+  const [globalLanguage, setGlobalLanguage] = useState<LanguageCode>("cpp" as any);
 
-  const [chatSize, setChatSize] = useState({ width: 315, height: 420 });
+  const [chatSize, setChatSize] = useState(() => {
+    const saved = localStorage.getItem("omni_chatSize");
+    return saved ? JSON.parse(saved) : { width: 315, height: 420 };
+  });
   const [isResizing, setIsResizing] = useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem("omni_activeTool", activeTool);
+  }, [activeTool]);
+
+  React.useEffect(() => {
+    localStorage.setItem("omni_showGlobalChat", showGlobalChat.toString());
+  }, [showGlobalChat]);
+
+  React.useEffect(() => {
+    localStorage.setItem("omni_chatSize", JSON.stringify(chatSize));
+  }, [chatSize]);
 
   React.useEffect(() => {
     const handleSwitchTool = (e: any) => {
@@ -239,6 +296,13 @@ export default function App() {
   }, [isResizing]);
 
   const tools = [
+
+    { id: "TerrainImportUtility", title: "Terrain Importer", icon: <Map size={16} /> },
+
+
+    { id: "AdvancedPhysicsEngine", title: "Physics & Simulation", icon: <Box size={16} /> },
+    { id: "AdvancedEvolutionSystem", title: "Evolution System", icon: <Dna size={16} /> },
+
     // 🌟 ASCENSION & DASHBOARD
     {
       id: "OmniCreatorMaster",
@@ -248,152 +312,83 @@ export default function App() {
       category: "🌟 ASCENSION STUDIO",
     },
     {
-      id: "QuickStart",
-      title: "Home / Project Hub",
+      id: "ProjectHub",
+      title: "Project & Task Hub",
       icon: <Rocket size={20} />,
       activeColor: "text-[#e3b341]",
       category: "🌟 ASCENSION STUDIO",
-    },
-    {
-      id: "TaskPanel",
-      title: "Agile Task Sprint Board",
-      icon: <SearchCode size={20} />,
-      activeColor: "text-[#3fb950]",
-      category: "🌟 ASCENSION STUDIO",
+      subTools: [
+        { id: "QuickStart", title: "Home / Project Hub", icon: <Rocket size={16} /> },
+        { id: "TaskPanel", title: "Agile Task Sprint Board", icon: <SearchCode size={16} /> }
+      ]
     },
 
     // 🤖 AI & LOGIC
     {
-      id: "AIOfflineDownloader",
-      title: "Ultimate Offline AI Hub (100% On-Device Models)",
-      icon: <Cpu size={20} />,
-      activeColor: "text-[#3fb950]",
-      category: "🤖 AI & LOGIC",
-    },
-    {
-      id: "AICommandCenter",
-      title: "AI Swarm Command Center & Orchestrator",
-      icon: <Bot size={20} />,
-      activeColor: "text-[#f85149]",
-      category: "🤖 AI & LOGIC",
-    },
-    {
-      id: "LocalAIStudio",
-      title: "Local AI Studio & Neural Engine Manager",
-      icon: <Brain size={20} />,
-      activeColor: "text-[#bc8cff]",
-      category: "🤖 AI & LOGIC",
-    },
-    {
-      id: "OmniAIAssistantStudio",
-      title: "AI Swarm & Offline Models Assistant",
+      id: "AIHubMaster",
+      title: "AI Swarm & Neural Hub",
       icon: <Bot size={20} />,
       activeColor: "text-[#bc8cff]",
       category: "🤖 AI & LOGIC",
     },
     {
-      id: "Workflow",
-      title: "AI Workflow & Node Graph Pipelines",
-      icon: <Waypoints size={20} />,
-      activeColor: "text-[#58a6ff]",
-      category: "🤖 AI & LOGIC",
-    },
-    {
-      id: "BatchAIImporter",
-      title: "Batch AI Asset & Knowledge Importer",
-      icon: <Cloud size={20} />,
-      activeColor: "text-[#e3b341]",
-      category: "🤖 AI & LOGIC",
-    },
-    {
-      id: "OmniVisualScripting",
-      title: "Visual Node Workflow",
-      icon: <Network size={20} />,
-      activeColor: "text-[#58a6ff]",
-      category: "🤖 AI & LOGIC",
-    },
-    {
-      id: "Select",
+      id: "CodeIDEHub",
       title: "Code Editor & IDE",
       icon: <TerminalSquare size={20} />,
       activeColor: "text-[#ff7b72]",
       category: "🤖 AI & LOGIC",
+      subTools: [
+        { id: "Select", title: "Text Code Editor", icon: <Code2 size={16} /> },
+        { id: "VisualScripting", title: "Visual Script Editor", icon: <Network size={16} /> },
+        { id: "VisualFlowDebugger", title: "Visual Flow Debugger", icon: <Bug size={16} /> }
+      ]
     },
 
     // 🌍 WORLD & MAPS
     {
-      id: "OmniWorldBuilder",
-      title: "Omni MegaWorld Builder (2D/3D/Terrain)",
+      id: "WorldHub",
+      title: "World & Level Hub",
       icon: <Globe size={20} />,
       activeColor: "text-[#58a6ff]",
       category: "🌍 WORLD BUILDING",
-    },
-    {
-      id: "MapEdit",
-      title: "Map Edit (Level & Instance Editor)",
-      icon: <Map size={20} />,
-      activeColor: "text-[#3fb950]",
-      category: "🌍 WORLD BUILDING",
+      subTools: [
+        { id: "OmniWorldBuilder", title: "Omni MegaWorld Builder (2D/3D)", icon: <Globe size={16} /> },
+        { id: "AdvancedSceneEditor", title: "Advanced Scene Editor", icon: <Layers size={16} /> },
+        { id: "AdvancedPCGEngine", title: "Advanced PCG Gen", icon: <Mountain size={16} /> },
+        { id: "MapEdit", title: "Map Edit (Level Editor)", icon: <Map size={16} /> }
+      ]
     },
 
     // 🎮 GAME DESIGN & LORE
     {
-      id: "GameSystems",
-      title: "Game Systems Editor",
+      id: "GameDesignHub",
+      title: "Game Design & Logic Hub",
       icon: <Blocks size={20} />,
       activeColor: "text-[#58a6ff]",
       category: "🎮 GAME DESIGN",
-    },
-    {
-      id: "NPCEdit",
-      title: "Entity & NPC Editor",
-      icon: <Users size={20} />,
-      activeColor: "text-[#ff7b72]",
-      category: "🎮 GAME DESIGN",
-    },
-    {
-      id: "WorldLore",
-      title: "World Lore & Story",
-      icon: <BookOpen size={20} />,
-      activeColor: "text-[#bc8cff]",
-      category: "🎮 GAME DESIGN",
-    },
-    {
-      id: "EconomicBalancer",
-      title: "Combat & Economy Balance",
-      icon: <Database size={20} />,
-      activeColor: "text-[#e3b341]",
-      category: "🎮 GAME DESIGN",
+      subTools: [
+        { id: "GameSystems", title: "Game Systems Editor", icon: <Blocks size={16} /> },
+        { id: "ChaosPhysicsFluidEngine", title: "Chaos & Fluid Physics", icon: <Flame size={16} /> },
+        { id: "NPCEdit", title: "Entity & NPC Editor", icon: <Users size={16} /> },
+        { id: "WorldLore", title: "World Lore & Story", icon: <BookOpen size={16} /> },
+        { id: "EconomicBalancer", title: "Combat & Economy", icon: <Database size={16} /> }
+      ]
     },
 
     // 🎨 ART, 3D & TEXTURES
     {
-      id: "Modeling",
-      title: "3D/2D Modeling Studio",
+      id: "ArtStudioHub",
+      title: "Art & Modeling Studio",
       icon: <Box size={20} />,
       activeColor: "text-[#e3b341]",
       category: "🎨 ART STUDIO",
-    },
-    {
-      id: "PhotogrammetryMeshBuilder",
-      title: "Photogrammetry Scanner",
-      icon: <Camera size={20} />,
-      activeColor: "text-[#bc8cff]",
-      category: "🎨 ART STUDIO",
-    },
-    {
-      id: "ImageEdit",
-      title: "Texture & Material Editor",
-      icon: <Palette size={20} />,
-      activeColor: "text-[#ff7b72]",
-      category: "🎨 ART STUDIO",
-    },
-    {
-      id: "OmniVFXStudio",
-      title: "VFX & Particle Studio",
-      icon: <Flame size={20} />,
-      activeColor: "text-[#f85149]",
-      category: "🎨 ART STUDIO",
+      subTools: [
+        { id: "Modeling", title: "3D/2D Modeling Studio", icon: <Box size={16} /> },
+        { id: "PhotogrammetryMeshBuilder", title: "Photogrammetry Scanner", icon: <Camera size={16} /> },
+        { id: "ImageEdit", title: "Texture & Material Editor", icon: <Palette size={16} /> },
+        { id: "OmniVFXStudio", title: "VFX & Particle Studio", icon: <Flame size={16} /> },
+        { id: "ParticleEffectEditor", title: "Particle Effect Designer", icon: <Sparkles size={16} /> }
+      ]
     },
 
     // 📐 UI & UX
@@ -407,110 +402,142 @@ export default function App() {
 
     // 🎵 AUDIO & VOICE
     {
-      id: "VoiceMusicStudio",
-      title: "Voice & Procedural Audio Studio",
-      icon: <Mic2 size={20} />,
-      activeColor: "text-[#58a6ff]",
+      id: "AudioStudioHub",
+      title: "Audio & Music Studio Hub",
+      icon: <Volume2 size={20} />,
+      activeColor: "text-[#a371f7]",
       category: "🎵 AUDIO & SOUND",
+      subTools: [
+        { id: "VoiceMusicStudio", title: "Voice & Procedural Audio", icon: <Mic2 size={16} /> },
+        { id: "SpatialAudioFoley", title: "Spatial Audio & Foley", icon: <Ear size={16} /> }
+      ]
     },
 
     // 🎬 CINEMATICS & ANIMATION
     {
-      id: "Sequencer",
-      title: "Timeline & Cinematic Sequencer",
+      id: "AnimationHub",
+      title: "Cinematics & Animation",
       icon: <Clapperboard size={20} />,
       activeColor: "text-[#bc8cff]",
       category: "🎬 ANIMATION",
-    },
-    {
-      id: "OmniAnimationStudio",
-      title: "MoCap & Rigging Studio",
-      icon: <PersonStanding size={20} />,
-      activeColor: "text-[#58a6ff]",
-      category: "🎬 ANIMATION",
+      subTools: [
+        { id: "Sequencer", title: "Timeline & Cinematic Sequencer", icon: <Clapperboard size={16} /> },
+        { id: "OmniAnimationStudio", title: "MoCap & Rigging Studio", icon: <PersonStanding size={16} /> }
+      ]
     },
 
     // ⚙️ ENGINE & DEVOPS
     {
-      id: "GPUComputeCluster",
-      title: "Multi-GPU Compute Cluster",
+      id: "EngineDevOpsHub",
+      title: "Core Engine & DevOps",
       icon: <Zap size={20} />,
-      activeColor: "text-[#bc8cff]",
-      category: "⚙️ CORE ENGINE",
-    },
-    {
-      id: "AIOfflinePCBStudio",
-      title: "AI Offline PCB Studio & Embedded OS",
-      icon: <CircuitBoard size={20} />,
-      activeColor: "text-[#3fb950]",
-      category: "⚙️ CORE ENGINE",
-    },
-    {
-      id: "ProjectSettings",
-      title: "Project Core Settings",
-      icon: <Wrench size={20} />,
-      activeColor: "text-[#bc8cff]",
-      category: "⚙️ CORE ENGINE",
-    },
-    {
-      id: "NetcodeEditor",
-      title: "Netcode & LiveOps Studio",
-      icon: <Server size={20} />,
-      activeColor: "text-[#58a6ff]",
-      category: "⚙️ CORE ENGINE",
-    },
-    {
-      id: "PerformanceProfile",
-      title: "System Profiler & Debugger",
-      icon: <Bug size={20} />,
       activeColor: "text-[#f85149]",
       category: "⚙️ CORE ENGINE",
+      subTools: [
+        { id: "GPUComputeCluster", title: "Multi-GPU Compute Cluster", icon: <Zap size={16} /> },
+        { id: "VisualFlowDebugger", title: "AI Visual Flow Debugger", icon: <SearchCode size={16} /> },
+        
+    { id: "AIOfflineOCREngine", title: "AI Offline OCR Engine", icon: <FileText size={16} /> },
+    { id: "AIOfflinePCBStudio", title: "AI Offline PCB Studio", icon: <CircuitBoard size={16} /> },
+        { id: "ProjectSettings", title: "Project Core Settings", icon: <Wrench size={16} /> },
+        { id: "NetcodeEditor", title: "Netcode & LiveOps Studio", icon: <Server size={16} /> },
+        { id: "PerformanceDashboard", title: "Real-time Performance Dashboard", icon: <Activity size={16} /> },
+        { id: "PerformanceProfile", title: "System Profiler & Debugger", icon: <Bug size={16} /> },
+        { id: "BuildPublish", title: "One-Click Build & DEPLOY", icon: <Cloud size={16} /> }
+      ]
     },
+
+    // 🔮 ADVANCED SYSTEMS (PHASE 51-65)
     {
-      id: "BuildPublish",
-      title: "One-Click Build & DEPLOY Pipeline",
-      icon: <Cloud size={20} />,
-      activeColor: "text-[#e3b341]",
-      category: "⚙️ CORE ENGINE",
+      id: "AdvancedSystemsHub",
+      title: "Advanced Systems Hub",
+      icon: <BrainCircuit size={20} />,
+      activeColor: "text-[#bc8cff]",
+      category: "🔮 ADVANCED SYSTEMS",
+      subTools: [
+        { id: "AdvancedTimelineEditor", title: "Advanced Timeline Editor", icon: <Orbit size={16} /> },
+        { id: "TerrainEditor", title: "Terrain Editor", icon: <Mountain size={16} /> },
+        { id: "AdvancedDialogueSystem", title: "Advanced Dialogue System", icon: <MessageCircle size={16} /> },
+        { id: "QuestDesigner", title: "Quest Designer", icon: <AlignLeft size={16} /> },
+        { id: "AdvancedAudioEditor", title: "Advanced Audio Editor", icon: <Activity size={16} /> },
+        { id: "AdvancedAnimationBlender", title: "Advanced Animation Blender", icon: <Activity size={16} /> },
+        { id: "AdvancedShaderEditor", title: "Advanced Shader Editor", icon: <Flame size={16} /> },
+        { id: "AdvancedDebuggingTools", title: "Advanced Debugging Tools", icon: <Bug size={16} /> },
+        { id: "MachineLearningIntegration", title: "Machine Learning Integration", icon: <Brain size={16} /> },
+        { id: "AdvancedSecuritySystem", title: "Advanced Security System", icon: <ShieldCheck size={16} /> },
+        { id: "AdvancedLocalizationSystem", title: "Advanced Localization System", icon: <Globe size={16} /> },
+        { id: "AdvancedAnalyticsTelemetry", title: "Advanced Analytics", icon: <Activity size={16} /> },
+        { id: "AdvancedMarketplaceSystem", title: "Advanced Marketplace", icon: <Box size={16} /> }
+      ]
     },
+
   ];
 
   const renderActiveTool = () => {
+    let content = null;
     switch (activeTool) {
       case "OmniCreatorMaster":
-        return null; // Controlled by layout directly
+        content = null; // Controlled by layout directly
+        break;
       case "ZBrushStyleSculptingStudio":
-        return <ZBrushStyleSculptingStudio />;
+        content = <ZBrushStyleSculptingStudio />;
+        break;
       case "SubstanceStyleTexturePainter":
-        return <SubstanceStyleTexturePainter />;
+        content = <SubstanceStyleTexturePainter />;
+        break;
+      case "AdvancedPCGEngine":
+        content = <AdvancedPCGEngine />;
+        break;
+      case "ChaosPhysicsFluidEngine":
+        content = <ChaosPhysicsFluidEngine />;
+        break;
+      case "SpatialAudioFoley":
+        content = <SpatialAudioFoleyStudio />;
+        break;
+      case "VisualFlowDebugger":
+        content = <VisualFlowDebugger />;
+        break;
       case "HoudiniStyleProceduralNode":
-        return <HoudiniStyleProceduralNode />;
+        content = <HoudiniStyleProceduralNode />;
+        break;
       case "PhotogrammetryMeshBuilder":
-        return <PhotogrammetryMeshBuilder />;
+        content = <PhotogrammetryMeshBuilder />;
+        break;
       case "VehicleDynamicsTuner":
-        return <VehicleDynamicsTuner />;
+        content = <VehicleDynamicsTuner />;
+        break;
       case "CinematicLightingEditor":
-        return <CinematicLightingEditor />;
+        content = <CinematicLightingEditor />;
+        break;
       case "RenderFarmManager":
-        return <RenderFarmManager />;
+        content = <RenderFarmManager />;
+        break;
       case "ModdingWorkshopPublisher":
-        return <ModdingWorkshopPublisher />;
+        content = <ModdingWorkshopPublisher />;
+        break;
       case "CodeProfilerTracer":
-        return <CodeProfilerTracer />;
+        content = <CodeProfilerTracer />;
+        break;
       case "IDECompilerCore":
-        return <IDECompilerCore />;
+        content = <IDECompilerCore />;
+        break;
       case "NavMeshRouter":
-        return <NavMeshRouter />;
+        content = <NavMeshRouter />;
+        break;
       case "TopologyUVPro":
-        return <TopologyUVPro />;
+        content = <TopologyUVPro />;
+        break;
       case "FigmaStyleCanvas":
-        return <FigmaStyleCanvas />;
+        content = <FigmaStyleCanvas />;
+        break;
       case "UXCognitiveLoadSim":
-        return <UXCognitiveLoadSim />;
+        content = <UXCognitiveLoadSim />;
+        break;
       case "QuickStart":
-        return <QuickStartDashboard />;
+        content = <QuickStartDashboard />;
+        break;
       case "Select":
-        return (
+        content = (
           <CodeEditor
             code={globalCode}
             setCode={setGlobalCode}
@@ -518,215 +545,359 @@ export default function App() {
             setLanguage={setGlobalLanguage}
           />
         );
+        break;
+      case "VisualScripting":
+        content = <VisualScriptEditor />;
+        break;
+      case "AdvancedSceneEditor":
+        content = <AdvancedSceneEditor />;
+        break;
+      case "ParticleEffectEditor":
+        content = <ParticleEffectEditor />;
+        break;
       case "EconomicBalancer":
-        return <EconomicBalancer />;
+        content = <EconomicBalancer />;
+        break;
       case "Pipeline":
-        return <PipelineEditor />;
+        content = <PipelineEditor />;
+        break;
       case "MapEdit":
-        return <MapEdit />;
+        content = <MapEdit />;
+        break;
       case "OmniWorldBuilder":
-        return <OmniMegaWorldBuilder />;
+        content = <OmniMegaWorldBuilder />;
+        break;
       case "OmniAudioStudio":
-        return <OmniAudioDSPStudio />;
+        content = <OmniAudioDSPStudio />;
+        break;
       case "OmniVFXStudio":
-        return <OmniVFXParticleStudio />;
+        content = <OmniVFXParticleStudio />;
+        break;
       case "OmniAnimationStudio":
-        return <OmniAnimationStudio />;
+        content = <OmniAnimationStudio />;
+        break;
+      case "AIHubMaster":
+      case "UltimateOfflineAIStudio":
       case "OmniVisualScripting":
-        return <OmniVisualScriptingEngine />;
-      case "OmniBackendNetworkingStudio":
-        return <OmniBackendNetworkingStudio />;
-      case "OmniNarrativeQuestStudio":
-        return <OmniNarrativeQuestStudio />;
       case "AIOfflineDownloader":
-        return <AIOfflineDownloader />;
       case "OmniAIAssistantStudio":
-        return <OmniAIAssistantStudio />;
-      case "EngineCore":
-        return <EngineCoreEditor />;
-      case "GraphicsRender":
-        return <GraphicsRenderEditor />;
-      case "PhysicsEngine":
-        return <EngineCoreEditor />;
-      case "InputMapping":
-        return <InputMapping />;
-      case "AITestingQA":
-        return <PerformanceProfiler />;
-      case "GameSystems":
-        return <GameSystemsEditor />;
-      case "ScriptEditor":
-        return <ScriptEditor />;
-      case "AssetPipeline":
-        return <ContentBrowser />;
-      case "BuildPublish":
-        return <BuildPublishEditor />;
-      case "NPCEdit":
-        return <NPCEditor />;
-      case "WorldLore":
-        return <WorldLoreEditor />;
-      case "MonsterEdit":
-        return <MonsterEditor />;
-      case "Modeling":
-        return <ModelingEditor />;
-      case "Sequencer":
-        return <CinematicSequencerEditor />;
-      case "MetaHuman":
-        return <MetaHumanEditor />;
-      case "Blueprint":
-        return <BlueprintEditor />;
-      case "DataTable":
-        return <DataTableEditor />;
-      case "Material":
-        return <MaterialEditor />;
-      case "ImageEdit":
-        return <ImageEditor />;
-      case "UIUXEdit":
-        return <UIUXEditor />;
-      case "SkillForge":
-        return <SkillForgeEditor />;
-      case "ProceduralAsset":
-        return <ProceduralAssetStudio />;
-      case "PerformanceProfile":
-        return <PerformanceProfiler />;
-      case "CinematicSequencer":
-        return <CinematicSequencerEditor />;
-      case "ActionRecorder":
-        return <ManualSequenceRecorder />;
-      case "AdvancedNavMesh":
-        return <NavMeshRouter />;
-      case "Photogrammetry":
-        return <Photogrammetry3DScanner />;
-      case "HardwareDriver":
-        return <DeviceDriverConfigPanel />;
-      case "Offline3DModeler":
-        return <Offline3DModeler />;
-      case "AdvancedImage":
-        return <ImageEditor />;
-      case "CinematicDirector":
-        return <CinematicDirector />;
-      case "EngineProfiler":
-        return <GameEngineProfiler />;
-      case "HD2DHybridEditor":
-        return <EngineCoreEditor />;
-      case "VehiclePhysics":
-        return <VehicleDynamicsEditor />;
-      case "MLAgents":
-        return <MLAgentsEditor />;
-      case "VRXREngine":
-        return <VRXREngineEditor />;
-      case "DevOpsBuilder":
-        return <ArchitectureDevOpsEditor />;
-      case "ASTNodeWeaver":
-        return <ASTNodeWeaver />;
-      case "VideoEncoder":
-        return <VideoEncoderStudio />;
-      case "HexEditor":
-        return <HexEditorPanel />;
-      case "RegexTester":
-        return <RegexTesterPanel />;
-      case "DiffTool":
-        return <GitPanel files={[]} />;
-      case "HexInjector":
-        return <HexEditorPanel />;
-      case "FontEditor":
-        return <FontEditor />;
-      case "EyeTrackingHeatmap":
-        return <EyeTrackingHeatmap />;
-      case "AccessibilityTester":
-        return <AccessibilityTester />;
-      case "PCGEditor":
-        return <PCGEditor />;
       case "LocalAIStudio":
-        return <LocalAIStudio />;
       case "BatchAIImporter":
-        return <BatchAIImporter />;
-      case "VoiceMusicStudio":
-        return <VoiceMusicStudio />;
       case "AICommandCenter":
-        return <AICommandCenter />;
-      case "AudioEditor":
-        return <AudioEditor />;
       case "Workflow":
-        return <AIWorkflowEditor />;
+        content = <AIHubMasterMenu initialTab={activeTool} />;
+        break;
+      case "OmniBackendNetworkingStudio":
+        content = <OmniBackendNetworkingStudio />;
+        break;
+      case "OmniNarrativeQuestStudio":
+        content = <OmniNarrativeQuestStudio />;
+        break;
+      case "EngineCore":
+        content = <EngineCoreEditor />;
+        break;
+      case "GraphicsRender":
+        content = <GraphicsRenderEditor />;
+        break;
+      case "PhysicsEngine":
+        content = <EngineCoreEditor />;
+        break;
+      case "InputMapping":
+        content = <InputMapping />;
+        break;
+      case "AITestingQA":
+        content = <PerformanceProfiler />;
+        break;
+      case "GameSystems":
+        content = <GameSystemsEditor />;
+        break;
+      case "ScriptEditor":
+        content = <ScriptEditor />;
+        break;
+      case "AssetPipeline":
+        content = <ContentBrowser />;
+        break;
+      case "BuildPublish":
+        content = <BuildPublishEditor />;
+        break;
+      case "NPCEdit":
+        content = <NPCEditor />;
+        break;
+      case "WorldLore":
+        content = <WorldLoreEditor />;
+        break;
+      case "MonsterEdit":
+        content = <MonsterEditor />;
+        break;
+      case "Modeling":
+        content = <ModelingEditor />;
+        break;
+      case "Sequencer":
+        content = <CinematicSequencerEditor />;
+        break;
+      case "MetaHuman":
+        content = <MetaHumanEditor />;
+        break;
+      case "Blueprint":
+        content = <BlueprintEditor />;
+        break;
+      case "DataTable":
+        content = <DataTableEditor />;
+        break;
+      case "Material":
+        content = <MaterialEditor />;
+        break;
+      case "ImageEdit":
+        content = <ImageEditor />;
+        break;
+      case "UIUXEdit":
+        content = <UIUXEditor />;
+        break;
+      case "SkillForge":
+        content = <SkillForgeEditor />;
+        break;
+      case "ProceduralAsset":
+        content = <ProceduralAssetStudio />;
+        break;
+      case "PerformanceProfile":
+        content = <PerformanceProfiler />;
+        break;
+      case "PerformanceDashboard":
+        content = <PerformanceDashboard />;
+        break;
+      case "CinematicSequencer":
+        content = <CinematicSequencerEditor />;
+        break;
+      case "ActionRecorder":
+        content = <ManualSequenceRecorder />;
+        break;
+      case "AdvancedNavMesh":
+        content = <NavMeshRouter />;
+        break;
+      case "Photogrammetry":
+        content = <Photogrammetry3DScanner />;
+        break;
+      case "HardwareDriver":
+        content = <DeviceDriverConfigPanel />;
+        break;
+      case "Offline3DModeler":
+        content = <Offline3DModeler />;
+        break;
+      case "AdvancedImage":
+        content = <ImageEditor />;
+        break;
+      case "CinematicDirector":
+        content = <CinematicDirector />;
+        break;
+      case "EngineProfiler":
+        content = <GameEngineProfiler />;
+        break;
+      case "HD2DHybridEditor":
+        content = <EngineCoreEditor />;
+        break;
+      case "VehiclePhysics":
+        content = <VehicleDynamicsEditor />;
+        break;
+      case "MLAgents":
+        content = <MLAgentsEditor />;
+        break;
+      case "VRXREngine":
+        content = <VRXREngineEditor />;
+        break;
+      case "DevOpsBuilder":
+        content = <ArchitectureDevOpsEditor />;
+        break;
+      case "ASTNodeWeaver":
+        content = <ASTNodeWeaver />;
+        break;
+      case "VideoEncoder":
+        content = <VideoEncoderStudio />;
+        break;
+      case "HexEditor":
+        content = <HexEditorPanel />;
+        break;
+      case "RegexTester":
+        content = <RegexTesterPanel />;
+        break;
+      case "DiffTool":
+        content = <GitPanel files={[]} />;
+        break;
+      case "HexInjector":
+        content = <HexEditorPanel />;
+        break;
+      case "FontEditor":
+        content = <FontEditor />;
+        break;
+      case "EyeTrackingHeatmap":
+        content = <EyeTrackingHeatmap />;
+        break;
+      case "AccessibilityTester":
+        content = <AccessibilityTester />;
+        break;
+      case "PCGEditor":
+        content = <PCGEditor />;
+        break;
+      case "VoiceMusicStudio":
+        content = <VoiceMusicStudio />;
+        break;
+      case "AudioEditor":
+        content = <AudioEditor />;
+        break;
       case "OptimizationOverview":
-        return <OptimizationOverview />;
+        content = <OptimizationOverview />;
+        break;
       case "KernelDebugger":
-        return <KernelDebugger />;
+        content = <KernelDebugger />;
+        break;
       case "MemoryProfiler":
-        return <MemoryProfiler />;
+        content = <MemoryProfiler />;
+        break;
       case "SystemTap":
-        return <SystemTap />;
+        content = <SystemTap />;
+        break;
       case "AppProfiler":
-        return <AppProfiler />;
+        content = <AppProfiler />;
+        break;
       case "LogViewer":
-        return <LogViewer logs={[]} />;
+        content = <LogViewer logs={[]} />;
+        break;
       case "AudioDSP":
-        return <OmniAudioDSPStudio />;
+        content = <OmniAudioDSPStudio />;
+        break;
       case "ThaiPhonetics":
-        return <ThaiPhoneticsEngine />;
+        content = <ThaiPhoneticsEngine />;
+        break;
       case "VCSConflict":
-        return <VCSConflict />;
+        content = <VCSConflict />;
+        break;
       case "HardwareConfig":
-        return <HardwareConfig />;
+        content = <HardwareConfig />;
+        break;
       case "TerminalSvr":
-        return <TerminalSvr />;
+        content = <TerminalSvr />;
+        break;
       case "DockerManager":
-        return <DockerManager />;
+        content = <DockerManager />;
+        break;
       case "BuildMonitor":
-        return <BuildMonitor />;
+        content = <BuildMonitor />;
+        break;
       case "CompilerTool":
-        return <CompilerTool />;
+        content = <CompilerTool />;
+        break;
       case "CloudBuildPipeline":
-        return <CloudBuildPipeline />;
+        content = <CloudBuildPipeline />;
+        break;
       case "SculptMaster":
-        return <ZBrushStyleSculptingStudio />;
+        content = <ZBrushStyleSculptingStudio />;
+        break;
       case "UVRetopology":
-        return <TopologyUVPro />;
+        content = <TopologyUVPro />;
+        break;
       case "TextureBaker":
-        return <SubstanceStyleTexturePainter />;
+        content = <SubstanceStyleTexturePainter />;
+        break;
       case "VectorHybrid":
-        return <VectorHybrid />;
+        content = <VectorHybrid />;
+        break;
       case "SpriteSheetGen":
-        return <SpriteSheetGen />;
+        content = <SpriteSheetGen />;
+        break;
       case "FigmaClone":
-        return <FigmaStyleCanvas />;
+        content = <FigmaStyleCanvas />;
+        break;
       case "InteractionPrototyper":
-        return <InteractionPrototyper />;
+        content = <InteractionPrototyper />;
+        break;
       case "RenderPipeline":
-        return <GraphicsRenderEditor />;
+        content = <GraphicsRenderEditor />;
+        break;
       case "GamePreview":
-        return <GamePreview files={[]} />;
+        content = <GamePreview files={[]} />;
+        break;
       case "AssetStore":
-        return <AssetStore />;
+        content = <AssetStore />;
+        break;
       case "ProjectSettings":
-        return <ProjectSettingsEditor />;
+        content = <ProjectSettingsEditor />;
+        break;
       case "NetcodeEditor":
-        return <NetcodeEditor />;
+        content = <NetcodeEditor />;
+        break;
       case "NetworkSim":
-        return <NetworkSim />;
+        content = <NetworkSim />;
+        break;
       case "NetworkReplicationSim":
-        return <NetworkReplicationSim />;
+        content = <NetworkReplicationSim />;
+        break;
       case "LiveOpsDashboard":
-        return <LiveOpsDashboard />;
+        content = <LiveOpsDashboard />;
+        break;
       case "LiveOpsScheduler":
-        return <LiveOpsEventScheduler />;
+        content = <LiveOpsEventScheduler />;
+        break;
+      
+      case "TerrainImportUtility":
+        content = <TerrainImportUtility />;
+        break;
       case "TerrainGenerator":
-        return <TerrainGenerator />;
+        content = <TerrainGenerator />;
+        break;
       case "GameEconomyBalancer":
-        return <GameEconomyBalancer />;
+        content = <GameEconomyBalancer />;
+        break;
       case "CutsceneEditor":
-        return <CutsceneEditor />;
+        content = <CutsceneEditor />;
+        break;
       case "TaskPanel":
-        return <TaskPanel />;
+        content = <TaskPanel />;
+        break;
       case "NexusPluginArchitect":
-        return <NexusPluginArchitect />;
+        content = <NexusPluginArchitect />;
+        break;
       case "GPUComputeCluster":
-        return <GPUComputeCluster />;
+        content = <GPUComputeCluster />;
+        break;
+      
+      case "AIOfflineOCREngine":
+        content = <AIOfflineOCREngine />;
+        break;
       case "AIOfflinePCBStudio":
-        return <AIOfflinePCBStudio />;
+        content = <AIOfflinePCBStudio />;
+        break;
+      
+      case "AdvancedTimelineEditor": content = <AdvancedTimelineEditor />; break;
+      case "TerrainEditor": content = <TerrainEditor />; break;
+      case "AdvancedDialogueSystem": content = <AdvancedDialogueSystem />; break;
+      case "QuestDesigner": content = <QuestDesigner />; break;
+      case "AdvancedAudioEditor": content = <AdvancedAudioEditor />; break;
+      case "AdvancedAnimationBlender": content = <AdvancedAnimationBlender />; break;
+      case "AdvancedShaderEditor": content = <AdvancedShaderEditor />; break;
+      case "AdvancedDebuggingTools": content = <AdvancedDebuggingTools />; break;
+      case "MachineLearningIntegration": content = <MachineLearningIntegration />; break;
+      case "AdvancedSecuritySystem": content = <AdvancedSecuritySystem />; break;
+      case "AdvancedLocalizationSystem": content = <AdvancedLocalizationSystem />; break;
+      case "AdvancedAnalyticsTelemetry": content = <AdvancedAnalyticsTelemetry />; break;
+      case "AdvancedMarketplaceSystem": content = <AdvancedMarketplaceSystem />; break;
+
       default:
-        return <GenericToolPanel toolId={activeTool} tools={tools} />;
+        content = <GenericToolPanel toolId={activeTool} tools={tools} />;
     }
+    
+    if (content === null) return null;
+    
+    return (
+      <ErrorBoundary key={activeTool}>
+        <Suspense fallback={
+          <div className="w-full h-full flex flex-col items-center justify-center text-[#8b949e] bg-[#0d1117]">
+            <div className="w-8 h-8 border-2 border-[#58a6ff] border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="text-sm font-medium tracking-wide">Loading Module...</div>
+          </div>
+        }>
+          {content}
+        </Suspense>
+      </ErrorBoundary>
+    );
   };
 
   return (

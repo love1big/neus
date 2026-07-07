@@ -87,6 +87,7 @@ import { CSS } from "@dnd-kit/utilities";
 import CommandPalette from "./CommandPalette";
 import GenericToolPanel from "./GenericToolPanel";
 import Viewport3D from "./Viewport3D";
+import OmniCreatorMaster from "./OmniCreatorMaster";
 import PerformanceHUD from "./PerformanceHUD";
 import SystemHealthDashboard from "./SystemHealthDashboard";
 
@@ -106,13 +107,14 @@ export default function OmniEngineIDE({
   const [consoleSearch, setConsoleSearch] = useState("");
   const [showFloatingViewport, setShowFloatingViewport] = useState(false);
 
-  const [sideTools, setSideTools] = useState(
-    tools.length > 0
+  const [sideTools, setSideTools] = useState(() => {
+    const initialTools = tools.length > 0
       ? tools.map((t) => ({
           id: t.id,
           label: t.title,
           iconName: "",
           iconNode: t.icon,
+          subTools: t.subTools,
         }))
       : [
           {
@@ -120,22 +122,60 @@ export default function OmniEngineIDE({
             label: "หน้าหลัก",
             iconName: "LayoutDashboard",
             iconNode: null,
+            subTools: undefined,
           },
-        ],
-  );
+        ];
+
+    const savedOrder = localStorage.getItem("omni_sideToolsOrder");
+    if (savedOrder) {
+      try {
+        const orderIds = JSON.parse(savedOrder);
+        initialTools.sort((a, b) => {
+          const indexA = orderIds.indexOf(a.id);
+          const indexB = orderIds.indexOf(b.id);
+          if (indexA === -1 && indexB === -1) return 0;
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
+      } catch (e) {
+        console.error("Failed to parse saved side tools order", e);
+      }
+    }
+    return initialTools;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("omni_sideToolsOrder", JSON.stringify(sideTools.map(t => t.id)));
+  }, [sideTools]);
 
   // Sync tools if they change
   useEffect(() => {
     if (tools && tools.length > 0 && tools.length !== sideTools.length) {
-      setSideTools(
-        tools.map((t) => ({
+      const newTools = tools.map((t) => ({
           id: t.id,
           label:
             t.title.length > 18 ? t.title.substring(0, 18) + "..." : t.title,
           iconName: "",
           iconNode: t.icon,
-        })),
-      );
+          subTools: t.subTools,
+        }));
+        
+      const savedOrder = localStorage.getItem("omni_sideToolsOrder");
+      if (savedOrder) {
+        try {
+          const orderIds = JSON.parse(savedOrder);
+          newTools.sort((a, b) => {
+            const indexA = orderIds.indexOf(a.id);
+            const indexB = orderIds.indexOf(b.id);
+            if (indexA === -1 && indexB === -1) return 0;
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          });
+        } catch (e) {}
+      }
+      setSideTools(newTools);
     }
   }, [tools, sideTools.length]);
 
@@ -918,35 +958,44 @@ export default function OmniEngineIDE({
       {/* Main Workspace */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Icon Sidebar */}
-        <div className="w-[64px] bg-[#141525] border-r border-[#2a2b3d] flex flex-col items-center py-4 gap-2 shrink-0 overflow-y-auto custom-scrollbar">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleSidebarDragEnd}
-          >
-            <SortableContext
-              items={sideTools}
-              strategy={verticalListSortingStrategy}
+        <div className="w-[64px] bg-[#141525] border-r border-[#2a2b3d] flex flex-col shrink-0 z-50 h-full">
+          <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col items-center py-4 gap-2 w-full">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleSidebarDragEnd}
             >
-              {sideTools.map((tool: any) => (
-                <SortableSideBtn
-                  key={tool.id}
-                  id={tool.id}
-                  icon={tool.iconNode || getIconForTool(tool.iconName)}
-                  label={tool.label}
-                  active={activeTool === tool.id}
-                  onClick={() => setActiveTool(tool.id)}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-          <div className="flex-1"></div>
-          <SideBtn
-            icon={<Settings size={22} className="text-gray-400" />}
-            label="ตั้งค่า"
-            active={activeTool === "HardwareConfig"}
-            onClick={() => setActiveTool("HardwareConfig")}
-          />
+              <SortableContext
+                items={sideTools}
+                strategy={verticalListSortingStrategy}
+              >
+                {sideTools.map((tool: any) => {
+                  const hasActiveSubTool = tool.subTools?.some((s: any) => s.id === activeTool);
+                  return (
+                    <SortableSideBtn
+                      key={tool.id}
+                      id={tool.id}
+                      icon={tool.iconNode || getIconForTool(tool.iconName)}
+                      label={tool.label}
+                      active={activeTool === tool.id || hasActiveSubTool}
+                      onClick={() => setActiveTool(tool.subTools && tool.subTools.length > 0 ? tool.subTools[0].id : tool.id)}
+                      subTools={tool.subTools}
+                      onSubSelect={setActiveTool}
+                      activeTool={activeTool}
+                    />
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
+          </div>
+          <div className="w-full flex flex-col items-center py-4 gap-2 border-t border-[#2a2b3d] bg-[#141525]">
+            <SideBtn
+              icon={<Settings size={22} className="text-gray-400" />}
+              label="ตั้งค่า"
+              active={activeTool === "HardwareConfig"}
+              onClick={() => setActiveTool("HardwareConfig")}
+            />
+          </div>
         </div>
 
         {/* Dynamic Panels Area */}
@@ -2497,23 +2546,56 @@ function SideBtn({
   label,
   active,
   onClick,
+  subTools,
+  onSubSelect,
+  activeTool,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   onClick?: () => void;
+  subTools?: any[];
+  onSubSelect?: (id: string) => void;
+  activeTool?: string;
 }) {
   return (
     <div
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center w-full py-2 cursor-pointer transition-all border-l-[3px] group ${active ? "border-blue-500 bg-[#2a2b3d] shadow-inner text-white" : "border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#2a2b3d]/50 hover:border-gray-600"}`}
+      className={`relative flex flex-col items-center justify-center w-full py-2 cursor-pointer transition-all border-l-[3px] group ${active ? "border-blue-500 bg-[#2a2b3d] shadow-inner text-white" : "border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#2a2b3d]/50 hover:border-gray-600"}`}
     >
       <div
-        className={`group-hover:scale-110 transition-transform ${active ? "" : "opacity-80"}`}
+        onClick={onClick}
+        className="flex flex-col items-center justify-center w-full h-full"
       >
-        {icon}
+        <div
+          className={`group-hover:scale-110 transition-transform ${active ? "" : "opacity-80"}`}
+        >
+          {icon}
+        </div>
+        <span className="text-[9px] mt-1 tracking-wide font-medium text-center leading-tight px-1">{label}</span>
       </div>
-      <span className="text-[9px] mt-1 tracking-wide font-medium">{label}</span>
+
+      {subTools && subTools.length > 0 && (
+        <div className="absolute left-[100%] top-0 ml-1 hidden group-hover:flex flex-col bg-[#1a1b2e] border border-[#2a2b3d] rounded-md shadow-2xl py-1 z-[1000] min-w-[200px]">
+          <div className="px-3 py-1.5 text-[10px] text-gray-500 font-bold uppercase tracking-wider border-b border-[#2a2b3d] mb-1">
+            {label}
+          </div>
+          {subTools.map((sub: any) => (
+            <div
+              key={sub.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onSubSelect) onSubSelect(sub.id);
+              }}
+              className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${activeTool === sub.id ? "bg-[#58a6ff]/20 text-[#58a6ff]" : "text-gray-300 hover:bg-[#2a2b3d] hover:text-white"}`}
+            >
+              <div className={activeTool === sub.id ? "opacity-100" : "opacity-70"}>
+                {sub.icon}
+              </div>
+              <span className="text-[12px] font-medium">{sub.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2524,6 +2606,9 @@ function SortableSideBtn(props: {
   label: string;
   active?: boolean;
   onClick?: () => void;
+  subTools?: any[];
+  onSubSelect?: (id: string) => void;
+  activeTool?: string;
 }) {
   const {
     attributes,
@@ -2542,7 +2627,7 @@ function SortableSideBtn(props: {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="w-full">
       <SideBtn {...props} />
     </div>
   );

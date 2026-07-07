@@ -199,7 +199,10 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
       const now = performance.now();
       if (now - lastFrameTimeRef.current >= 1000) {
         const currentFps = framesCountRef.current;
-        setFps(currentFps);
+        setFps((prev) => {
+           if (Math.abs(prev - currentFps) > 2) return currentFps; // avoid 1fps noise updates
+           return prev;
+        });
         framesCountRef.current = 0;
         lastFrameTimeRef.current = now;
 
@@ -232,9 +235,14 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
       const start = performance.now();
       timeoutId = setTimeout(() => {
         const end = performance.now();
-        // We asked for a 50ms timeout. If it took much longer, the main thread is blocked.
-        const lag = Math.max(0, end - start - 50); 
-        setEventLoopLag(lag);
+        // We asked for a 200ms timeout. If it took much longer, the main thread is blocked.
+        const lag = Math.max(0, end - start - 200); 
+        
+        // ONLY update state if lag is significant or changed significantly, to prevent 20fps re-renders!
+        setEventLoopLag((prev) => {
+           if (Math.abs(prev - lag) > 15 || lag > 50) return lag;
+           return prev;
+        });
 
         // If event loop lag > 150ms, force throttle regardless of FPS
         if (lag > 150) {
@@ -247,7 +255,7 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
         }
 
         checkLag();
-      }, 50);
+      }, 200);
     };
     checkLag();
     return () => clearTimeout(timeoutId);
@@ -259,7 +267,11 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
       if ('memory' in performance) {
         const mem = (performance as any).memory;
         const currentUsageMB = mem.usedJSHeapSize / (1024 * 1024);
-        setMemoryUsage(currentUsageMB);
+        
+        setMemoryUsage((prev) => {
+           if (Math.abs(prev - currentUsageMB) > 15) return currentUsageMB; // only trigger re-render if memory changed by > 15MB
+           return prev;
+        });
         
         // Memory Leak Heuristic (continuously growing over 10 checks)
         memoryHistoryRef.current.push(currentUsageMB);

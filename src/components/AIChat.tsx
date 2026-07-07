@@ -45,6 +45,7 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
   const [cloudConnected, setCloudConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showHistoryStack, setShowHistoryStack] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -1747,6 +1748,9 @@ export class UltimateIDEFeatures {
              {useTrueOfflineAI ? `True Offline: ${activeOfflineModelName}` : isOfflineEngineLoading ? `Loading Engine...` : 'Download True Offline AI'}
            </button>
            <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+             <button onClick={() => setShowHistoryStack(true)} className="text-[#8b949e] hover:text-[#58a6ff] p-1.5 rounded transition-colors border border-[#30363d] bg-[#161b22]" title="View History Stack">
+                <Undo2 size={14} />
+             </button>
              <button onClick={exportChatHistory} className="text-[#8b949e] hover:text-[#58a6ff] p-1.5 rounded transition-colors border border-[#30363d] bg-[#161b22]" title="Export Chat History">
                 <Download size={14} />
              </button>
@@ -1780,6 +1784,51 @@ export class UltimateIDEFeatures {
            </select>
          </div>
       </div>
+
+      {/* History Stack Modal */}
+      {showHistoryStack && (
+        <div className="absolute inset-0 z-50 bg-[#0d1117]/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-4 w-full max-w-[500px] flex flex-col max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#161b22] pb-2 z-10 border-b border-[#30363d]">
+              <h3 className="text-white font-bold text-sm tracking-wide flex items-center gap-2"><Undo2 size={16} className="text-[#58a6ff]"/> Persistent History Stack</h3>
+              <button onClick={() => setShowHistoryStack(false)} className="text-[#8b949e] hover:text-[#f85149] p-1 rounded transition-colors bg-[#0d1117]">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <p className="text-[#8b949e] text-[11px] mb-4">
+              View your previous AI suggestions, prompts, and context-aware generations.
+            </p>
+            
+            <div className="flex flex-col gap-2">
+              {messages.filter(m => m.role === 'user').length === 0 && (
+                 <div className="text-[#8b949e] text-xs text-center p-4">No history available yet.</div>
+              )}
+              {[...messages].map((msg, index) => ({ msg, index })).filter(({ msg }) => msg.role === 'user').reverse().map(({ msg, index }, idx) => {
+                const aiResponse = messages[index + 1]?.role === 'model' ? messages[index + 1].content : null;
+                return (
+                <div key={idx} className="flex flex-col p-3 rounded-lg border border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff] hover:bg-[#161b22] transition-colors group cursor-pointer" onClick={() => {
+                   setInput(msg.content);
+                   setShowHistoryStack(false);
+                }}>
+                  <div className="text-xs text-[#c9d1d9] whitespace-pre-wrap line-clamp-2 group-hover:text-white transition-colors font-bold mb-1">
+                     {msg.content}
+                  </div>
+                  {aiResponse && (
+                    <div className="text-[10px] text-[#8b949e] line-clamp-2 mb-2 italic">
+                       {aiResponse.replace(/<[^>]*>?/gm, '').substring(0, 150)}...
+                    </div>
+                  )}
+                  <div className="text-[10px] text-[#8b949e] mt-1 flex justify-between border-t border-[#30363d] pt-2">
+                     <span>Prompt & AI Response</span>
+                     <span className="text-[#58a6ff] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"><Undo2 size={10} /> Restore Prompt</span>
+                  </div>
+                </div>
+              )})}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Offline AI Model Selector Menu */}
       {showOfflineModelMenu && (
