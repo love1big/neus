@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Cpu, Server, Activity } from 'lucide-react';
+import { Cpu, Server, Activity} from 'lucide-react';
 
 export default function ResourceUsageTab() {
   const [data, setData] = useState<{time: string, cpu: number, ram: number, gpu: number}[]>([]);

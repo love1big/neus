@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitMerge, Activity, Settings2, Play } from 'lucide-react';
+import { GitMerge, Activity, Settings2, Play} from 'lucide-react';
 
 export default function VCSConflict() {
   return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Volume2, Radio, Waves, ActivitySquare, Settings, Play, Music, Mic2, Plus, Sliders } from 'lucide-react';
+import { Volume2, Radio, Waves, ActivitySquare, Settings, Play, Music, Mic2, Plus, Sliders} from 'lucide-react';
 
 export default function MapAudioTools() {
   return (

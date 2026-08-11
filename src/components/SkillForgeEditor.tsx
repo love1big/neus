@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  History, Swords, Play, Square, Pause, Flame, Droplets, Zap, Wind, Link2, 
-  Settings2, Box, Eye, Network, Gauge, ShieldAlert, FastForward, Activity, 
-  Workflow, PlusCircle, Save
-} from 'lucide-react';
+  History, Swords, Play, Square, Pause, Flame, Droplets, Zap, Wind, Link2, Settings2, Box, Eye, Network, Gauge, ShieldAlert, FastForward, Activity, Workflow, PlusCircle, Save} from 'lucide-react';
 
 export default function SkillForgeEditor({ setActiveTool }: { setActiveTool?: (tool: string) => void }) {
   const [activeTab, setActiveTab] = useState<'timeline' | 'logic' | 'balancer'>('timeline');

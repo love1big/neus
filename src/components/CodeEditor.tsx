@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { LANGUAGES } from '../lib/constants';
-import { ChevronUp, ChevronDown, X, Search, Replace as ReplaceIcon, Undo, Redo, BrainCircuit, Activity, Cpu, ShieldCheck, Zap, Server, Code2, Sparkles, TerminalSquare, AlertTriangle, FileCode2, Package, GitBranch, LayoutGrid, Terminal as TerminalIcon, Bug, AlignLeft, Settings, Bell, ChevronRight, FileJson, Play, Copy, SplitSquareHorizontal, ExternalLink } from 'lucide-react';
+import { ChevronUp, ChevronDown, X, Search, Replace as ReplaceIcon, Undo, Redo, BrainCircuit, Activity, Cpu, ShieldCheck, Zap, Server, Code2, Sparkles, TerminalSquare, AlertTriangle, FileCode2, Package, GitBranch, LayoutGrid, Terminal as TerminalIcon, Bug, AlignLeft, Settings, Bell, ChevronRight, FileJson, Play, Copy, SplitSquareHorizontal, ExternalLink} from 'lucide-react';
 import PopOutPanel from './PopOutPanel';
 
 interface CodeEditorProps {

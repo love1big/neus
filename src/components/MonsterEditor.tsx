@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Skull, Activity, Shield, Zap, Target, Sliders, Dna, Save, Filter, Search, Layers, RefreshCcw, Bone, Flame } from 'lucide-react';
+import { Skull, Activity, Shield, Zap, Target, Sliders, Dna, Save, Filter, Search, Layers, RefreshCcw, Bone, Flame} from 'lucide-react';
 import Viewport3D from './Viewport3D';
 
 export default function MonsterEditor() {

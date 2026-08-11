@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Flame, Cpu, Database, Network, Clock, AlertTriangle, Search, Filter, Server, Laptop, Settings, Play, Pause, ChevronDown, RefreshCw, BarChart2, PieChart } from 'lucide-react';
+import { Activity, Flame, Cpu, Database, Network, Clock, AlertTriangle, Search, Filter, Server, Laptop, Settings, Play, Pause, ChevronDown, RefreshCw, BarChart2, PieChart} from 'lucide-react';
 
 export default function GameEngineProfiler() {
   return (

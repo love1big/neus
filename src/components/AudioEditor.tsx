@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Play, Settings2, Box, Cpu } from 'lucide-react';
+import { Activity, Play, Settings2, Box, Cpu} from 'lucide-react';
 
 export default function AudioEditor() {
   return (

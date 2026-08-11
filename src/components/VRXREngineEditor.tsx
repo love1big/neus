@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Glasses, Box, Eye, Navigation, Hand, Cable, Activity, ScanFace, Globe, Layers } from 'lucide-react';
+import { Glasses, Box, Eye, Navigation, Hand, Cable, Activity, ScanFace, Globe, Layers} from 'lucide-react';
 
 export default function VRXREngineEditor() {
   const [activeTab, setActiveTab] = useState('tracking');

@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Cpu, Zap, ShieldCheck, Layers, Settings, Play, RefreshCw, Activity, 
-  HardDrive, Terminal, CheckCircle2, AlertTriangle, FileCode, Sliders, 
-  Globe, Radio, Disc, Download, Share2, Sparkles, Wrench, Box, Eye, 
-  Smartphone, Code2, Microchip, CircuitBoard, Wifi, Database, Flame
-} from 'lucide-react';
+  Cpu, Zap, ShieldCheck, Layers, Settings, Play, RefreshCw, Activity, HardDrive, Terminal, CheckCircle2, AlertTriangle, FileCode, Sliders, Globe, Radio, Disc, Download, Share2, Sparkles, Wrench, Box, Eye, Smartphone, Code2, Microchip, CircuitBoard, Wifi, Database, Flame} from 'lucide-react';
 
 export interface PCBComponent {
   id: string;

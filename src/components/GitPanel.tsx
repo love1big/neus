@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GitBranch, GitCommit, Plus, Check, RefreshCcw, Command, Download, UploadCloud } from 'lucide-react';
+import { GitBranch, GitCommit, Plus, Check, RefreshCcw, Command, Download, UploadCloud} from 'lucide-react';
 import { IDEFile } from '../lib/project';
 
 interface GitCommitRecord {

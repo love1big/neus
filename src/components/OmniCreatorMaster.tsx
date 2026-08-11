@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Network, Cpu, Settings, Infinity, Layers, Brain, Gamepad2, Database, Wifi, Shield, Box, Zap, Clapperboard, Globe, Cloud, LayoutDashboard, Activity, Terminal, Code2, Orbit, Aperture, Fingerprint, Radar, Target, Focus, Hexagon, Component, Workflow, Atom, Combine, Waves, Mic2, Music, Smile, Map } from 'lucide-react';
+import { Network, Cpu, Settings, Infinity, Layers, Brain, Gamepad2, Database, Wifi, Shield, Box, Zap, Clapperboard, Globe, Cloud, LayoutDashboard, Activity, Terminal, Code2, Orbit, Aperture, Fingerprint, Radar, Target, Focus, Hexagon, Component, Workflow, Atom, Combine, Waves, Mic2, Music, Smile, Map} from 'lucide-react';
 
 function SystemResourcesWidget() {
   const [cpuUsage, setCpuUsage] = useState(82);

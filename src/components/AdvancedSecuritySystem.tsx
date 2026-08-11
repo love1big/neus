@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Lock, Key, AlertOctagon, Activity, Users, ShieldAlert, FileKey } from 'lucide-react';
+import { ShieldCheck, Lock, Key, AlertOctagon, Activity, Users, ShieldAlert, FileKey} from 'lucide-react';
 
 export default function AdvancedSecuritySystem() {
   return (

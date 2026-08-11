@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, PackageSearch, Tag, Star, Download, Search, Filter } from 'lucide-react';
+import { ShoppingCart, PackageSearch, Tag, Star, Download, Search, Filter, CheckCircle2} from 'lucide-react';
 
 export default function AdvancedMarketplaceSystem() {
   return (
@@ -105,7 +105,7 @@ export default function AdvancedMarketplaceSystem() {
                   <div className="h-40 bg-gray-800 relative overflow-hidden opacity-80">
                      <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=400&auto=format&fit=crop" className="w-full h-full object-cover grayscale mix-blend-luminosity" alt="Asset" />
                      <div className="absolute inset-0 bg-blue-900/40 flex items-center justify-center backdrop-blur-[2px]">
-                        <div className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"><Check size={14}/> Owned</div>
+                        <div className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"><CheckCircle2 size={14}/> Owned</div>
                      </div>
                   </div>
                   <div className="p-4 flex flex-col flex-1">

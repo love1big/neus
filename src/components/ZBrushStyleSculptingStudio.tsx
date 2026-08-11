@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Layers, MousePointer2, Move3D, Maximize, Scissors, CircleOff, Pencil, Eraser, Brush, Palette, MonitorPlay, Save, Download, Sliders, Contrast, Droplet, RefreshCw } from 'lucide-react';
+import { Box, Layers, MousePointer2, Move3D, Maximize, Scissors, CircleOff, Pencil, Eraser, Brush, Palette, MonitorPlay, Save, Download, Sliders, Contrast, Droplet, RefreshCw} from 'lucide-react';
 
 export default function ZBrushStyleSculptingStudio() {
   const [activeBrush, setActiveBrush] = useState('clayBuildUp');

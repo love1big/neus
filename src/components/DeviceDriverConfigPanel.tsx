@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Cpu, HardDrive, Camera, Activity, Monitor, ShieldCheck, Zap, Server, Settings, Wrench, AlertTriangle, CheckCircle, Smartphone, Battery, MemoryStick, Wifi
-} from 'lucide-react';
+  Cpu, HardDrive, Camera, Activity, Monitor, ShieldCheck, Zap, Server, Settings, Wrench, AlertTriangle, CheckCircle, Smartphone, Battery, MemoryStick, Wifi} from 'lucide-react';
 
 export default function DeviceDriverConfigPanel() {
   const [activeCategory, setActiveCategory] = useState<'cpu' | 'gpu' | 'ram' | 'storage' | 'camera'>('cpu');

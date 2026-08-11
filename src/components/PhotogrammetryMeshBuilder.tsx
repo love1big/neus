@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, Blocks, Save, Eye, Map as MapIcon, Sliders, Play, Maximize, Target, Aperture, Combine, Trash2, Crosshair, Cloud, ShieldCheck, CheckCircle, Activity } from 'lucide-react';
+import { Camera, Blocks, Save, Eye, Map as MapIcon, Sliders, Play, Maximize, Target, Aperture, Combine, Trash2, Crosshair, Cloud, ShieldCheck, CheckCircle, Activity} from 'lucide-react';
 
 export default function PhotogrammetryMeshBuilder() {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitMerge, Code2, Play, GitPullRequest, ArrowRightLeft } from 'lucide-react';
+import { GitMerge, Code2, Play, GitPullRequest, ArrowRightLeft} from 'lucide-react';
 
 interface NodeGraphMockupProps {
   onClose?: () => void;

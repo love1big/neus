@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, ChangeEvent } from 'react';
-import { Mountain, Plus, Search, Settings, Layers, Upload, Sliders, Image as ImageIcon, Box, Maximize, RotateCcw } from 'lucide-react';
+import { Mountain, Plus, Search, Settings, Layers, Upload, Sliders, Image as ImageIcon, Box, Maximize, RotateCcw} from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import * as THREE from 'three';

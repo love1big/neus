@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Microchip, Play, Pause, Square, BarChart2, Activity, Clock, Cpu, Server, AlignLeft, Hexagon, Filter, Search, Zap, Crosshair, ChevronRight, Hash, X } from 'lucide-react';
+import { Microchip, Play, Pause, Square, BarChart2, Activity, Clock, Cpu, Server, AlignLeft, Hexagon, Filter, Search, Zap, Crosshair, ChevronRight, Hash, X} from 'lucide-react';
 
 export default function CodeProfilerTracer() {
   const [isRecording, setIsRecording] = useState(false);

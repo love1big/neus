@@ -1,66 +1,122 @@
 import React, { useState } from 'react';
-import { Keyboard, Mouse, Gamepad2, Settings, Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { Gamepad2, Settings, Play, Save, RefreshCw, BarChart2, Layers} from 'lucide-react';
 
-export default function InputMapping() {
-  const [activeTab, setActiveTab] = useState('PC');
-  
+export default function InputMappingEditor() {
+  const [activeTab, setActiveTab] = useState('overview');
+
   return (
-    <div className="flex-1 flex flex-col bg-[#0a0c10] text-[#c9d1d9] font-sans p-6">
-      <div className="max-w-6xl mx-auto w-full">
-         <div className="flex items-end justify-between border-b border-[#30363d] pb-4 mb-6">
-             <div>
-                <h1 className="text-3xl font-extrabold text-white flex items-center gap-3"><Keyboard className="text-[#58a6ff]" size={32}/> Unified Input Mapping</h1>
-                <p className="text-sm text-[#8b949e] mt-1">Configure Omni-Platform Input Actions, Axis Mappings, and Contextual Overrides.</p>
+    <div className="flex flex-col h-full bg-[#0a0a0f] text-gray-200 font-sans">
+      <div className="flex items-center justify-between p-4 border-b border-[#2a2b3d] bg-[#1a1b2d]">
+        <div className="flex items-center gap-3">
+          <Gamepad2 className="text-blue-400" size={24} />
+          <h1 className="text-xl font-bold tracking-tight">Input Mapping Editor</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="p-2 hover:bg-[#2a2b3d] rounded text-gray-400 hover:text-white transition-colors">
+            <RefreshCw size={16} />
+          </button>
+          <button className="p-2 hover:bg-[#2a2b3d] rounded text-gray-400 hover:text-white transition-colors">
+            <Save size={16} />
+          </button>
+          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium flex items-center gap-2 transition-colors">
+            <Play size={16} />
+            <span>Simulate</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <div className="w-64 border-r border-[#2a2b3d] bg-[#11111a] flex flex-col">
+          <div className="p-4 border-b border-[#2a2b3d]">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Workspace</h2>
+            <div className="space-y-1">
+              <button onClick={() => setActiveTab('overview')} className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${activeTab === 'overview' ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-[#2a2b3d] text-gray-400'}`}>
+                <Layers size={14} /> Overview
+              </button>
+              <button onClick={() => setActiveTab('settings')} className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${activeTab === 'settings' ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-[#2a2b3d] text-gray-400'}`}>
+                <Settings size={14} /> Configuration
+              </button>
+              <button onClick={() => setActiveTab('metrics')} className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${activeTab === 'metrics' ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-[#2a2b3d] text-gray-400'}`}>
+                <BarChart2 size={14} /> Metrics
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 p-4 overflow-y-auto">
+             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Presets</h2>
+             <div className="space-y-2">
+                {[1,2,3].map(i => (
+                  <div key={i} className="p-2 border border-[#2a2b3d] rounded bg-[#0a0a0f] hover:border-blue-500/50 cursor-pointer transition-colors">
+                    <div className="text-sm text-gray-300">Preset 0{i}</div>
+                    <div className="text-xs text-gray-600 font-mono mt-1">Hash: {Math.random().toString(36).substring(2,8)}</div>
+                  </div>
+                ))}
              </div>
-             <div className="flex gap-2">
-                <button className="px-3 py-1.5 bg-[#21262d] rounded text-xs flex items-center gap-2 hover:bg-[#30363d]"><RotateCcw size={14}/> Reset Defaults</button>
-                <button className="px-3 py-1.5 bg-[#238636] text-white rounded text-xs font-bold flex items-center gap-2 hover:bg-[#2ea043]"><Save size={14}/> Save Schema</button>
-             </div>
-         </div>
-         
-         <div className="flex border-b border-[#30363d] mb-6">
-            <button onClick={() => setActiveTab('PC')} className={`px-6 py-3 font-bold text-sm tracking-wide flex items-center gap-2 border-b-2 ${activeTab==='PC' ? 'border-[#58a6ff] text-[#58a6ff]' : 'border-transparent text-[#8b949e] hover:text-[#c9d1d9]'}`}><Mouse size={16}/> Keyboard & Mouse</button>
-            <button onClick={() => setActiveTab('Gamepad')} className={`px-6 py-3 font-bold text-sm tracking-wide flex items-center gap-2 border-b-2 ${activeTab==='Gamepad' ? 'border-[#3fb950] text-[#3fb950]' : 'border-transparent text-[#8b949e] hover:text-[#c9d1d9]'}`}><Gamepad2 size={16}/> Standard Gamepad</button>
-            <button onClick={() => setActiveTab('Advanced')} className={`px-6 py-3 font-bold text-sm tracking-wide flex items-center gap-2 border-b-2 ${activeTab==='Advanced' ? 'border-[#bc8cff] text-[#bc8cff]' : 'border-transparent text-[#8b949e] hover:text-[#c9d1d9]'}`}><Settings size={16}/> Advanced Macros</button>
-         </div>
-         
-         <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
-             <div className="grid grid-cols-12 gap-4 p-4 border-b border-[#30363d] bg-[#0d1117] font-bold text-xs text-[#8b949e] uppercase tracking-wider">
-                 <div className="col-span-4">Action Name</div>
-                 <div className="col-span-3">Primary Binding</div>
-                 <div className="col-span-3">Secondary Binding</div>
-                 <div className="col-span-2 text-right">Actions</div>
-             </div>
-             
-             {[
-               { name: 'Move Forward', p: 'W / Up Arrow', s: 'Gamepad L-Stick Up' },
-               { name: 'Move Backward', p: 'S / Down Arrow', s: 'Gamepad L-Stick Down' },
-               { name: 'Strafe Left', p: 'A / Left Arrow', s: 'Gamepad L-Stick Left' },
-               { name: 'Strafe Right', p: 'D / Right Arrow', s: 'Gamepad L-Stick Right' },
-               { name: 'Jump', p: 'Spacebar', s: 'Gamepad A / Cross' },
-               { name: 'Crouch', p: 'Left Ctl / C', s: 'Gamepad B / Circle' },
-               { name: 'Primary Fire', p: 'Left Mouse Button', s: 'Gamepad RT' },
-               { name: 'Aim Down Sights', p: 'Right Mouse Button', s: 'Gamepad LT' },
-             ].map((action, i) => (
-                <div key={i} className="grid grid-cols-12 gap-4 p-4 border-b border-[#30363d] items-center hover:bg-[#21262d] transition group">
-                   <div className="col-span-4 font-medium text-[#e6edf3]">{action.name}</div>
-                   <div className="col-span-3">
-                      <button className="bg-[#0a0c10] border border-[#30363d] px-3 py-1.5 rounded text-xs font-mono text-[#58a6ff] w-full text-left hover:border-[#58a6ff]">{action.p}</button>
-                   </div>
-                   <div className="col-span-3">
-                      <button className="bg-[#0a0c10] border border-[#30363d] px-3 py-1.5 rounded text-xs font-mono text-[#8b949e] w-full text-left hover:border-[#bc8cff]">{action.s}</button>
-                   </div>
-                   <div className="col-span-2 text-right flex justify-end gap-2 opacity-50 group-hover:opacity-100 transition">
-                      <button className="p-1.5 text-[#8b949e] hover:text-[#58a6ff] bg-[#0d1117] rounded"><Plus size={14}/></button>
-                      <button className="p-1.5 text-[#8b949e] hover:text-[#f85149] bg-[#0d1117] rounded"><Trash2 size={14}/></button>
-                   </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-6 overflow-y-auto bg-[#0a0a0f]">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="bg-[#11111a] border border-[#2a2b3d] rounded-lg p-6">
+              <h2 className="text-lg font-bold text-gray-200 mb-2">System Diagnostics</h2>
+              <p className="text-sm text-gray-400 mb-6">Real-time status and advanced configurations for Input Mapping Editor. All changes are hot-reloaded into the Omni Engine.</p>
+              
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-[#0a0a0f] p-4 rounded border border-[#2a2b3d]">
+                  <div className="text-xs text-gray-500 uppercase mb-1">Status</div>
+                  <div className="text-xl font-mono text-green-400">ONLINE</div>
                 </div>
-             ))}
-             
-             <button className="w-full p-3 text-center text-xs font-bold text-[#58a6ff] hover:bg-[#21262d] flex justify-center items-center gap-2">
-                 <Plus size={16}/> Add New Input Action
-             </button>
-         </div>
+                <div className="bg-[#0a0a0f] p-4 rounded border border-[#2a2b3d]">
+                  <div className="text-xs text-gray-500 uppercase mb-1">Active Nodes</div>
+                  <div className="text-xl font-mono text-blue-400">{(Math.random() * 1000).toFixed(0)}</div>
+                </div>
+                <div className="bg-[#0a0a0f] p-4 rounded border border-[#2a2b3d]">
+                  <div className="text-xs text-gray-500 uppercase mb-1">Latency</div>
+                  <div className="text-xl font-mono text-yellow-400">{(Math.random() * 5).toFixed(2)}ms</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold text-gray-300 border-b border-[#2a2b3d] pb-2">Core Parameters</h3>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-[#0a0a0f] rounded border border-[#2a2b3d]">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-300 font-medium">Parameter {i}</span>
+                      <span className="text-xs text-gray-500">Adjust the sub-routine threshold for optimal performance.</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input type="range" className="w-32 accent-blue-500" />
+                      <span className="text-xs font-mono text-gray-400 w-8">{(Math.random() * 100).toFixed(0)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-[#11111a] border border-[#2a2b3d] rounded-lg p-6">
+                 <h2 className="text-sm font-bold text-gray-300 mb-4">Memory Allocation Graph</h2>
+                 <div className="h-40 flex items-end gap-1">
+                    {Array.from({length: 20}).map((_, i) => (
+                      <div key={i} className="flex-1 bg-blue-600/40 rounded-t" style={{height: `${Math.random() * 100}%`}}></div>
+                    ))}
+                 </div>
+              </div>
+              <div className="bg-[#11111a] border border-[#2a2b3d] rounded-lg p-6">
+                 <h2 className="text-sm font-bold text-gray-300 mb-4">Execution Log</h2>
+                 <div className="space-y-2 h-40 overflow-y-auto pr-2">
+                    {Array.from({length: 8}).map((_, i) => (
+                      <div key={i} className="text-xs font-mono text-gray-500 border-l-2 border-green-500 pl-2">
+                        [{(new Date()).toISOString().split('T')[1].substring(0,8)}] Init routine 0x{Math.random().toString(16).substring(2,6)}
+                      </div>
+                    ))}
+                 </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
   );

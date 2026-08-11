@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MonitorPlay, Settings2, Zap, Layers, RefreshCw, Cpu, Activity, Info, Sliders, ServerCog, Box, Maximize, Target, DatabaseZap } from 'lucide-react';
+import { MonitorPlay, Settings2, Zap, Layers, RefreshCw, Cpu, Activity, Info, Sliders, ServerCog, Box, Maximize, Target, DatabaseZap} from 'lucide-react';
 
 function ShaderCompiler() {
   const [compiling, setCompiling] = useState(false);

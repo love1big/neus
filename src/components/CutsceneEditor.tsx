@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Play, Pause, SkipBack, SkipForward, Layers, Camera, Video, Music, Activity, 
-  Sparkles, Wand2, Scissors, SplitSquareHorizontal, Eye, BrainCircuit, Bot,
-  Settings2, Plus, ArrowRight, MousePointer2, Move, Clock, Box, Image, Link
-} from 'lucide-react';
+  Play, Pause, SkipBack, SkipForward, Layers, Camera, Video, Music, Activity, Sparkles, Wand2, Scissors, SplitSquareHorizontal, Eye, BrainCircuit, Bot, Settings2, Plus, ArrowRight, MousePointer2, Move, Clock, Box, Image, Link} from 'lucide-react';
 
 export default function CutsceneEditor() {
   const [isPlaying, setIsPlaying] = useState(false);

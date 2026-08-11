@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { 
-  Mic, Headphones, Volume2, Waves,
-  Radio, Speaker, Move3d, BoxSelect, Ear, LayoutGrid
-} from "lucide-react";
+  Mic, Headphones, Volume2, Waves, Radio, Speaker, Move3d, BoxSelect, Ear, LayoutGrid} from "lucide-react";
 
 export default function SpatialAudioFoleyStudio() {
   const [activeTab, setActiveTab] = useState("spatial");

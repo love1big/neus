@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Play, MousePointer2, Smartphone, Monitor, Code2, 
-  Eye, Focus, Fingerprint, RefreshCcw, LayoutTemplate, 
-  AudioWaveform, Waves, Atom, Settings2, BoxSelect, Maximize2, Rotate3D, Network, Compass, CheckCircle2, ChevronRight, Minimize2, Plus, GripHorizontal, Triangle, Square as SquareIcon, Type, Layers, Baseline, Hexagon, Component, Link2, SlidersHorizontal, Trash2, Activity, Zap
-} from 'lucide-react';
+  Play, MousePointer2, Smartphone, Monitor, Code2, Eye, Focus, Fingerprint, RefreshCcw, LayoutTemplate, AudioWaveform, Waves, Atom, Settings2, BoxSelect, Maximize2, Rotate3D, Network, Compass, CheckCircle2, ChevronRight, Minimize2, Plus, GripHorizontal, Triangle, Square as SquareIcon, Type, Layers, Baseline, Hexagon, Component, Link2, SlidersHorizontal, Trash2, Activity, Zap} from 'lucide-react';
 
 export default function UIUXEditor() {
   const [activeTab, setActiveTab] = useState<'Canvas' | 'Physics' | 'Heatmap' | 'Tokenizer' | 'Haptics' | 'Multiverse'>('Canvas');

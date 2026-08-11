@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Folder, File, Layers, Plus, Search, Eye, EyeOff, Lock, Unlock, Settings2, Move, Maximize, Copy, Trash2, Box, Image, Orbit } from "lucide-react";
+import { Folder, File, Layers, Plus, Search, Eye, EyeOff, Lock, Unlock, Settings2, Move, Maximize, Copy, Trash2, Box, Image, Orbit} from "lucide-react";
 
 export default function AdvancedSceneEditor() {
   const [search, setSearch] = useState("");

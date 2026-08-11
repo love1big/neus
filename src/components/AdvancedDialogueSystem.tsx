@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Plus, Search, Settings, Save, Play, GitMerge, User, LayoutTemplate } from 'lucide-react';
+import { MessageSquare, Plus, Search, Settings, Save, Play, GitMerge, User, LayoutTemplate} from 'lucide-react';
 
 export default function AdvancedDialogueSystem() {
   return (

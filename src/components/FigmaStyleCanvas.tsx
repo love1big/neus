@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutTemplate, Move, MousePointer2, Type, Square, Circle, Image as ImageIcon, Plus, AlignLeft, AlignCenter, AlignRight, Play, Maximize, Share2, Layers, Settings2, Palette, Component, Lock, Eye } from 'lucide-react';
+import { LayoutTemplate, Move, MousePointer2, Type, Square, Circle, Image as ImageIcon, Plus, AlignLeft, AlignCenter, AlignRight, Play, Maximize, Share2, Layers, Settings2, Palette, Component, Lock, Eye} from 'lucide-react';
 
 export default function FigmaStyleCanvas() {
   const [zoom, setZoom] = useState(1);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, Edit3, Grid, Save, ZoomIn } from 'lucide-react';
+import { Type, Edit3, Grid, Save, ZoomIn} from 'lucide-react';
 
 export default function FontEditor() {
   return (

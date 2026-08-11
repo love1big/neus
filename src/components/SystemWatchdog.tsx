@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef, ReactNode, Component, ErrorInfo } from 'react';
-import { AlertTriangle, Activity, RefreshCw, HardDrive, Cpu, TerminalSquare, ShieldAlert, MemoryStick, Wifi } from 'lucide-react';
+import { AlertTriangle, Activity, RefreshCw, HardDrive, Cpu, TerminalSquare, ShieldAlert, Wifi} from 'lucide-react';
 
 export type ThreatLevel = 'NORMAL' | 'ELEVATED' | 'CRITICAL';
 
@@ -320,7 +320,7 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
     }, 5000);
 
     try {
-      window.fetch = async (...args) => {
+      window.fetch = (...args) => {
          requestCount++;
          return originalFetch(...args);
       };

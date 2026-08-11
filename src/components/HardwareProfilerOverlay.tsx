@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, MemoryStick, Activity, Flame, LayoutDashboard, Target, Zap, Server, HardDrive, Wifi, Eye, RadioReceiver, Sliders, Monitor, Plus, X } from 'lucide-react';
+import { Cpu, HardDrive, Activity, Flame, LayoutDashboard, Target, Zap, Server, Wifi, Eye, RadioReceiver, Sliders, Monitor, Plus, X} from 'lucide-react';
 
 type Era = 'Past (1970-2010)' | 'Present (2010-2026)' | 'Future (2027+)';
 
@@ -395,7 +395,7 @@ export default function HardwareProfilerOverlay() {
          {/* RAM */}
          <div className="bg-[#0d1117] border border-[#30363d] rounded p-2">
             <div className="flex justify-between items-center mb-1">
-               <span className="font-bold text-[#c9d1d9] flex items-center gap-1"><MemoryStick size={12} className="text-[#58a6ff]"/> Main System Memory (UMA Base)</span>
+               <span className="font-bold text-[#c9d1d9] flex items-center gap-1"><HardDrive size={12} className="text-[#58a6ff]"/> Main System Memory (UMA Base)</span>
             </div>
             <div className="text-[#8b949e] mb-1 truncate text-[9px]">{ramName}</div>
             <div className="text-[#8b949e] mb-1">Usage: <span className="text-white font-bold">{stats.ramUsage.toFixed(1)} GB</span> Allocated</div>

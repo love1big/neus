@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Plus, Search, Check, AlertCircle, Download, Upload, Languages } from 'lucide-react';
+import { Globe, Plus, Search, Check, AlertCircle, Download, Upload, Languages} from 'lucide-react';
 
 export default function AdvancedLocalizationSystem() {
   return (

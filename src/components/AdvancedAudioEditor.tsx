@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Play, Pause, SkipBack, Volume2, Sliders, Mic, Square, Scissors } from 'lucide-react';
+import { Activity, Play, Pause, SkipBack, Volume2, Sliders, Mic, Square, Scissors} from 'lucide-react';
 
 export default function AdvancedAudioEditor() {
   return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TerminalSquare, Play, Square, Settings2, FileCode2, Search, Bug, ChevronRight, X, Maximize, AlertCircle, CheckCircle2, ChevronDown, Rocket } from 'lucide-react';
+import { TerminalSquare, Play, Square, Settings2, FileCode2, Search, Bug, ChevronRight, X, Maximize, AlertCircle, CheckCircle2, ChevronDown, Rocket} from 'lucide-react';
 
 export default function IDECompilerCore() {
   const [activeTab, setActiveTab] = useState('build');

@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Server, Globe, Database, Wifi, Shield, Lock, Activity, 
-  TrendingUp, Users, Cpu, Key, Play, Pause, Square, AlertTriangle, 
-  Terminal, Zap, Settings, Command, Network
-} from 'lucide-react';
+  Server, Globe, Database, Wifi, Shield, Lock, Activity, TrendingUp, Users, Cpu, Key, Play, Pause, Square, AlertTriangle, Terminal, Zap, Settings, Command, Network} from 'lucide-react';
 
 export default function OmniBackendNetworkingStudio() {
   const [activeTab, setActiveTab] = useState('Topology'); // Topology, Database, LiveOps, Security, Traffic

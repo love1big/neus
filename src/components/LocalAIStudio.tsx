@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Cpu, HardDrive, Play, Pause, Trash2, Box, Shield, Zap, Search, Layers, Settings, ChevronRight, Brain } from 'lucide-react';
+import { Download, Cpu, HardDrive, Play, Pause, Trash2, Box, Shield, Zap, Search, Layers, Settings, ChevronRight, Brain} from 'lucide-react';
 
 export default function LocalAIStudio() {
   const [downloading, setDownloading] = useState<string | null>('Llama-3-8B-Instruct-Q4');

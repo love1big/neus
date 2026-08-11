@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Eye, Grid3X3, Zap, Activity } from 'lucide-react';
+import { Box, Eye, Grid3X3, Zap, Activity} from 'lucide-react';
 
 interface PhysicsDebuggerPanelProps {
   physicsConfig: any;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, Play, Pause, SkipBack, SkipForward, Plus, Settings, Video, Music, Type, Layers, Maximize2, MousePointer2, Scissors, Copy, Move } from 'lucide-react';
+import { Clock, Play, Pause, SkipBack, SkipForward, Plus, Settings, Video, Music, Type, Layers, Maximize2, MousePointer2, Scissors, Copy, Move} from 'lucide-react';
 
 export default function AdvancedTimelineEditor() {
   const [isPlaying, setIsPlaying] = useState(false);

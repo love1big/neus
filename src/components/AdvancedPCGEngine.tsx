@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { 
-  Mountain, Trees, Map, Workflow, Sliders, BoxSelect, 
-  Layers, Waves, Droplet, Wind, Network, Settings, Database, Play, Pause, Save, Grid3X3,
-  CheckCircle2, Activity
-} from "lucide-react";
+  Mountain, Trees, Map, Workflow, Sliders, BoxSelect, Layers, Waves, Droplet, Wind, Network, Settings, Database, Play, Pause, Save, Grid3X3, CheckCircle2, Activity} from "lucide-react";
 
 export default function AdvancedPCGEngine() {
   const [activeTab, setActiveTab] = useState("terrain");

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DownloadCloud, UploadCloud, Link as LinkIcon, Share2, Star, ThumbsUp, MessageSquare, Heart, ShieldCheck, Box, User, Image as ImageIcon, Flame, TrendingUp, Settings2 } from 'lucide-react';
+import { DownloadCloud, UploadCloud, Link as LinkIcon, Share2, Star, ThumbsUp, MessageSquare, Heart, ShieldCheck, Box, User, Image as ImageIcon, Flame, TrendingUp, Settings2} from 'lucide-react';
 
 export default function ModdingWorkshopPublisher() {
   const [activeTab, setActiveTab] = useState('browser');

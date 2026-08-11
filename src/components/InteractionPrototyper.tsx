@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Activity, Settings2, Play } from 'lucide-react';
+import { Layers, Activity, Settings2, Play} from 'lucide-react';
 
 export default function InteractionPrototyper() {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Type, CheckCircle, AlertCircle, RefreshCw} from 'lucide-react';
 
 export default function RegexTesterPanel() {
   return (

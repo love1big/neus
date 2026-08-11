@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, Image as ImageIcon, CheckCircle, AlertTriangle, Loader2, Globe, Copy, RefreshCw } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, CheckCircle, AlertTriangle, Loader2, Globe, Copy, RefreshCw} from 'lucide-react';
 import Tesseract from 'tesseract.js';
 
 export default function AIOfflineOCREngine() {

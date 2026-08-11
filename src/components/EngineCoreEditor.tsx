@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cpu, MemoryStick, Search, Plus, Save, Activity, Box, Hexagon, Component, AlignLeft, Shield, AlertTriangle } from 'lucide-react';
+import { Cpu, MemoryStick, Search, Plus, Save, Activity, Box, Hexagon, Component, AlignLeft, Shield, AlertTriangle} from 'lucide-react';
 
 export default function EngineCoreEditor() {
   const [activeTab, setActiveTab] = useState('Subsystems');

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, Server, Activity, ArrowDownUp, ShieldCheck, Database, Play, Pause, AlertTriangle, RadioTower, Clock, Network } from 'lucide-react';
+import { Globe, Server, Activity, ArrowDownUp, ShieldCheck, Database, Play, Pause, AlertTriangle, RadioTower, Clock, Network} from 'lucide-react';
 
 export default function NetcodeEditor() {
   const [isRunning, setIsRunning] = useState(false);

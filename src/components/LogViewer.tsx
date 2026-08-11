@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, AlertTriangle, Info, AlertOctagon } from 'lucide-react';
+import { Search, Filter, AlertTriangle, Info, AlertOctagon} from 'lucide-react';
 
 export type LogLevel = 'info' | 'warning' | 'error' | 'success';
 

@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Camera, Video, UploadCloud, Box, Layers, Play, Settings2, Download, Zap, Loader2, Sparkles, AlertCircle, Scan,
-  Cpu, HardDrive, Share2
-} from 'lucide-react';
+  Camera, Video, UploadCloud, Box, Layers, Play, Settings2, Download, Zap, Loader2, Sparkles, AlertCircle, Scan, Cpu, HardDrive, Share2} from 'lucide-react';
 
 export default function Photogrammetry3DScanner() {
   const [activeTab, setActiveTab] = useState<'scan' | 'edit' | 'export'>('scan');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Film, Video, Scissors, HardDrive, Settings, MonitorPlay, FastForward } from 'lucide-react';
+import { Film, Video, Scissors, HardDrive, Settings, MonitorPlay, FastForward} from 'lucide-react';
 
 export default function VideoEncoderStudio() {
    return (

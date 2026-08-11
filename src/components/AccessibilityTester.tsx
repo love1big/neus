@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Glasses, ZoomIn, Contrast, Layout, Wand2, Activity, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Eye, Glasses, ZoomIn, Contrast, Layout, Wand2, Activity, ShieldCheck, ArrowRight} from 'lucide-react';
 
 export default function AccessibilityTester() {
   const [filter, setFilter] = useState('none');

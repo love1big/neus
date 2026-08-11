@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Cpu, Car, Navigation, Brain, Box, Glasses, Database, Zap, Plus, Search, ShieldCheck, Layers, Dna, BarChart2, Activity } from 'lucide-react';
+import { Settings, Cpu, Car, Navigation, Brain, Box, Glasses, Database, Zap, Plus, Search, ShieldCheck, Layers, Dna, BarChart2, Activity} from 'lucide-react';
 
 export default function GameSystemsBuilder() {
   const [activeTab, setActiveTab] = useState('systems');

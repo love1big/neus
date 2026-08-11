@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Box, Maximize, Play, Sun, Layers, Droplet } from 'lucide-react';
+import { Flame, Box, Maximize, Play, Sun, Layers, Droplet} from 'lucide-react';
 
 export default function AdvancedShaderEditor() {
   return (

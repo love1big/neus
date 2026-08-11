@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Route, Map, Flag, Hexagon, Maximize, MousePointer2, GitCommit, Waypoints, ShieldAlert, Cpu, ZoomIn, BoxSelect, Eraser, Move, Target, Eye, Settings2 } from 'lucide-react';
+import { Route, Map, Flag, Hexagon, Maximize, MousePointer2, GitCommit, Waypoints, ShieldAlert, Cpu, ZoomIn, BoxSelect, Eraser, Move, Target, Eye, Settings2} from 'lucide-react';
 
 export default function NavMeshRouter() {
   const [activeTab, setActiveTab] = useState<'build' | 'test'>('build');

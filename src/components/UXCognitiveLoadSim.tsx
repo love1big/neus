@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, BrainCircuit, Activity, ZoomIn, Play, Map, MousePointer2, AlertTriangle, LightbulbIcon, Settings2, BarChart2 } from 'lucide-react';
+import { Eye, BrainCircuit, Activity, ZoomIn, Play, Map, MousePointer2, AlertTriangle, LightbulbIcon, Settings2, BarChart2} from 'lucide-react';
 
 export default function UXCognitiveLoadSim() {
   const [activeOverlay, setActiveOverlay] = useState<'heatmap' | 'saccades' | 'attention'>('attention');

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { FolderTree, Mountain, PersonStanding, Palette, Image, Music, Box, File as FileIcon, Search, UploadCloud, Trash2, ShieldCheck, FolderPlus, FilePlus, Network, Sparkles, Loader2, Database, Cog, X, Save, Settings2, Sliders } from 'lucide-react';
+import { FolderTree, Mountain, PersonStanding, Palette, Image, Music, Box, File as FileIcon, Search, UploadCloud, Trash2, ShieldCheck, FolderPlus, FilePlus, Network, Sparkles, Loader2, Database, Cog, X, Save, Settings2, Sliders} from 'lucide-react';
 
 interface Asset {
   id: string;
@@ -45,6 +45,20 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
   const [aiProcessingLogs, setAiProcessingLogs] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  
+  React.useEffect(() => {
+    const handleOpenAsset = (e: any) => {
+      const assetId = e.detail;
+      const asset = assets.find(a => a.id === assetId);
+      if (asset) {
+        setActiveFolderId(asset.folderId);
+        setSelectedAssetId(asset.id);
+      }
+    };
+    window.addEventListener('open-asset', handleOpenAsset);
+    return () => window.removeEventListener('open-asset', handleOpenAsset);
+  }, [assets]);
 
   const processImportedFiles = async (files: File[]) => {
     setIsProcessing(true);

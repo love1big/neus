@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, Plus, Search, TableProperties, Download, Upload, Save, Settings, PlusSquare, Trash2, ArrowUpDown } from 'lucide-react';
+import { Database, Plus, Search, TableProperties, Download, Upload, Save, Settings, PlusSquare, Trash2, ArrowUpDown} from 'lucide-react';
 
 export default function DataTableEditor() {
   const [activeTable, setActiveTable] = useState('ItemsMaster');

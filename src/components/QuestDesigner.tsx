@@ -1,5 +1,5 @@
 import React from 'react';
-import { Scroll, Plus, Search, Flag, CheckCircle, Target, Gift, GitBranch, Map } from 'lucide-react';
+import { Scroll, Plus, Search, Flag, CheckCircle, Target, Gift, GitBranch, Map} from 'lucide-react';
 
 export default function QuestDesigner() {
   return (

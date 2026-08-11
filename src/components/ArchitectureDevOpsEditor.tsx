@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Server, ShieldX, Network, Cpu, Activity, Globe, Zap, 
-  TerminalSquare, Fingerprint, Lock, ShieldCheck, ActivitySquare
-} from 'lucide-react';
+  Server, ShieldX, Network, Cpu, Activity, Globe, Zap, TerminalSquare, Fingerprint, Lock, ShieldCheck, ActivitySquare} from 'lucide-react';
 
 export default function ArchitectureDevOpsEditor() {
   const [activeTab, setActiveTab] = useState<'Cluster' | 'AntiCheat'>('Cluster');

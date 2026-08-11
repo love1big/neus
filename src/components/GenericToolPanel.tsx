@@ -1,12 +1,12 @@
 import React from 'react';
-import { Bot, PlayCircle, Layers, Settings, Maximize2, Move3d, Terminal, ChevronRight, Activity, Cloud } from 'lucide-react';
+import { Bot, PlayCircle, Layers, Settings, Maximize2, Move3d, Terminal, ChevronRight, Activity, Cloud} from 'lucide-react';
 
 interface Tool {
   id: string;
-  title: string;
+  title?: string; name?: string;
   icon: React.ReactElement<any>;
-  activeColor: string;
-  category: string;
+  activeColor?: string;
+  category?: string;
 }
 
 export default function GenericToolPanel({ toolId, tools }: { toolId: string; tools: Tool[] }) {

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Map, RefreshCw, ZoomIn, Target } from 'lucide-react';
+import { Map, RefreshCw, ZoomIn, Target} from 'lucide-react';
 
 export default function TerrainGenerator() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

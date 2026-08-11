@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Network, Activity, Server, Smartphone, Cpu, ShieldAlert, BarChart2, Zap, Clock, Search, Sliders, Settings2, Eye, ShieldCheck, Database, RefreshCw } from 'lucide-react';
+import { Network, Activity, Server, Smartphone, Cpu, ShieldAlert, BarChart2, Zap, Clock, Search, Sliders, Settings2, Eye, ShieldCheck, Database, RefreshCw} from 'lucide-react';
 
 export default function NetworkReplicationSim() {
   return (

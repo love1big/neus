@@ -1,74 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Settings,
-  Play,
-  Bot,
-  Menu,
-  ChevronRight,
-  Search,
-  Plus,
-  PlayCircle,
-  Box,
-  Layers,
-  MousePointer2,
-  Move,
-  RotateCw,
-  Scaling,
-  Grid,
-  Camera,
-  Pipette,
-  Mountain,
-  Sun,
-  Film,
-  Mic,
-  Flame,
-  Sparkles,
-  Cuboid,
-  Hexagon,
-  Component,
-  RefreshCw,
-  FolderTree,
-  Database,
-  Code2,
-  Waypoints,
-  LayoutDashboard,
-  Puzzle,
-  AlertTriangle,
-  XCircle,
-  X,
-  Maximize2,
-  Move3d,
-  Cloud,
-  Image,
-  Ghost,
-  ChevronDown,
-  UserSquare,
-  Users,
-  AudioWaveform as ObjectIcon,
-  Waves,
-  BookOpen,
-  Map,
-  Gamepad2,
-  Terminal,
-  TerminalSquare,
-  Filter,
-  Globe,
-  Zap,
-  MonitorPlay,
-  Network,
-  Server,
-  Wifi,
-  Activity,
-  AlignLeft,
-  Wrench,
-  GitMerge,
-  MemoryStick,
-  Microchip,
-  Eye,
-  BoxSelect,
-  Paintbrush,
-  Cpu,
-} from "lucide-react";
+  Settings, Play, Bot, Menu, ChevronRight, Search, Plus, PlayCircle, Box, Layers, MousePointer2, Move, RotateCw, Scaling, Grid, Camera, Pipette, Mountain, Sun, Film, Mic, Flame, Sparkles, Cuboid, Hexagon, Component, RefreshCw, FolderTree, Database, Code2, Waypoints, LayoutDashboard, Puzzle, AlertTriangle, XCircle, X, Maximize2, Move3d, Cloud, Image, Ghost, ChevronDown, UserSquare, Users, AudioWaveform as ObjectIcon, Waves, BookOpen, Map, Gamepad2, Terminal, TerminalSquare, Filter, Globe, Zap, MonitorPlay, Network, Server, Wifi, Activity, AlignLeft, Wrench, GitMerge, HardDrive, Microchip, Eye, BoxSelect, Paintbrush, Cpu, } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -635,7 +567,7 @@ export default function OmniEngineIDE({
                 },
                 {
                   label: "Memory & Heap Profiler",
-                  icon: <MemoryStick size={14} />,
+                  icon: <HardDrive size={14} />,
                   onClick: () => setActiveTool("MemoryProfiler"),
                 },
                 {
@@ -978,7 +910,8 @@ export default function OmniEngineIDE({
                       icon={tool.iconNode || getIconForTool(tool.iconName)}
                       label={tool.label}
                       active={activeTool === tool.id || hasActiveSubTool}
-                      onClick={() => setActiveTool(tool.subTools && tool.subTools.length > 0 ? tool.subTools[0].id : tool.id)}
+                      onClick={() => setActiveTool(tool.id)}
+                      
                       subTools={tool.subTools}
                       onSubSelect={setActiveTool}
                       activeTool={activeTool}
@@ -2450,6 +2383,7 @@ function ToolBtn({
   label: string;
   active?: boolean;
   onClick?: () => void;
+
 }) {
   return (
     <div
@@ -2546,20 +2480,24 @@ function SideBtn({
   label,
   active,
   onClick,
+  onMouseEnter,
   subTools,
   onSubSelect,
   activeTool,
 }: {
+
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   onClick?: () => void;
+  onMouseEnter?: (e?: React.MouseEvent) => void;
   subTools?: any[];
   onSubSelect?: (id: string) => void;
   activeTool?: string;
 }) {
   return (
     <div
+      onMouseEnter={onMouseEnter}
       className={`relative flex flex-col items-center justify-center w-full py-2 cursor-pointer transition-all border-l-[3px] group ${active ? "border-blue-500 bg-[#2a2b3d] shadow-inner text-white" : "border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#2a2b3d]/50 hover:border-gray-600"}`}
     >
       <div
@@ -2574,28 +2512,6 @@ function SideBtn({
         <span className="text-[9px] mt-1 tracking-wide font-medium text-center leading-tight px-1">{label}</span>
       </div>
 
-      {subTools && subTools.length > 0 && (
-        <div className="absolute left-[100%] top-0 ml-1 hidden group-hover:flex flex-col bg-[#1a1b2e] border border-[#2a2b3d] rounded-md shadow-2xl py-1 z-[1000] min-w-[200px]">
-          <div className="px-3 py-1.5 text-[10px] text-gray-500 font-bold uppercase tracking-wider border-b border-[#2a2b3d] mb-1">
-            {label}
-          </div>
-          {subTools.map((sub: any) => (
-            <div
-              key={sub.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onSubSelect) onSubSelect(sub.id);
-              }}
-              className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${activeTool === sub.id ? "bg-[#58a6ff]/20 text-[#58a6ff]" : "text-gray-300 hover:bg-[#2a2b3d] hover:text-white"}`}
-            >
-              <div className={activeTool === sub.id ? "opacity-100" : "opacity-70"}>
-                {sub.icon}
-              </div>
-              <span className="text-[12px] font-medium">{sub.title}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

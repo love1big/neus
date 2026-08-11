@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Users, MousePointerClick, TrendingUp, BarChart2, PieChart } from 'lucide-react';
+import { Activity, Users, MousePointerClick, TrendingUp, BarChart2, PieChart} from 'lucide-react';
 
 export default function AdvancedAnalyticsTelemetry() {
   return (

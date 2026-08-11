@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wrench, Activity, Settings2, Play } from 'lucide-react';
+import { Wrench, Activity, Settings2, Play} from 'lucide-react';
 
 export default function CompilerTool() {
   return (

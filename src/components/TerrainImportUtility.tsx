@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, Image as ImageIcon, Map, Layers, Download, Check, AlertTriangle } from 'lucide-react';
+import { Upload, Image as ImageIcon, Map, Layers, Download, Check, AlertTriangle} from 'lucide-react';
 
 export default function TerrainImportUtility() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);

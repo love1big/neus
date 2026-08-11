@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, File as FileIcon, X, CornerDownLeft, History } from 'lucide-react';
+import { Search, File as FileIcon, X, CornerDownLeft, History} from 'lucide-react';
 import { IDEFile } from '../lib/project';
 import { Message as ChatMessage } from './AIChat';
 

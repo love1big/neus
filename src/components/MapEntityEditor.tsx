@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Skull, Target, MessageSquare, Scroll, Crosshair, Heart, Shield, Zap, Search, Plus, List, Route, Activity, Save } from 'lucide-react';
+import { User, Skull, Target, MessageSquare, Scroll, Crosshair, Heart, Shield, Zap, Search, Plus, List, Route, Activity, Save} from 'lucide-react';
 
 export default function MapEntityEditor() {
   const [activeTab, setActiveTab] = useState('npcs');

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Trees, Home, Shield, Swords, Box, LayoutGrid, List, Filter, DownloadCloud, Plus, Zap, Car, User, Sparkles } from 'lucide-react';
+import { Search, Trees, Home, Shield, Swords, Box, LayoutGrid, List, Filter, DownloadCloud, Plus, Zap, Car, User, Sparkles} from 'lucide-react';
 
 export default function MapAssetBrowser() {
   const [category, setCategory] = useState('all');

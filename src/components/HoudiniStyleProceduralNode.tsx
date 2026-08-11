@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network, Server, Play, Pause, AlertTriangle, CheckCircle, Clock, HardDrive, Cpu, MemoryStick, Maximize, Activity, RefreshCw, Layers } from 'lucide-react';
+import { Network, Server, Play, Pause, AlertTriangle, CheckCircle, Clock, HardDrive, Cpu, Maximize, Activity, RefreshCw, Layers} from 'lucide-react';
 
 export default function RenderFarmManager() {
   return (
@@ -69,7 +69,7 @@ export default function RenderFarmManager() {
                               </div>
                               <div className="mt-3 flex justify-between items-center text-[9px] text-[#737373] font-mono border-t border-[#3f3f46] pt-2">
                                  <span className="flex items-center gap-1"><Cpu size={10}/> {temp.toFixed(0)}°C</span>
-                                 <span className="flex items-center gap-1"><MemoryStick size={10}/> 64GB</span>
+                                 <span className="flex items-center gap-1"><HardDrive size={10}/> 64GB</span>
                               </div>
                            </>
                         )}

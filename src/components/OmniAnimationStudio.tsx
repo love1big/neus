@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  PersonStanding, Activity, Layers, Play, Pause, Square, 
-  GitMerge, Video, Camera, Scissors, Maximize, AlertTriangle, 
-  Smile, Share2, ZoomIn, ZoomOut, Zap, Save, RefreshCw
-} from 'lucide-react';
+  PersonStanding, Activity, Layers, Play, Pause, Square, GitMerge, Video, Camera, Scissors, Maximize, AlertTriangle, Smile, Share2, ZoomIn, ZoomOut, Zap, Save, RefreshCw} from 'lucide-react';
 
 export default function OmniAnimationStudio() {
   const [activeTab, setActiveTab] = useState('AnimGraph'); // AnimGraph, Retargeting, MoCap, Facial

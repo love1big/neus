@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Plus, Play, Anchor, Move, Minimize, GitCommit } from 'lucide-react';
+import { Activity, Plus, Play, Anchor, Move, Minimize, GitCommit} from 'lucide-react';
 
 export default function AdvancedAnimationBlender() {
   return (

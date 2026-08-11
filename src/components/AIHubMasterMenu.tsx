@@ -1,19 +1,6 @@
 import React, { useState } from "react";
 import { 
-  Bot, 
-  Cpu, 
-  Brain, 
-  Waypoints, 
-  Cloud, 
-  Network, 
-  TerminalSquare, 
-  Sparkles, 
-  Zap, 
-  Activity, 
-  Layers, 
-  Server, 
-  HardDrive 
-} from "lucide-react";
+  Bot, Cpu, Brain, Waypoints, Cloud, Network, TerminalSquare, Sparkles, Zap, Activity, Layers, Server, HardDrive} from "lucide-react";
 
 import AIOfflineDownloader from "./AIOfflineDownloader";
 import AICommandCenter from "./AICommandCenter";

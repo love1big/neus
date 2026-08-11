@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrainCircuit, Play, Square, Settings, Activity, Network, LineChart, Zap, Target } from 'lucide-react';
+import { BrainCircuit, Play, Square, Settings, Activity, Network, LineChart, Zap, Target} from 'lucide-react';
 
 export default function MLAgentsEditor() {
   const [training, setTraining] = useState(false);

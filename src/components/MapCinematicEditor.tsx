@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Video, Play, Pause, SkipBack, SkipForward, Aperture, Layers, Scissors, Plus, Clock, Move, Eye } from 'lucide-react';
+import { Camera, Video, Play, Pause, SkipBack, SkipForward, Aperture, Layers, Scissors, Plus, Clock, Move, Eye} from 'lucide-react';
 
 export default function MapCinematicEditor() {
   return (

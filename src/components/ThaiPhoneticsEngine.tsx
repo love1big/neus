@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings2, Volume2, Mic, Activity, AlignLeft, BarChart, Layers, BrainCircuit, Globe, Type, Speech, FileAudio, Play, Pause, FastForward, Sliders, AudioWaveform, Waves } from 'lucide-react';
+import { Settings2, Volume2, Mic, Activity, AlignLeft, BarChart, Layers, BrainCircuit, Globe, Type, Speech, FileAudio, Play, Pause, FastForward, Sliders, AudioWaveform, Waves} from 'lucide-react';
 
 export default function ThaiPhoneticsEngine() {
   const [inputText, setInputText] = useState('ไปไหนดีจ๊ะ');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gauge, Settings2, Sliders, Activity, Wrench, ArrowRightLeft, Database, RefreshCw, BarChart2, Play } from 'lucide-react';
+import { Gauge, Settings2, Sliders, Activity, Wrench, ArrowRightLeft, Database, RefreshCw, BarChart2, Play} from 'lucide-react';
 
 export default function VehicleDynamicsTuner() {
   return (

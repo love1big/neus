@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Server, Download, CheckCircle, Database, Cpu, ShieldCheck, Zap, Globe } from 'lucide-react';
+import { X, Server, Download, CheckCircle, Database, Cpu, ShieldCheck, Zap, Globe} from 'lucide-react';
 import { useLanguage, languages } from '../contexts/LanguageContext';
 
 interface SettingsModalProps {

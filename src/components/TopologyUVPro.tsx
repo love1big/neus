@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Crosshair, Scissors, Layers, Settings2, Download, Maximize, MousePointer2, Move, Rotate3D, Grid, Sliders, Brush, Wrench, Spline, Frame, Square, Orbit, Pipette, Magnet, Activity } from 'lucide-react';
+import { Box, Crosshair, Scissors, Layers, Settings2, Download, Maximize, MousePointer2, Move, Rotate3D, Grid, Sliders, Brush, Wrench, Spline, Frame, Square, Orbit, Pipette, Magnet, Activity} from 'lucide-react';
 
 export default function TopologyUVPro() {
   const [activeTab, setActiveTab] = useState<'retopo' | 'uv'>('uv');

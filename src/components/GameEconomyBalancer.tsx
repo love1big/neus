@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Coins, TrendingUp, BarChart, ArrowRightLeft, Gift, ShieldAlert, Sparkles, Activity, Layers, Download, RefreshCw, Zap, TrendingDown, Sliders } from 'lucide-react';
+import { Coins, TrendingUp, BarChart, ArrowRightLeft, Gift, ShieldAlert, Sparkles, Activity, Layers, Download, RefreshCw, Zap, TrendingDown, Sliders} from 'lucide-react';
 
 export default function GameEconomyBalancer() {
   return (

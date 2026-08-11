@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Map, Users, MessageSquare, PenTool, Image, ScrollText, Library, FileText, CornerDownRight, Workflow } from 'lucide-react';
+import { BookOpen, Map, Users, MessageSquare, PenTool, Image, ScrollText, Library, FileText, CornerDownRight, Workflow} from 'lucide-react';
 
 export default function WorldLoreEditor() {
   const [activeTab, setActiveTab] = useState('encyclopedia');

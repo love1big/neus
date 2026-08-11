@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Gamepad2, Globe, MonitorPlay, Save, Languages, Orbit, Activity, ChevronRight, HardDrive, Plus, Trash2, Cpu, Database, Eye, ShieldCheck, Zap, Layers, Wind, Droplets, BrainCircuit, Server, Workflow, Network, Activity as ActivityIcon } from 'lucide-react';
+import { Settings, Gamepad2, Globe, MonitorPlay, Save, Languages, Orbit, Activity, ChevronRight, HardDrive, Plus, Trash2, Cpu, Database, Eye, ShieldCheck, Zap, Layers, Wind, Droplets, BrainCircuit, Server, Workflow, Network, Activity as ActivityIcon} from 'lucide-react';
 
 export default function ProjectSettingsEditor() {
   const [activeTab, setActiveTab] = useState('input');

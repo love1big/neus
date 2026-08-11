@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserSquare, Settings, Play, Save, Box, Layers, Scissors, Move3D, Zap, Bone, Hand, Camera, Ruler, Smile } from 'lucide-react';
+import { UserSquare, Settings, Play, Save, Box, Layers, Scissors, Move3D, Zap, Bone, Hand, Camera, Ruler, Smile} from 'lucide-react';
 
 export default function MetaHumanEditor() {
   const [activeTab, setActiveTab] = useState('Face');

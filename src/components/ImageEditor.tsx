@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Image as ImageIcon, Scissors, Edit2, Eraser, Square, Save, Trash2, Download, Layers, Wand2, FlipHorizontal, Move, Palette, Sliders, Type, Undo, Search, ZoomIn, Sun, Sparkles, Filter, Settings2, Hash, Menu, Eye, GitBranch } from 'lucide-react';
+import { Image as ImageIcon, Scissors, Edit2, Eraser, Square, Save, Trash2, Download, Layers, Wand2, FlipHorizontal, Move, Palette, Sliders, Type, Undo, Search, ZoomIn, Sun, Sparkles, Filter, Settings2, Hash, Menu, Eye, GitBranch} from 'lucide-react';
 
 export default function ImageEditor() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

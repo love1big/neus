@@ -1,10 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Map, Grid3X3, Layers, Settings, ZoomIn, ZoomOut, Save, Plus, Target, Compass, Cloud, MapPin, Search, Edit3, Type, X, BrainCircuit, Scan, Trees, Droplets, Thermometer, Mountain, Brush, Eye, EyeOff, BarChart2, Lock, Unlock, Trash2, History, Undo2, User, Clock, BedDouble, Hammer, Coffee, GripVertical, CalendarDays, Sun, Wind, Camera, Box, Move, Route, Activity, Video, Aperture, Play, Pause, Rewind, FastForward, GitBranch, MessageSquare, Network, Zap, Database, Terminal, Webhook, BoxSelect, Cpu, CheckSquare, Braces, GitCommit, Circle, Square, Edit2, Snowflake, Flame, CloudRain, Star, Pointer, Pickaxe, Sprout, Building, Building2, TreePine, Fence, Paintbrush, Pipette, PaintBucket, Maximize, Minimize, Crosshair, Grab, Shield, ShieldAlert, Skull, Radio, Anchor, Moon, Scissors, Copy, ClipboardPaste, ArrowUpFromLine, ArrowDownToLine, MousePointer2, Wand2, ArrowUp, ArrowDown, Leaf, Sparkles, Hexagon, Ruler, Magnet, Volume2, Eraser, Dices, Shuffle, AlignCenter, LayoutGrid, TramFront, Droplet, Layers3, ActivitySquare, Waves, CloudFog, DownloadCloud } from 'lucide-react';
+import { Map, Grid3X3, Layers, Settings, ZoomIn, ZoomOut, Save, Plus, Target, Compass, Cloud, MapPin, Search, Edit3, Type, X, BrainCircuit, Scan, Trees, Droplets, Thermometer, Mountain, Brush, Eye, EyeOff, BarChart2, Lock, Unlock, Trash2, History, Undo2, User, Clock, BedDouble, Hammer, Coffee, GripVertical, CalendarDays, Sun, Wind, Camera, Box, Move, Route, Activity, Video, Aperture, Play, Pause, Rewind, FastForward, GitBranch, MessageSquare, Network, Zap, Database, Terminal, Webhook, BoxSelect, Cpu, CheckSquare, Braces, GitCommit, Circle, Square, Edit2, Snowflake, Flame, CloudRain, Star, Pointer, Pickaxe, Sprout, Building, Building2, TreePine, Fence, Paintbrush, Pipette, PaintBucket, Maximize, Minimize, Crosshair, Grab, Shield, ShieldAlert, Skull, Radio, Anchor, Moon, Scissors, Copy, ClipboardPaste, ArrowUpFromLine, ArrowDownToLine, MousePointer2, Wand2, ArrowUp, ArrowDown, Leaf, Sparkles, Hexagon, Ruler, Magnet, Volume2, Eraser, Dices, Shuffle, AlignCenter, LayoutGrid, TramFront, Droplet, Layers3, ActivitySquare, Waves, CloudFog, DownloadCloud} from 'lucide-react';
 import TaskStatusBoard from './TaskStatusBoard';
 import Viewport3D from './Viewport3D';
 import MapAssetBrowser from './MapAssetBrowser';
 import MapEntityEditor from './MapEntityEditor';
 import MapCinematicEditor from './MapCinematicEditor';
+import MapPCGEditor from "./MapPCGEditor";
+import MapRoadEditor from "./MapRoadEditor";
+import MapWaterEditor from "./MapWaterEditor";
+import MapArchitectureEditor from "./MapArchitectureEditor";
+import MapBiomeEditor from "./MapBiomeEditor";
+import MapModelEditor from "./MapModelEditor";
+import MapPhysicsEditor from "./MapPhysicsEditor";
+import MapTerrainEditor from "./MapTerrainEditor";
+import MapEnvironmentEditor from "./MapEnvironmentEditor";
+
 import MapAudioTools from './MapAudioTools';
 
 function MiniMapCanvas({ styleType, biomeStrokes, width, height, mapLayers, markers }: { styleType: string, biomeStrokes: any[], width: number, height: number, mapLayers: any[], markers?: any[] }) {
@@ -459,6 +469,9 @@ export default function MapEdit() {
           <button onClick={() => setActiveTab('entities')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'entities' ? 'bg-[#ffa657]/20 text-[#ffa657] border border-[#ffa657]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="Entities & Spawns">
             <User size={20} />
           </button>
+          <button onClick={() => setActiveTab('models')} className={`w-10 h-10 shrink-0 rounded flex items-center justify-center ${activeTab === 'models' ? 'bg-[#ff69b4]/20 text-[#ff69b4] border border-[#ff69b4]/50' : 'text-[#8b949e] hover:text-white hover:bg-[#2a2b3d]'}`} title="3D Model Editor">
+            <Box size={20} />
+          </button>
 
           <div className="w-8 h-[1px] bg-[#2a2b3d] my-1 shrink-0"></div>
 
@@ -511,6 +524,8 @@ export default function MapEdit() {
           </button>
         </div>
 
+        {activeTab === "pcg" ? <MapPCGEditor /> : activeTab === "biome" ? <MapBiomeEditor /> : activeTab === "structures" ? <MapArchitectureEditor /> : activeTab === "water" ? <MapWaterEditor /> : activeTab === "roads" ? <MapRoadEditor /> : activeTab === "terrain" ? <MapTerrainEditor /> : (activeTab === "lighting" || activeTab === "weather") ? <MapEnvironmentEditor /> : (
+          <>
         {/* Properties Panel */}
         <div className="w-[300px] border-r border-[#2a2b3d] bg-[#11111b] flex flex-col shrink-0">
           {activeTab === 'layers' && (
@@ -549,7 +564,7 @@ export default function MapEdit() {
                 <Plus size={14} /> Add New Layer
               </button>
             </div>
-          )}
+        )}
 
           {activeTab === 'history' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
@@ -594,10 +609,10 @@ export default function MapEdit() {
                         </button>
                      </div>
                    ))
-                )}
+        )}
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'analytics' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 pb-20">
@@ -702,7 +717,7 @@ export default function MapEdit() {
                  </div>
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'grid' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -830,7 +845,7 @@ export default function MapEdit() {
                              <option value="2">2mc (Low Acc / AI Outline)</option>
                           </select>
                        </div>
-                    )}
+        )}
                  </div>
               </div>
 
@@ -856,7 +871,7 @@ export default function MapEdit() {
                 </div>
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'maptools' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -1290,61 +1305,7 @@ export default function MapEdit() {
               </div>
 
             </div>
-          )}
-
-          {activeTab === 'terrain' && (
-            <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-              <h2 className="text-sm font-bold text-[#d2a8ff] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2"><Mountain size={16}/> Terrain Sculpting</h2>
-              <p className="text-[11px] text-[#8b949e]">Manually raise, lower, or flatten vertex data. Modifying terrain meshes directly affects the global nav-mesh.</p>
-              
-              <div className="grid grid-cols-3 gap-2">
-                 <button className="bg-[#1e1e2d] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all">
-                    <Activity size={14} className="text-[#d2a8ff]" />
-                    <span className="text-[9px]">Raise</span>
-                 </button>
-                 <button className="bg-[#1e1e2d] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all">
-                    <Mountain size={14} className="text-[#d2a8ff]" />
-                    <span className="text-[9px]">Lower</span>
-                 </button>
-                 <button className="bg-[#1e1e2d] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all">
-                    <Move size={14} className="text-[#d2a8ff]" />
-                    <span className="text-[9px]">Flatten</span>
-                 </button>
-                 <button className="bg-[#1e1e2d] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all">
-                    <Wind size={14} className="text-[#d2a8ff]" />
-                    <span className="text-[9px]">Smooth</span>
-                 </button>
-                 <button className="bg-[#1e1e2d] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all">
-                    <Target size={14} className="text-orange-400" />
-                    <span className="text-[9px]">Terrace</span>
-                 </button>
-                 <button className="bg-[#1e1e2d] hover:bg-[#2a2b3d] text-white border border-[#2a2b3d] hover:border-[#d2a8ff]/50 p-2 rounded flex flex-col items-center justify-center gap-1 transition-all">
-                    <Edit3 size={14} className="text-gray-400" />
-                    <span className="text-[9px]">Ramp</span>
-                 </button>
-              </div>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Brush Size (mc)</label>
-                    <input type="range" min="1" max="100" defaultValue="20" className="w-full accent-[#d2a8ff]" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Brush Strength</label>
-                    <input type="range" min="1" max="100" defaultValue="50" className="w-full accent-[#d2a8ff]" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Falloff Curve</label>
-                    <select className="w-full bg-[#0a0a0f] border border-[#2a2b3d] rounded p-1.5 text-xs text-white">
-                       <option>Smooth/Linear</option>
-                       <option>Gaussian</option>
-                       <option>Dome</option>
-                       <option>Flat Step</option>
-                    </select>
-                 </div>
-              </div>
-            </div>
-          )}
+        )}
 
           {activeTab === 'textures' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -1407,7 +1368,7 @@ export default function MapEdit() {
                  <button className="bg-[#ff7b72]/20 hover:bg-[#ff7b72]/30 text-white text-[10px] px-2 py-1.5 rounded transition">Open Synthesis Engine</button>
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'water' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -1457,74 +1418,8 @@ export default function MapEdit() {
                  </label>
               </div>
             </div>
-          )}
+        )}
 
-          {activeTab === 'roads' && (
-            <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-              <h2 className="text-sm font-bold text-[#f0f6fc] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2"><Route size={16}/> Path & Road Networks</h2>
-              <p className="text-[11px] text-[#8b949e]">Draw vector splines manually, or use the Offline Mapping AI to autonomously generate realistic trade routes and urban grids.</p>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-2">
-                 <button className="bg-[#2a2b3d] hover:bg-[#3b3d54] text-white border border-[#2a2b3d] hover:border-[#f0f6fc]/50 py-2 px-3 rounded flex justify-center items-center gap-2 transition-all text-xs font-bold w-full">
-                    <Edit3 size={14} /> Manual Spline Draw
-                 </button>
-                 <div className="flex items-center gap-2 mt-1">
-                    <input type="checkbox" defaultChecked className="accent-[#f0f6fc] w-3 h-3" />
-                    <span className="text-[10px] text-gray-300">Spline Auto-Smoother (Bezier Curve fix)</span>
-                 </div>
-              </div>
-
-              {/* AI Auto-Router Engine */}
-              <div className="bg-[#f0f6fc]/5 border border-[#f0f6fc]/20 p-3 rounded flex flex-col gap-3 relative mt-2 overflow-hidden shadow-[0_0_15px_rgba(240,246,252,0.05)]">
-                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#58a6ff]/10 rounded-full blur-2xl pointer-events-none"></div>
-                 <h3 className="text-[11px] font-bold text-[#58a6ff] uppercase border-b border-[#f0f6fc]/20 pb-2 flex items-center gap-1.5"><BrainCircuit size={14}/> AI Pathfinding Router</h3>
-                 
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Routing Algorithm Logic</label>
-                    <select className="w-full bg-[#0a0a0f] border border-[#2a2b3d] rounded p-1.5 text-xs text-white">
-                       <option>Voronoi Fracture (Fantasy organic)</option>
-                       <option>Strict Manhattan (Modern Urban)</option>
-                       <option>Dijkstra Least-Resistance (Topographical)</option>
-                       <option>Simulated Ant-Colony (Desire Paths)</option>
-                    </select>
-                 </div>
-
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block mt-1">Max Incline Grade Tolerance (%)</label>
-                    <div className="flex items-center gap-2">
-                       <input type="range" min="1" max="45" defaultValue="15" className="flex-1 accent-[#58a6ff]" />
-                       <span className="text-[10px] text-white font-mono w-6 text-right">15%</span>
-                    </div>
-                 </div>
-
-                 <div className="mt-2 border-t border-[#f0f6fc]/10 pt-2 flex flex-col gap-1">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
-                       <span className="text-[9px] text-[#8b949e] group-hover:text-white transition">Auto-generate Bridges over Water (A* Pathing)</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
-                       <span className="text-[9px] text-[#8b949e] group-hover:text-white transition">Bore Tunnels through mountains {'>'} 20% Grade</span>
-                    </label>
-                 </div>
-                 
-                 <button className="w-full bg-[#58a6ff] hover:bg-[#79c0ff] text-[#0a0a0f] font-bold py-1.5 rounded text-[10px] uppercase mt-1 transition-transform transform hover:scale-[1.02]">
-                    Handoff to Offline Swarm
-                 </button>
-              </div>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3 mt-1">
-                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1">Road Material Properties</h3>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Road Width Baseline (mc)</label>
-                    <div className="flex items-center gap-2">
-                       <input type="range" min="1" max="20" defaultValue="4" className="flex-1 accent-[#f0f6fc]" />
-                       <span className="text-[10px] text-white font-mono w-6 text-right">4.0</span>
-                    </div>
-                 </div>
-              </div>
-            </div>
-          )}
 
           {activeTab === 'structures' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -1634,7 +1529,7 @@ export default function MapEdit() {
                  </div>
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'entities' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -1711,159 +1606,7 @@ export default function MapEdit() {
                  </label>
               </div>
             </div>
-          )}
-
-          {activeTab === 'lighting' && (
-            <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-              <h2 className="text-sm font-bold text-[#f2cc60] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2"><Sun size={16}/> Lighting & Time Engine</h2>
-              <p className="text-[11px] text-[#8b949e]">Configure global AI-driven illumination, volumetric god-rays, and physical photon-bouncing constraints for the Offline Path Tracer.</p>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-2">
-                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1 flex items-center justify-between">
-                    Global Time / Astrometrics
-                    <span className="text-[8px] bg-[#f2cc60]/20 text-[#f2cc60] px-1 rounded border border-[#f2cc60]/50">LAT/LONG LINKED</span>
-                 </h3>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Time of Day (24h)</label>
-                    <div className="flex items-center gap-2 mb-1">
-                       <Clock size={14} className="text-[#f2cc60]"/>
-                       <input type="range" min="0" max="24" step="0.5" defaultValue="14" className="w-full accent-[#f2cc60]" />
-                       <span className="text-xs text-white font-mono w-10">14:00</span>
-                    </div>
-                 </div>
-                 <div className="mt-1">
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Axial Tilt (Seasons)</label>
-                    <input type="range" min="-23.5" max="23.5" defaultValue="12" className="w-full accent-[#f2cc60]" />
-                 </div>
-              </div>
-
-              {/* AI Photon Bouncing Simulator */}
-              <div className="bg-[#f2cc60]/5 border border-[#f2cc60]/20 p-3 rounded flex flex-col gap-2 relative mt-1">
-                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#f2cc60]/10 rounded-full blur-2xl pointer-events-none"></div>
-                 <h3 className="text-[11px] font-bold text-[#f2cc60] uppercase border-b border-[#f2cc60]/20 pb-2 flex items-center gap-1.5"><BrainCircuit size={14}/> GI Path Tracing Node</h3>
-                 
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Bounces limit (Local GPU)</label>
-                    <input type="range" min="1" max="16" defaultValue="8" className="w-full accent-[#f2cc60]" />
-                 </div>
-                 
-                 <div className="border-t border-[#f2cc60]/10 pt-2 flex flex-col gap-1.5">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-[#f2cc60] w-3 h-3" />
-                       <span className="text-[9px] text-[#8b949e] group-hover:text-white transition">Offline Radiosity Bake</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-[#f2cc60] w-3 h-3" />
-                       <span className="text-[9px] text-[#8b949e] group-hover:text-white transition">Micro-Facet Specular calculations (Roughness)</span>
-                    </label>
-                 </div>
-              </div>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
-                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1">Sun / Mood</h3>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Sun Angle (Zenith)</label>
-                    <input type="range" min="0" max="90" defaultValue="45" className="w-full accent-[#f2cc60]" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Atmospheric Scattering (Rayleigh/Mie)</label>
-                    <input type="range" min="1" max="100" defaultValue="30" className="w-full accent-[#f2cc60]" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Sun Color Override</label>
-                    <div className="flex items-center gap-2">
-                       <input type="color" defaultValue="#ffeedd" className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0" />
-                       <span className="text-[10px] text-white font-mono">#FFEEDD</span>
-                    </div>
-                 </div>
-                 <label className="flex items-center gap-2 cursor-pointer group mt-1">
-                    <input type="checkbox" defaultChecked className="accent-[#f2cc60] w-3 h-3" />
-                    <span className="text-[10px] text-gray-300 group-hover:text-white transition">Dynamic Soft Shadows Active</span>
-                 </label>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                 <button className="bg-[#2a2b3d] hover:bg-[#3b3d54] text-white border border-[#2a2b3d] hover:border-[#f2cc60]/50 py-2 px-3 rounded flex justify-center items-center gap-2 transition-all text-xs w-full">
-                    <Plus size={12} /> Point Light
-                 </button>
-                 <button className="bg-[#2a2b3d] hover:bg-[#3b3d54] text-white border border-[#2a2b3d] hover:border-[#f2cc60]/50 py-2 px-3 rounded flex justify-center items-center gap-2 transition-all text-xs w-full">
-                    <Plus size={12} /> Spot Light
-                 </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'weather' && (
-            <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-              <h2 className="text-sm font-bold text-[#a5d6ff] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2"><Wind size={16}/> Weather & Atmosphere</h2>
-              <p className="text-[11px] text-[#8b949e]">Design global weather patterns, fluid dynamics, and AI-driven volumetric effects.</p>
-
-              <div>
-                 <label className="text-[10px] text-[#8b949e] mb-1 block">Global Climate AI Seed</label>
-                 <select className="w-full bg-[#0a0a0f] border border-[#2a2b3d] rounded p-2 text-xs text-white outline-none focus:border-[#a5d6ff]">
-                    <option>Clear Skies (Stable High-Pressure)</option>
-                    <option>Overcast (Heavy clouds, flat GI)</option>
-                    <option>Heavy Rain / Storm (Lightning node active)</option>
-                    <option>Blizzard (Snow accumulation shader ON)</option>
-                    <option>Toxic Ash (Volcanic bg enabled)</option>
-                 </select>
-              </div>
-
-              {/* AI Cloud Generator */}
-              <div className="bg-[#a5d6ff]/5 border border-[#a5d6ff]/20 p-3 rounded flex flex-col gap-2 relative mt-1 overflow-hidden shadow-[0_0_15px_rgba(165,214,255,0.05)]">
-                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#a5d6ff]/10 rounded-full blur-2xl pointer-events-none"></div>
-                 <h3 className="text-[11px] font-bold text-[#a5d6ff] uppercase border-b border-[#a5d6ff]/20 pb-2 flex items-center gap-1.5"><BrainCircuit size={14}/> VDB Cloud Density AI</h3>
-                 
-                 <div className="bg-[#0a0a0f] border border-[#2a2b3d] p-2 rounded mb-1">
-                    <label className="text-[9px] text-[#8b949e] mb-1 block font-bold">Cloud Form Prompt (Offline Render)</label>
-                    <textarea className="w-full h-12 bg-transparent text-[10px] text-white outline-none resize-none" defaultValue="Towering cumulus cumulonimbus anvils, rolling dark fronts, highly detailed wisps."></textarea>
-                 </div>
-                 
-                 <div className="flex flex-col gap-1.5 border-t border-[#a5d6ff]/10 pt-2 mt-1">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-[#a5d6ff] w-3 h-3" />
-                       <span className="text-[9px] text-[#8b949e] group-hover:text-white transition">Self-Shadowing Clouds (Voxel Raymarch)</span>
-                    </label>
-                 </div>
-                 <button className="w-full bg-[#a5d6ff] hover:bg-[#8cc4fc] text-[#0a0a0f] font-bold py-1.5 rounded text-[10px] uppercase mt-1 transition-transform transform hover:scale-[1.02]">
-                    Bake Cloud VDB
-                 </button>
-              </div>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
-                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1">Volumetric Fog Parameters</h3>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Global Density</label>
-                    <input type="range" min="0" max="100" defaultValue="15" className="w-full accent-[#a5d6ff]" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Height Falloff (mc altitude)</label>
-                    <div className="flex items-center gap-2">
-                       <input type="range" min="10" max="1000" defaultValue="200" className="flex-1 accent-[#a5d6ff]" />
-                       <span className="text-[10px] text-white font-mono w-8 text-right">200</span>
-                    </div>
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Fog Color Blend</label>
-                    <div className="flex items-center gap-2">
-                       <input type="color" defaultValue="#45546b" className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0" />
-                    </div>
-                 </div>
-              </div>
-              
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded flex flex-col gap-3">
-                 <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#2a2b3d] pb-1">Wind & Particles</h3>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Wind Strength</label>
-                    <input type="range" min="0" max="100" defaultValue="25" className="w-full accent-[#a5d6ff]" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-[#8b949e] mb-1 block">Wind Direction (Deg)</label>
-                    <input type="range" min="0" max="360" defaultValue="90" className="w-full accent-[#a5d6ff]" />
-                 </div>
-              </div>
-            </div>
-          )}
+        )}
 
           {activeTab === 'camera' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pb-20">
@@ -2133,91 +1876,8 @@ export default function MapEdit() {
                  </div>
               </div>
             </div>
-          )}
+        )}
 
-          {activeTab === 'biome' && (
-            <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-              <h2 className="text-sm font-bold text-orange-400 border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2"><Brush size={16}/> AI Biome Brush</h2>
-              <p className="text-[11px] text-[#8b949e]">Paint directly into 1mc cells. The AI predicts and populates flora, fauna, and soil variation based on systemic rules.</p>
-              
-              <div>
-                <label className="text-xs text-[#c9d1d9] mb-1 block">Elevation Override (Altitude)</label>
-                <div className="flex items-center gap-2 mb-1">
-                   <Mountain size={14} className="text-gray-400"/>
-                   <input type="range" min="0" max="100" value={biomeElevation} onChange={e => setBiomeElevation(Number(e.target.value))} className="w-full accent-orange-500" />
-                   <span className="text-xs text-white font-mono w-6">{biomeElevation}</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-[#c9d1d9] mb-1 block">Atmospheric Moisture</label>
-                <div className="flex items-center gap-2 mb-1">
-                   <Droplets size={14} className="text-blue-400"/>
-                   <input type="range" min="0" max="100" value={biomeMoisture} onChange={e => setBiomeMoisture(Number(e.target.value))} className="w-full accent-blue-500" />
-                   <span className="text-xs text-white font-mono w-6">{biomeMoisture}</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-[#c9d1d9] mb-1 block">Ambient Temperature</label>
-                <div className="flex items-center gap-2 mb-1">
-                   <Thermometer size={14} className="text-red-400"/>
-                   <input type="range" min="0" max="100" value={biomeTemperature} onChange={e => setBiomeTemperature(Number(e.target.value))} className="w-full accent-red-500" />
-                   <span className="text-xs text-white font-mono w-6">{biomeTemperature}</span>
-                </div>
-              </div>
-
-              <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded mt-2">
-                 <h3 className="text-xs font-bold text-white mb-2 flex justify-between">
-                    Predicted Biome Result
-                    {activeBiomeType === 'AI_AUTO' && (
-                       <span className="text-[9px] text-[#3fb950] border border-[#3fb950]/50 bg-[#3fb950]/10 px-1 rounded">
-                          {biomeElevation < 30 && biomeMoisture > 70 ? 'OCEAN (Predicted)' : 
-                           biomeTemperature < 30 ? 'TUNDRA (Predicted)' :
-                           biomeTemperature > 70 && biomeMoisture < 30 ? 'DESERT (Predicted)' :
-                           biomeTemperature > 70 && biomeMoisture > 70 ? 'JUNGLE (Predicted)' : 
-                           'FOREST (Predicted)'}
-                       </span>
-                    )}
-                 </h3>
-                 <select 
-                   value={activeBiomeType} 
-                   onChange={(e) => setActiveBiomeType(e.target.value)}
-                   className="w-full bg-[#0a0a0f] border border-[#2a2b3d] rounded px-2 py-1.5 text-xs text-white font-bold mb-2"
-                 >
-                   <option value="AI_AUTO">🤖 AI Auto-Detect via Params</option>
-                   <option value="TUNDRA">❄️ Tundra (Cold / Dry)</option>
-                   <option value="DESERT">🏜️ Desert (Hot / Dry)</option>
-                   <option value="FOREST">🌲 Forest (Balanced)</option>
-                   <option value="JUNGLE">🌴 Jungle (Hot / Wet)</option>
-                   <option value="OCEAN">🌊 Deep Ocean (Low Elev / Wet)</option>
-                 </select>
-                 
-                 <div className="flex flex-col gap-1 border-t border-[#2a2b3d] pt-2">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-orange-500 w-3 h-3" />
-                       <span className="text-[10px] text-[#8b949e] group-hover:text-white transition">Procedural Flora Seed (1vc density)</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" defaultChecked className="accent-orange-500 w-3 h-3" />
-                       <span className="text-[10px] text-[#8b949e] group-hover:text-white transition">Hydrological Erosion Parsing</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                       <input type="checkbox" className="accent-orange-500 w-3 h-3" />
-                       <span className="text-[10px] text-[#8b949e] group-hover:text-white transition">Tectonic Plate Collision Sub-Mesh</span>
-                    </label>
-                 </div>
-                 
-                 <div className="text-[10px] text-[#8b949e] mt-2 border-t border-[#2a2b3d] pt-2">
-                   Painting with <strong className="text-orange-400">AI Auto-Detect</strong> interpolates micro-biomes seamlessly within the 1mc cells, propagating down to 1vc.
-                 </div>
-              </div>
-
-               <button className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-[#0a0a0f] font-bold text-xs py-2 rounded flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-[0_0_10px_rgba(249,115,22,0.3)]">
-                  <Brush size={14} /> Enable AI Biome Painting
-               </button>
-            </div>
-          )}
 
           {activeTab === 'minimap' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
@@ -2277,7 +1937,7 @@ export default function MapEdit() {
                    ))}
                    {(!mapLayers.find(l => l.name === 'Entities & POIs')?.visible || markers.filter(m => visibleLayers[m.type]).length === 0) && (
                       <div className="text-[10px] text-gray-500 text-center py-4">No matching entities found.</div>
-                   )}
+        )}
                  </div>
                  
                  <div className="mt-2 border-t border-[#2a2b3d] pt-2 flex gap-1 items-center">
@@ -2287,7 +1947,7 @@ export default function MapEdit() {
                  </div>
                </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'storygraph' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pb-20">
@@ -2366,7 +2026,7 @@ export default function MapEdit() {
                  </button>
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'tasks' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pb-20">
@@ -2389,7 +2049,7 @@ export default function MapEdit() {
                  </div>
               </div>
             </div>
-          )}
+        )}
 
           {activeTab === 'workflow' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pb-20">
@@ -2527,7 +2187,7 @@ export default function MapEdit() {
               </div>
 
             </div>
-          )}
+        )}
 
           {activeTab === 'ai' && (
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
@@ -2830,7 +2490,7 @@ export default function MapEdit() {
                  </button>
               </div>
             </div>
-          )}
+        )}
         </div>
 
         {/* Viewport Canvas area */}
@@ -2859,7 +2519,7 @@ export default function MapEdit() {
                       {zoomLevel >= 10 ? '1 bc' : zoomLevel >= 5 ? '1 cc' : '1 mc'}
                    </span>
                 </div>
-             )}
+        )}
           </div>
 
           {/* Main 2D / 3D Context Background Canvas */}
@@ -2963,9 +2623,9 @@ export default function MapEdit() {
                        height: `${100 / mapSizeInMc}%`
                      }}
                    />
-                 )}
+        )}
                </div>
-             )}
+        )}
           </div>
                 
                 {/* Visual Base Grid */}
@@ -3009,7 +2669,7 @@ export default function MapEdit() {
                              backgroundSize: `${baseSize * navMeshResolution}px ${baseSize * navMeshResolution}px`,
                              border: '1px solid rgba(188, 140, 255, 0.15)'
                           }}></div>
-                       )}
+        )}
                        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-[#1a1b26] z-30"></div>
                        {/* Scale Display */}
                        <div className="absolute bottom-1/4 right-1/4 bg-[#11111b]/80 border backdrop-blur text-[8px] font-bold px-1.5 py-0.5 rounded transform -rotateX-45 z-40 transition-colors" style={{ color: activeUnitColor, borderColor: activeUnitColor }}>{activeUnit}</div>
@@ -3027,7 +2687,7 @@ export default function MapEdit() {
                   <Brush size={14} />
                   Biome Brush Mode Active
                </div>
-            )}
+        )}
           </div>
 
           {/* Biome Brush Cursor Mockup (when active) */}
@@ -3061,7 +2721,7 @@ export default function MapEdit() {
                   </div>
                </div>
             </div>
-          )}
+        )}
 
           {/* Biome Legend Panel */}
           {(activeTab === 'biome' || activeTab === 'minimap') && (
@@ -3076,7 +2736,7 @@ export default function MapEdit() {
                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-orange-500/60 border border-orange-500"></div> Default / AI</div>
                </div>
             </div>
-          )}
+        )}
 
           {/* Mini Map Editor Interface Overlay (when active) */}
           {activeTab === 'minimap' && (
@@ -3141,7 +2801,7 @@ export default function MapEdit() {
                             <div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-500/40 border border-red-500/50"></div> Invalid / Unpathable</div>
                             <div className="flex items-center gap-2"><div className="w-3 h-3 bg-yellow-500/30 border border-yellow-500/50"></div> Narrow Bottleneck</div>
                          </div>
-                      )}
+        )}
                       
                       <div className="text-[10px] text-[#8b949e] font-mono">
                         (Drag capability is conceptual in this mockup. Adjust coordinates via AI or Editor Properties.)
@@ -3254,7 +2914,7 @@ export default function MapEdit() {
                                            })}
                                        </div>
                                     </div>
-                                 )}
+        )}
 
                                  <div className="bg-[#1e1e2d] border border-[#2a2b3d] p-3 rounded">
                                    <h4 className="text-[10px] font-bold text-gray-300 mb-2 flex items-center gap-1"><Compass size={12}/> Navigation & AI Params</h4>
@@ -3310,10 +2970,10 @@ export default function MapEdit() {
                           })()}
                        </div>
                     </div>
-                 )}
+        )}
                </div>
             </div>
-          )}
+        )}
 
           {/* StoryGraph Node Editor Canvas Overlay */}
           {activeTab === 'storygraph' && (
@@ -3449,7 +3109,7 @@ export default function MapEdit() {
 
                 </div>
             </div>
-          )}
+        )}
 
           {/* Workflow Editor Canvas Overlay */}
           {activeTab === 'workflow' && (
@@ -3581,156 +3241,17 @@ export default function MapEdit() {
                     </div>
                 </div>
             </div>
-          )}
+        )}
 
           {/* Massive Feature Overlays */}
           {activeTab === 'assets' && <MapAssetBrowser />}
           {activeTab === 'entities' && <MapEntityEditor />}
+          {activeTab === 'models' && <MapModelEditor />}
           {activeTab === 'camera' && <MapCinematicEditor />}
           {activeTab === 'audio' && <MapAudioTools />}
 
           {/* PCG Overlay */}
-          {activeTab === 'pcg' && (
-            <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0f111a] flex">
-                <div className="w-[350px] border-r border-[#2a2b3d] bg-[#11111b] p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar shadow-xl z-10 relative">
-                     <h2 className="text-sm font-bold text-[#58a6ff] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2">
-                        <Dices size={16} /> Advanced PCG Engine
-                     </h2>
-                     <p className="text-[10px] text-gray-400 mb-2">Procedural Content Generation toolset for massive automated environment creation.</p>
-                     
-                     <div className="bg-[#1e1e2d] border border-[#58a6ff]/30 p-3 rounded flex flex-col gap-3">
-                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#58a6ff]/30 pb-1 flex justify-between items-center">
-                            <span>City Builder</span> <Building2 size={12} className="text-[#58a6ff]" />
-                        </h3>
-                        <div className="flex flex-col gap-2">
-                            <label className="text-[10px] text-gray-400">Architecture Style</label>
-                            <select className="bg-[#0a0a0f] border border-[#2a2b3d] text-white text-xs p-1.5 rounded">
-                                <option>Cyberpunk / High-Tech</option>
-                                <option>Medieval Fantasy</option>
-                                <option>Modern Metro</option>
-                                <option>Ruined Post-Apocalyptic</option>
-                            </select>
-                        </div>
-                        <div className="flex flex-col gap-2 mt-1">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
-                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Auto-generate Road Networks</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
-                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Place Props (Streetlights, Trash)</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                               <input type="checkbox" defaultChecked className="accent-[#58a6ff] w-3 h-3" />
-                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Bake NavMesh for NPCs</span>
-                            </label>
-                        </div>
-                        <button className="bg-[#58a6ff]/10 hover:bg-[#58a6ff]/20 text-[#58a6ff] border border-[#58a6ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
-                            <Target size={14} /> Generate City Block
-                        </button>
-                     </div>
-
-                     <div className="bg-[#1e1e2d] border border-[#d2a8ff]/30 p-3 rounded flex flex-col gap-3">
-                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#d2a8ff]/30 pb-1 flex justify-between items-center">
-                            <span>Dungeon Architect</span> <Layers3 size={12} className="text-[#d2a8ff]" />
-                        </h3>
-                        <div>
-                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Complexity / Branching</span> <span className="text-white">High</span></label>
-                            <input type="range" min="1" max="10" defaultValue="8" className="w-full accent-[#d2a8ff]" />
-                        </div>
-                        <div>
-                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Room Density</span> <span className="text-white">60%</span></label>
-                            <input type="range" min="0" max="100" defaultValue="60" className="w-full accent-[#d2a8ff]" />
-                        </div>
-                        <button className="bg-[#d2a8ff]/10 hover:bg-[#d2a8ff]/20 text-[#d2a8ff] border border-[#d2a8ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
-                            <Shuffle size={14} /> Generate Dungeon Maze
-                        </button>
-                     </div>
-                </div>
-                
-                {/* Visualizer Canvas Area for PCG */}
-                <div className="flex-1 relative flex items-center justify-center p-8">
-                     <div className="w-full h-full max-w-4xl max-h-[800px] border border-[#2a2b3d] bg-[#11111b] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shadow-2xl">
-                          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#58a6ff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                          <Network size={64} className="text-[#58a6ff]/20 mb-4 animate-pulse" />
-                          <h3 className="text-[#58a6ff] font-mono text-xl tracking-widest uppercase">PCG Visualization Viewport</h3>
-                          <p className="text-gray-500 font-mono text-sm mt-2">Awaiting Generation Input</p>
-                          
-                          <div className="absolute top-4 left-4 flex gap-2">
-                              <span className="bg-[#0a0a0f] text-[#58a6ff] text-[10px] px-2 py-1 rounded border border-[#58a6ff]/30 font-mono">SEED: 8XF9-2A</span>
-                              <span className="bg-[#0a0a0f] text-gray-400 text-[10px] px-2 py-1 rounded border border-[#2a2b3d] font-mono">RULES: 142 LOADED</span>
-                          </div>
-                     </div>
-                </div>
-            </div>
-          )}
-
-          {/* Physics Overlay */}
-          {activeTab === 'physics' && (
-            <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0f111a] flex">
-                <div className="w-[350px] border-r border-[#2a2b3d] bg-[#11111b] p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar shadow-xl z-10 relative">
-                     <h2 className="text-sm font-bold text-[#ff7b72] border-b border-[#2a2b3d] pb-2 mb-2 flex items-center gap-2">
-                        <Flame size={16} /> Physics & Chaos Engine
-                     </h2>
-                     <p className="text-[10px] text-gray-400 mb-2">Cinematic-level destruction, fluid dynamics, and ragdoll simulations.</p>
-                     
-                     <div className="bg-[#1e1e2d] border border-[#ff7b72]/30 p-3 rounded flex flex-col gap-3">
-                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#ff7b72]/30 pb-1 flex justify-between items-center">
-                            <span>Chaos Destruction</span> <Pickaxe size={12} className="text-[#ff7b72]" />
-                        </h3>
-                        <div>
-                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Fracture Level (Voronoi)</span> <span className="text-white">LOD 3</span></label>
-                            <input type="range" min="1" max="5" defaultValue="3" className="w-full accent-[#ff7b72]" />
-                        </div>
-                        <div className="flex flex-col gap-2 mt-1">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                               <input type="checkbox" defaultChecked className="accent-[#ff7b72] w-3 h-3" />
-                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Enable Structural Integrity</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                               <input type="checkbox" defaultChecked className="accent-[#ff7b72] w-3 h-3" />
-                               <span className="text-[10px] text-gray-400 group-hover:text-white transition">Generate Debris Particles</span>
-                            </label>
-                        </div>
-                        <button className="bg-[#ff7b72]/10 hover:bg-[#ff7b72]/20 text-[#ff7b72] border border-[#ff7b72]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
-                            <Grab size={14} /> Fracture Selected Mesh
-                        </button>
-                     </div>
-
-                     <div className="bg-[#1e1e2d] border border-[#79c0ff]/30 p-3 rounded flex flex-col gap-3">
-                        <h3 className="text-[10px] font-bold text-white uppercase border-b border-[#79c0ff]/30 pb-1 flex justify-between items-center">
-                            <span>Fluid Dynamics (SPH)</span> <Droplets size={12} className="text-[#79c0ff]" />
-                        </h3>
-                        <div>
-                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Viscosity</span> <span className="text-white">Water</span></label>
-                            <input type="range" min="0" max="100" defaultValue="10" className="w-full accent-[#79c0ff]" />
-                        </div>
-                        <div>
-                            <label className="text-[10px] text-[#8b949e] mb-1 flex justify-between"><span>Particle Count</span> <span className="text-white">100k</span></label>
-                            <input type="range" min="1" max="500" defaultValue="100" className="w-full accent-[#79c0ff]" />
-                        </div>
-                        <button className="bg-[#79c0ff]/10 hover:bg-[#79c0ff]/20 text-[#79c0ff] border border-[#79c0ff]/30 p-2 rounded text-xs font-bold transition-colors mt-2 flex justify-center items-center gap-2">
-                            <Play size={14} /> Simulate Fluid Frame
-                        </button>
-                     </div>
-                </div>
-                
-                {/* Visualizer Canvas Area for Physics */}
-                <div className="flex-1 relative flex items-center justify-center p-8">
-                     <div className="w-full h-full max-w-4xl max-h-[800px] border border-[#2a2b3d] bg-[#11111b] rounded-xl relative overflow-hidden flex flex-col items-center justify-center shadow-2xl">
-                          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#ff7b72 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                          <Activity size={64} className="text-[#ff7b72]/20 mb-4 animate-pulse" />
-                          <h3 className="text-[#ff7b72] font-mono text-xl tracking-widest uppercase">Physics Simulation Viewport</h3>
-                          <p className="text-gray-500 font-mono text-sm mt-2">Real-time solver active</p>
-                          
-                          <div className="absolute top-4 left-4 flex gap-2">
-                              <span className="bg-[#0a0a0f] text-[#ff7b72] text-[10px] px-2 py-1 rounded border border-[#ff7b72]/30 font-mono">SOLVER: CHAI-3D</span>
-                              <span className="bg-[#0a0a0f] text-[#79c0ff] text-[10px] px-2 py-1 rounded border border-[#79c0ff]/30 font-mono">SPH: ACTIVE</span>
-                          </div>
-                     </div>
-                </div>
-            </div>
-          )}
+          {activeTab === 'physics' && <MapPhysicsEditor />}
 
           {/* Audio Overlay */}
           {activeTab === 'audio' && (
@@ -3801,7 +3322,7 @@ export default function MapEdit() {
                      </div>
                 </div>
             </div>
-          )}
+        )}
 
           {/* Visual Flow Debugger Overlay */}
           {activeTab === 'debugger' && (
@@ -3945,16 +3466,17 @@ export default function MapEdit() {
                      </div>
                 </div>
             </div>
-          )}
+        )}
 
           {/* Task Status Board Canvas Overlay */}
           {activeTab === 'tasks' && (
             <div className="absolute inset-x-0 inset-y-0 z-30 pointer-events-auto bg-[#0f111a] flex">
                 <TaskStatusBoard />
             </div>
-          )}
-
+        )}
         </div>
+          </>
+        )}
       </div>
     </div>
   )

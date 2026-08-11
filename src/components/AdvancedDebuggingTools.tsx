@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bug, Activity, Cpu, Server, AlertTriangle, AlertCircle, Play, Pause, RefreshCw, BarChart2 } from 'lucide-react';
+import { Bug, Activity, Cpu, Server, AlertTriangle, AlertCircle, Play, Pause, RefreshCw, BarChart2} from 'lucide-react';
 
 export default function AdvancedDebuggingTools() {
   return (

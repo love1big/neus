@@ -1,5 +1,5 @@
 import React from 'react';
-import { Binary, Search, Save, Edit3, Cpu } from 'lucide-react';
+import { Binary, Search, Save, Edit3, Cpu} from 'lucide-react';
 
 export default function HexEditorPanel() {
   return (

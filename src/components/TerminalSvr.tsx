@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Terminal, Settings2, Play, Minus, Square, X } from 'lucide-react';
+import { Terminal, Settings2, Play, Minus, Square, X} from 'lucide-react';
 
 export default function TerminalSvr() {
   const [history, setHistory] = useState<string[]>(['Microsoft Windows [Version 10.0.22631.3296]', '(c) Microsoft Corporation. All rights reserved.', '']);

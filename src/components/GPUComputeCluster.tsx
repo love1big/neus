@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Cpu, Server, Zap, HardDrive, RefreshCw, Power, Activity, Network, 
-  ShieldAlert, Monitor, CheckCircle2, Layers, Settings, Play, Pause, 
-  Gauge, Radio, Sparkles, Terminal, Sliders, AlertTriangle, Disc, 
-  Box, Flame, BarChart3, Database, Workflow, ShieldCheck, Microchip
-} from 'lucide-react';
+  Cpu, Server, Zap, HardDrive, RefreshCw, Power, Activity, Network, ShieldAlert, Monitor, CheckCircle2, Layers, Settings, Play, Pause, Gauge, Radio, Sparkles, Terminal, Sliders, AlertTriangle, Disc, Box, Flame, BarChart3, Database, Workflow, ShieldCheck, Microchip} from 'lucide-react';
 
 export type VendorCategory = 'NVIDIA' | 'AMD' | 'Intel' | 'Apple' | 'Qualcomm/ARM' | 'Retro/3dfx' | 'Retro/Matrox' | 'Retro/S3/VIA';
 export type ComputeNodeType = 'Discrete GPU' | 'Integrated Onboard' | 'Neural NPU' | 'CPU SIMD Threads' | 'Legacy Virtualized GPU';

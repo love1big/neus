@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save, ExternalLink, BarChart2 } from 'lucide-react';
+import { MousePointer2, Move, RotateCcw, Maximize, SlidersHorizontal, Eye, X, Image as ImageIcon, ChevronDown, Bug, Hand, ZoomIn, Orbit, PersonStanding, Sliders, Box, Layers, Save, ExternalLink, BarChart2} from 'lucide-react';
 import PopOutPanel from './PopOutPanel';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { TransformControls, OrbitControls, MapControls, OrthographicCamera, PerspectiveCamera, Environment, ContactShadows, Stars, Sparkles, Line, Sphere } from '@react-three/drei';

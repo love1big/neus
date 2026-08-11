@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sparkles, Play, Square, Settings, Sliders, Palette, Wind, Layers, Plus, RotateCcw } from "lucide-react";
+import { Sparkles, Play, Square, Settings, Sliders, Palette, Wind, Layers, Plus, RotateCcw} from "lucide-react";
 
 export default function ParticleEffectEditor() {
   return (

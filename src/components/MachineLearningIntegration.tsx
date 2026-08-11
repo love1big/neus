@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, Settings, Database, Activity, Play, Download, Network, Code } from 'lucide-react';
+import { Brain, Settings, Database, Activity, Play, Download, Network, Code} from 'lucide-react';
 
 export default function MachineLearningIntegration() {
   return (

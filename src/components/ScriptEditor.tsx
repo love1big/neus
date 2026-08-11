@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Play, Save } from 'lucide-react';
+import { Terminal, Play, Save} from 'lucide-react';
 
 export default function ScriptEditor() {
   const [code, setCode] = useState('// JavaScript Runner\nfunction calculateGameScore(kills, timeSec) {\n  return (kills * 100) - (timeSec * 2);\n}\n\nconsole.log("Score:", calculateGameScore(15, 120));');

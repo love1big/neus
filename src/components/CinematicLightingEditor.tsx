@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sun, Moon, Cloud, CloudRain, Droplets, Wind, Zap, Eye, Save, Settings2, Sliders, Image as ImageIcon, Video, Hexagon, Component, RadioReceiver } from 'lucide-react';
+import { Sun, Moon, Cloud, CloudRain, Droplets, Wind, Zap, Eye, Save, Settings2, Sliders, Image as ImageIcon, Video, Hexagon, Component, RadioReceiver} from 'lucide-react';
 
 export default function CinematicLightingEditor() {
   return (

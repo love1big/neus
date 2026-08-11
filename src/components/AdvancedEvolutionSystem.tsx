@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, FastForward, Activity, Network, Dna, Cpu, GitMerge, Layers, Leaf, Skull, Award } from 'lucide-react';
+import { Play, Pause, FastForward, Activity, Network, Dna, Cpu, GitMerge, Layers, Leaf, Skull, Award, Crosshair} from 'lucide-react';
 
 export default function AdvancedEvolutionSystem() {
   const [isRunning, setIsRunning] = useState(false);
@@ -82,7 +82,7 @@ export default function AdvancedEvolutionSystem() {
           </div>
 
           <div>
-             <h3 className="text-sm font-semibold text-purple-400 mb-4 flex items-center"><Target className="w-4 h-4 mr-2" /> Fitness Function</h3>
+             <h3 className="text-sm font-semibold text-purple-400 mb-4 flex items-center"><Crosshair className="w-4 h-4 mr-2" /> Fitness Function</h3>
              <select className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs">
                 <option>Locomotion (Distance traveled)</option>
                 <option>Survival (Time alive)</option>

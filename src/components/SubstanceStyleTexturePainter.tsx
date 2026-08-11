@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Paintbrush, Pipette, Zap, Download, Sun, Droplets, Layout, Maximize, MousePointer2 } from 'lucide-react';
+import { Layers, Paintbrush, Pipette, Zap, Download, Sun, Droplets, Layout, Maximize, MousePointer2} from 'lucide-react';
 
 export default function SubstanceStyleTexturePainter() {
   const [activeChannel, setActiveChannel] = useState('baseColor');

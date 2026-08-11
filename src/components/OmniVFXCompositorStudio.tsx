@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Sparkles, Flame, Wand2, Combine, Eye, Settings2, Box, Layers, 
-  Play, Pause, Square, Zap, Camera, Activity, Maximize, AlertTriangle, 
-  Wind, Droplets, Target, Rocket
-} from 'lucide-react';
+  Sparkles, Flame, Wand2, Combine, Eye, Settings2, Box, Layers, Play, Pause, Square, Zap, Camera, Activity, Maximize, AlertTriangle, Wind, Droplets, Target, Rocket} from 'lucide-react';
 
 export default function OmniVFXCompositorStudio() {
   const [activeTab, setActiveTab] = useState('Graph'); // Graph, Compositor, Chaos, AIGen

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, FileCode2, Map, Users, Settings, BookOpen, Clock, Plus, Zap, Box, Layers, Cpu, MemoryStick, Activity, HardDrive, Network } from 'lucide-react';
+import { Play, FileCode2, Map, Users, Settings, BookOpen, Clock, Plus, Zap, Box, Layers, Cpu, HardDrive, Activity, Network} from 'lucide-react';
 import { useSystemTelemetry } from '../lib/telemetry';
 
 export default function QuickStartDashboard({ onSelectTool }: { onSelectTool?: (tool: string) => void }) {
@@ -120,7 +120,7 @@ export default function QuickStartDashboard({ onSelectTool }: { onSelectTool?: (
                       {/* RAM */}
                       <div>
                         <div className="flex justify-between items-center text-[11px] mb-1">
-                          <span className="flex items-center gap-1.5 text-[#c9d1d9]"><MemoryStick size={13} className="text-[#3fb950]"/> System RAM (DDR5)</span>
+                          <span className="flex items-center gap-1.5 text-[#c9d1d9]"><HardDrive size={13} className="text-[#3fb950]"/> System RAM (DDR5)</span>
                           <span className="font-mono text-[#3fb950]">{((systemStats.ram / 100) * 64).toFixed(1)} GB / 64 GB</span>
                         </div>
                         <div className="w-full bg-[#0d1117] h-2 rounded-full overflow-hidden border border-[#30363d] relative">

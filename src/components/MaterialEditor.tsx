@@ -16,7 +16,7 @@ import {
   useReactFlow
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Save, Download, Upload, Image as ImageIcon, Plus, Trash2, Settings, Bot, Sparkles, Box, Blocks, Code2, Maximize2, Minimize2, Grid3X3, Layers, Hash, Undo, Redo } from 'lucide-react';
+import { Save, Download, Upload, Image as ImageIcon, Plus, Trash2, Settings, Bot, Sparkles, Box, Blocks, Code2, Maximize2, Minimize2, Grid3X3, Layers, Hash, Undo, Redo} from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { useUndoRedoFlow } from '../hooks/useUndoRedoFlow';
 

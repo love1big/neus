@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
-import { GripVertical, Plus, Loader2 } from 'lucide-react';
+import { GripVertical, Plus, Loader2} from 'lucide-react';
 
 export type TaskStatus = 'To-Do' | 'In-Progress' | 'QA' | 'Done';
 
@@ -21,9 +21,16 @@ export default function TaskStatusBoard() {
 
   useEffect(() => {
     fetch('/api/tasks')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      })
       .then(data => {
         setTasks(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching tasks:", err);
         setLoading(false);
       });
   }, []);
@@ -32,11 +39,15 @@ export default function TaskStatusBoard() {
     // Optimistic UI update
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t));
     
-    await fetch(`/api/tasks/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
-    });
+    try {
+      await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+    } catch (err) {
+      console.error("Error updating task status:", err);
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -69,11 +80,15 @@ export default function TaskStatusBoard() {
 
     setTasks(prev => [...prev, newTask]);
 
-    await fetch(`/api/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newTask)
-    });
+    try {
+      await fetch(`/api/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask)
+      });
+    } catch (err) {
+      console.error("Error creating new task:", err);
+    }
   };
 
   if (loading) {

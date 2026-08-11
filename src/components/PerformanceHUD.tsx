@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Cpu, MemoryStick, Box } from 'lucide-react';
+import { Activity, Cpu, HardDrive, Box} from 'lucide-react';
 import { useSystemTelemetry } from '../lib/telemetry';
 
 export default function PerformanceHUD() {
@@ -56,7 +56,7 @@ export default function PerformanceHUD() {
         {/* RAM */}
         <div className="flex items-center justify-between text-[11px]">
           <span className="flex items-center gap-1 text-[#3fb950]">
-            <MemoryStick size={12} />
+            <HardDrive size={12} />
             <span className="w-10 text-right">{stats.ram.toFixed(0)}%</span>
           </span>
           {renderSparkline(ramHistory, '#3fb950')}

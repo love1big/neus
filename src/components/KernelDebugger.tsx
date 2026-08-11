@@ -1,5 +1,5 @@
 import React from 'react';
-import { Microchip, Activity, Settings2, Play } from 'lucide-react';
+import { Microchip, Activity, Settings2, Play} from 'lucide-react';
 
 export default function KernelDebugger() {
   return (

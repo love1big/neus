@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { 
-  Flame, Wind, Droplet, Target, Maximize,
-  Sliders, Settings, Activity, Server, Zap, HardDrive, Cpu
-} from "lucide-react";
+  Flame, Wind, Droplet, Target, Maximize, Sliders, Settings, Activity, Server, Zap, HardDrive, Cpu} from "lucide-react";
 
 export default function ChaosPhysicsFluidEngine() {
   const [activeTab, setActiveTab] = useState("destruction");

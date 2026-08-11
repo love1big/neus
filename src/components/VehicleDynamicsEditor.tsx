@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Truck, Activity, Settings2, ShieldCheck, Zap, RotateCw, Car, Wind, Power } from 'lucide-react';
+import { Truck, Activity, Settings2, ShieldCheck, Zap, RotateCw, Car, Wind, Power} from 'lucide-react';
 
 export default function VehicleDynamicsEditor() {
   const [activeTab, setActiveTab] = useState('physics');

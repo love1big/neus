@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi,  Download, Cpu, ShieldAlert, Camera, Upload, Cloud, Search, Zap, HardDrive, ShieldCheck, FileCode2, ImageIcon, LocateFixed, Eye, BookOpen, Loader2, LayoutDashboard, BrainCircuit, RefreshCw, Layers, Database, CodeSquare, Music, Globe, Video, Box, Map as MapIcon, Bug, Gamepad2, Network, Headphones, Mic, AudioWaveform, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, Settings, RadioReceiver, Shield, CheckCircle2, Clock, Gauge, Hash, Thermometer } from 'lucide-react';
+import { Wifi, Download, Cpu, ShieldAlert, Camera, Upload, Cloud, Search, Zap, HardDrive, ShieldCheck, FileCode2, ImageIcon, LocateFixed, Eye, BookOpen, Loader2, LayoutDashboard, BrainCircuit, RefreshCw, Layers, Database, CodeSquare, Music, Globe, Video, Box, Map as MapIcon, Bug, Gamepad2, Network, Headphones, Mic, AudioWaveform, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, Settings, RadioReceiver, Shield, CheckCircle2, Clock, Gauge, Hash, Thermometer} from 'lucide-react';
 import * as webllm from '@mlc-ai/web-llm';
 
 interface FineTune {
@@ -505,11 +505,15 @@ export default function AIOfflineDownloader() {
       };
       
       // Simulate init error if user has no connection, otherwise WebLLM handles cache check
-      await webllm.CreateMLCEngine(
+      const engine = await webllm.CreateMLCEngine(
         modelId,
         { initProgressCallback: initProgressCallback },
         { context_window_size: 2048 }
       );
+      // Unload immediately after downloading to save RAM
+      if (typeof engine.unload === "function") {
+         engine.unload();
+      }
 
       setStatus(prev => ({ ...prev, [aiId]: '✓ Ready (Engine Active)' }));
     } catch (err: any) {

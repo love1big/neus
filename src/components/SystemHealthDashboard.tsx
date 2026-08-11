@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Cpu, MemoryStick, Activity, Network, Zap } from "lucide-react";
+import { Cpu, HardDrive, Activity, Network, Zap} from "lucide-react";
 import { useSystemTelemetry } from "../lib/telemetry";
 import ResourceUsageChart from "./ResourceUsageChart";
 import { useSystemHealth } from "./SystemWatchdog";
@@ -77,7 +77,7 @@ export default function SystemHealthDashboard() {
 
         {/* RAM */}
         <div className="flex items-center gap-1.5" title="Memory Usage">
-          <MemoryStick size={12} className="text-[#8b949e]" />
+          <HardDrive size={12} className="text-[#8b949e]" />
           <span className={`${getStatusColor(stats.ram)} min-w-[28px]`}>
             {Math.round(stats.ram || 0)}%
           </span>

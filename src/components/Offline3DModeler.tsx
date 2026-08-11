@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Layers, Scissors, Grid, Lock, Unlock, Eye, EyeOff, MousePointer2, Zap, Wand2, Sun, Camera, Type, Settings2, Hexagon, Crosshair, Move, SlidersHorizontal, Trash2, Plus, ArrowDown, ArrowUp, ChevronRight, ChevronDown, Square, Download, FolderOpen, Save, PenTool, Layout, Palette, Maximize, Play, Circle, Minus, Hammer, SkipBack, SkipForward } from 'lucide-react';
+import { Box, Layers, Scissors, Grid, Lock, Unlock, Eye, EyeOff, MousePointer2, Zap, Wand2, Sun, Camera, Type, Settings2, Hexagon, Crosshair, Move, SlidersHorizontal, Trash2, Plus, ArrowDown, ArrowUp, ChevronRight, ChevronDown, Square, Download, FolderOpen, Save, PenTool, Layout, Palette, Maximize, Play, Circle, Minus, Hammer, SkipBack, SkipForward} from 'lucide-react';
 
 export default function Offline3DModeler() {
   const [activeMode, setActiveMode] = useState('Edit Mode');

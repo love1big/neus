@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { Activity, Cpu, MonitorPlay, Zap, ArrowRight, Settings2, BarChart2, X, Code, BookOpen } from 'lucide-react';
+import { Activity, Cpu, MonitorPlay, Zap, ArrowRight, Settings2, BarChart2, X, Code, BookOpen} from 'lucide-react';
 import OptimizationEncyclopedia from './OptimizationEncyclopedia';
 
 export default function OptimizationOverview() {

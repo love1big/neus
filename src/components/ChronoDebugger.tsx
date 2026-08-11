@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, FastForward, Rewind, Activity } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, FastForward, Rewind, Activity} from 'lucide-react';
 
 interface ChronoDebuggerProps {
   isSimulating: boolean;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Layers, Camera, Play, BarChart } from 'lucide-react';
+import { Eye, Layers, Camera, Play, BarChart} from 'lucide-react';
 
 export default function EyeTrackingHeatmap() {
   return (

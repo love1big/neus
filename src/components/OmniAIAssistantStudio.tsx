@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Bot, Brain, Cpu, MessageSquare, Image, Layers, Code, Play, Combine, Zap, Shield, Sparkles, Activity, FileText, Settings, Key, UploadCloud, Database, Server, Cpu as CpuIcon, Maximize, PlayCircle, BarChart2
-} from 'lucide-react';
+  Bot, Brain, Cpu, MessageSquare, Image, Layers, Code, Play, Combine, Zap, Shield, Sparkles, Activity, FileText, Settings, Key, UploadCloud, Database, Server, Cpu as CpuIcon, Maximize, PlayCircle, BarChart2} from 'lucide-react';
 
 export default function OmniAIAssistantStudio() {
   const [activeTab, setActiveTab] = useState('Chat'); // Chat, RAG, Assets, Agents, Vision

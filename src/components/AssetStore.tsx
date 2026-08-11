@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Star, Download, Filter, Package, Heart, Cpu, Layers, Monitor } from 'lucide-react';
+import { ShoppingCart, Search, Star, Download, Filter, Package, Heart, Cpu, Layers, Monitor} from 'lucide-react';
 
 export default function AssetStore() {
   const [activeCategory, setActiveCategory] = useState('All');

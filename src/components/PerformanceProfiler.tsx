@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bug, Activity, Cpu, Database, Flame, MemoryStick, Save, Layers, Clock, Settings, Search, FastForward, Play, Pause, AlertTriangle } from 'lucide-react';
+import { Bug, Activity, Cpu, Database, Flame, HardDrive, Save, Layers, Clock, Settings, Search, FastForward, Play, Pause, AlertTriangle} from 'lucide-react';
 
 export default function PerformanceProfiler() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -290,7 +290,7 @@ export default function PerformanceProfiler() {
            <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl w-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                <div className="flex justify-between items-center px-4 py-3 border-b border-[#30363d] bg-[#0d1117]">
                   <div className="flex items-center gap-2">
-                     <MemoryStick size={18} className="text-[#f85149]"/>
+                     <HardDrive size={18} className="text-[#f85149]"/>
                      <span className="font-bold text-[#c9d1d9]">Memory Pressure Stress Test</span>
                   </div>
                   <button onClick={() => { setStressTestMode(false); setMemoryStatus('idle'); }} className="text-[#8b949e] hover:text-white">&times;</button>

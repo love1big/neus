@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, TrendingUp, DollarSign, Activity, Settings, RefreshCw, BarChart2 } from 'lucide-react';
+import { Target, TrendingUp, DollarSign, Activity, Settings, RefreshCw, BarChart2} from 'lucide-react';
 
 export default function EconomicBalancer() {
   const [activeTab, setActiveTab] = useState('items');

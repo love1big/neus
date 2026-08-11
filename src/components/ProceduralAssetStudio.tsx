@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  FlaskConical, Ear, ImageIcon, Droplets, Flame, Wind, 
-  Settings2, Activity, Play, Download, Wand2, Image as ImageIcon2, Focus, Loader2
-} from 'lucide-react';
+  FlaskConical, Ear, ImageIcon, Droplets, Flame, Wind, Settings2, Activity, Play, Download, Wand2, Image as ImageIcon2, Focus, Loader2} from 'lucide-react';
 
 export default function ProceduralAssetStudio() {
   const [activeTab, setActiveTab] = useState<'Chemistry' | 'Foley' | 'Prompt2Asset'>('Chemistry');

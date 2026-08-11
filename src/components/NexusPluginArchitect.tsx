@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Puzzle, Box, Play, Trash2, Plus, Terminal, Activity, FileCode2, Loader2, ArrowUpRight, Copy, CheckCircle2, ChevronRight, XCircle } from 'lucide-react';
+import { Puzzle, Box, Play, Trash2, Plus, Terminal, Activity, FileCode2, Loader2, ArrowUpRight, Copy, CheckCircle2, ChevronRight, XCircle} from 'lucide-react';
 
 interface PluginNode {
   id: string;

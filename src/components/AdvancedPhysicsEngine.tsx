@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Settings, Layers, Box, Cpu, Network, Zap, Waves, Wind, Droplets, Target, Shield, Activity, Maximize2, GitBranch, Share2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, Layers, Box, Cpu, Network, Zap, Waves, Wind, Droplets, Target, Shield, Activity, Maximize2, GitBranch, Share2} from 'lucide-react';
 
 export default function AdvancedPhysicsEngine() {
   const [isPlaying, setIsPlaying] = useState(false);

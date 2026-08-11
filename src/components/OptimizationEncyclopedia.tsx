@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings2, Globe, Cpu, Server, Volume2, Network, Eye, Wand2, Database, Info, MonitorPlay, Workflow, Layers, CheckCircle2, Zap, Layers3, Move, HardDrive, Map, Gamepad2, Glasses, Sparkles, Bot, ShieldAlert, Bug, Code, Braces, Brush, Aperture, Activity, Binary, Target, Ear, Flame, Fingerprint, BookOpen, Scissors, Cpu as CpuIcon, Microchip, Filter, FunctionSquare, Brain, GitBranch, Terminal, Infinity, Scale, Archive, Link2, MessageSquare, Users, Share2, Gavel, Clock, Palette, Lightbulb, Dna, Waves, Flower2, Ghost, Skull, PenTool, EyeOff } from 'lucide-react';
+import { Settings2, Globe, Cpu, Server, Volume2, Network, Eye, Wand2, Database, Info, MonitorPlay, Workflow, Layers, CheckCircle2, Zap, Layers3, Move, HardDrive, Map, Gamepad2, Glasses, Sparkles, Bot, ShieldAlert, Bug, Code, Braces, Brush, Aperture, Activity, Binary, Target, Ear, Flame, Fingerprint, BookOpen, Scissors, Cpu as CpuIcon, Microchip, Filter, FunctionSquare, Brain, GitBranch, Terminal, Infinity, Scale, Archive, Link2, MessageSquare, Users, Share2, Gavel, Clock, Palette, Lightbulb, Dna, Waves, Flower2, Ghost, Skull, PenTool, EyeOff} from 'lucide-react';
 
 export default function OptimizationEncyclopedia() {
   const [activeTab, setActiveTab] = useState('archetypes');

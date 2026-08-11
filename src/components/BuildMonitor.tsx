@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Settings2, Play } from 'lucide-react';
+import { Activity, Settings2, Play} from 'lucide-react';
 
 export default function BuildMonitor() {
   return (

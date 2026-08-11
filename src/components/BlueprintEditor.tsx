@@ -22,7 +22,7 @@ import {
   type EdgeProps
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Play, StepForward, StopCircle, TerminalSquare, AlertCircle, Variable, Search, UserSquare, Waypoints, Plus, FileCode2, Clock, GitCommit, Settings2, BoxSelect, Cpu, Layers, Bot, Sparkles, Keyboard, Grid3X3, Activity, Copy, Image, Network, Wand2, Zap, Gauge, Code2, Maximize2, Minimize2, Globe, Database, BookOpen, Undo, Redo, ChevronDown, Component, Camera, Video, Mail } from 'lucide-react';
+import { Play, StepForward, StopCircle, TerminalSquare, AlertCircle, Variable, Search, UserSquare, Waypoints, Plus, FileCode2, Clock, GitCommit, Settings2, BoxSelect, Cpu, Layers, Bot, Sparkles, Keyboard, Grid3X3, Activity, Copy, Image, Network, Wand2, Zap, Gauge, Code2, Maximize2, Minimize2, Globe, Database, BookOpen, Undo, Redo, ChevronDown, Component, Camera, Video, Mail} from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Custom Nodes for Blueprint ---

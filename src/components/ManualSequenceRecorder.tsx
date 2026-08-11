@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Square, Plus, Settings, ChevronRight, ChevronDown, Move, Zap, Mic, KeySquare, Camera, Flag } from 'lucide-react';
+import { Play, Pause, Square, Plus, Settings, ChevronRight, ChevronDown, Move, Zap, Mic, KeySquare, Camera, Flag} from 'lucide-react';
 
 type TrackType = 'transform' | 'animation' | 'audio' | 'event' | 'camera';
 

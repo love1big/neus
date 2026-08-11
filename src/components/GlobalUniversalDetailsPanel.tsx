@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, SlidersHorizontal, Box, Wrench, Activity, Hexagon, Component, Cpu, Server, Terminal, Lock, HardDrive, Filter, Gauge, Database, Layers, Network, Code2, Shield, Workflow, MemoryStick, Binary, Bug, AlignLeft, Wifi, Globe, FileJson, Microscope, FileDigit, Microchip, Fingerprint, LockKeyhole, FolderLock, Radar, Stethoscope, CircuitBoard, Cable } from 'lucide-react';
+import { Settings, SlidersHorizontal, Box, Wrench, Activity, Hexagon, Component, Cpu, Server, Terminal, Lock, HardDrive, Filter, Gauge, Database, Layers, Network, Code2, Shield, Workflow, Binary, Bug, AlignLeft, Wifi, Globe, FileJson, Microscope, FileDigit, Microchip, Fingerprint, LockKeyhole, FolderLock, Radar, Stethoscope, CircuitBoard, Cable} from 'lucide-react';
 
 export default function GlobalUniversalDetailsPanel({ activeTool }: { activeTool: string }) {
   const [activeTab, setActiveTab] = useState('properties');

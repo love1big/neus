@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { RefreshCcw, Maximize2, MonitorPlay, BugPlay, TerminalSquare, Layers, ShieldAlert, Cpu, Orbit, Activity, MousePointer2 } from 'lucide-react';
+import { RefreshCcw, Maximize2, MonitorPlay, BugPlay, TerminalSquare, Layers, ShieldAlert, Cpu, Orbit, Activity, MousePointer2} from 'lucide-react';
 
 interface GamePreviewProps {
   files: { name: string; content: string }[];

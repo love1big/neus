@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  Play, Pause, StepForward, RotateCcw, 
-  Database, Code2, Cpu, Activity, Zap, 
-  CheckCircle2, AlertCircle, Clock, SearchCode,
-  BugPlay, BoxSelect
-} from "lucide-react";
+  Play, Pause, StepForward, RotateCcw, Database, Code2, Cpu, Activity, Zap, CheckCircle2, AlertCircle, Clock, SearchCode, BugPlay, BoxSelect} from "lucide-react";
 
 type NodeStatus = 'waiting' | 'active' | 'success' | 'error' | 'paused';
 
