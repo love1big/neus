@@ -1,122 +1,191 @@
 import React, { useState } from 'react';
-import { Zap, Settings, Play, Save, RefreshCw, BarChart2, Layers} from 'lucide-react';
+import { Zap, Activity, Clock, Shield, Target, Plus, Database, MousePointer2, MoveRight, Layers, Flame, Droplet, Wind, Crosshair, Tag, Settings2, Play } from 'lucide-react';
 
 export default function GameplayAbilitySystem() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('abilities');
+  const [selectedAbility, setSelectedAbility] = useState('Fireball_T1');
+
+  const abilities = [
+    { id: 'Fireball_T1', name: 'Pyromancer Fireball', type: 'Active', tags: ['Damage.Fire', 'Projectile'] },
+    { id: 'Dash_Evade', name: 'Shadow Dash', type: 'Movement', tags: ['Movement.Evade', 'IFrame'] },
+    { id: 'Passive_Regen', name: 'Troll Blood', type: 'Passive', tags: ['Buff.Regen.Health'] },
+    { id: 'Ultimate_Meteor', name: 'Meteor Strike', type: 'Ultimate', tags: ['Damage.Fire', 'AoE', 'CrowdControl'] },
+  ];
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0f] text-gray-200 font-sans">
-      <div className="flex items-center justify-between p-4 border-b border-[#2a2b3d] bg-[#1a1b2d]">
+    <div className="w-full h-full flex flex-col bg-[#0d1117] text-white font-sans">
+      {/* Header */}
+      <div className="flex items-center justify-between p-3 border-b border-[#30363d] bg-[#161b22]">
         <div className="flex items-center gap-3">
-          <Zap className="text-blue-400" size={24} />
-          <h1 className="text-xl font-bold tracking-tight">Gameplay Ability System</h1>
+          <div className="p-1.5 bg-[#d29922]/20 border border-[#d29922]/50 rounded">
+            <Zap className="text-[#d29922]" size={20} />
+          </div>
+          <div>
+            <h1 className="font-bold text-sm tracking-wide">Gameplay Ability System (GAS)</h1>
+            <p className="text-[10px] text-[#8b949e]">Data-Driven Abilities, Attributes, and Gameplay Effects</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-[#2a2b3d] rounded text-gray-400 hover:text-white transition-colors">
-            <RefreshCw size={16} />
+        <div className="flex gap-2">
+          <button className="px-3 py-1.5 bg-[#21262d] border border-[#30363d] rounded text-xs flex items-center gap-2 hover:bg-[#30363d]">
+            <Settings2 size={14} /> Tag Dictionary
           </button>
-          <button className="p-2 hover:bg-[#2a2b3d] rounded text-gray-400 hover:text-white transition-colors">
-            <Save size={16} />
-          </button>
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium flex items-center gap-2 transition-colors">
-            <Play size={16} />
-            <span>Simulate</span>
+          <button className="px-3 py-1.5 bg-[#238636] border border-[#2ea043] rounded text-xs flex items-center gap-2 hover:bg-[#2c974b]">
+            <Play size={14} /> Simulate Ability
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-64 border-r border-[#2a2b3d] bg-[#11111a] flex flex-col">
-          <div className="p-4 border-b border-[#2a2b3d]">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Workspace</h2>
-            <div className="space-y-1">
-              <button onClick={() => setActiveTab('overview')} className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${activeTab === 'overview' ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-[#2a2b3d] text-gray-400'}`}>
-                <Layers size={14} /> Overview
-              </button>
-              <button onClick={() => setActiveTab('settings')} className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${activeTab === 'settings' ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-[#2a2b3d] text-gray-400'}`}>
-                <Settings size={14} /> Configuration
-              </button>
-              <button onClick={() => setActiveTab('metrics')} className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${activeTab === 'metrics' ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-[#2a2b3d] text-gray-400'}`}>
-                <BarChart2 size={14} /> Metrics
-              </button>
-            </div>
+      <div className="flex flex-1 overflow-hidden">
+        
+        {/* Left: Ability List */}
+        <div className="w-64 border-r border-[#30363d] flex flex-col bg-[#161b22]">
+          <div className="p-3 border-b border-[#30363d] text-xs font-bold text-[#8b949e] flex justify-between items-center">
+            <div className="flex items-center gap-2"><Database size={14} /> ABILITY BLUEPRINTS</div>
+            <Plus size={14} className="hover:text-white cursor-pointer" />
           </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Presets</h2>
-             <div className="space-y-2">
-                {[1,2,3].map(i => (
-                  <div key={i} className="p-2 border border-[#2a2b3d] rounded bg-[#0a0a0f] hover:border-blue-500/50 cursor-pointer transition-colors">
-                    <div className="text-sm text-gray-300">Preset 0{i}</div>
-                    <div className="text-xs text-gray-600 font-mono mt-1">Hash: {Math.random().toString(36).substring(2,8)}</div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {abilities.map(ability => (
+              <div 
+                key={ability.id}
+                onClick={() => setSelectedAbility(ability.id)}
+                className={`p-3 rounded cursor-pointer mb-2 border ${
+                  selectedAbility === ability.id ? 'bg-[#d29922]/10 border-[#d29922]/50' : 'bg-[#0d1117] border-[#30363d] hover:border-[#8b949e]'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <div className={`text-sm font-bold ${selectedAbility === ability.id ? 'text-[#d29922]' : 'text-[#c9d1d9]'}`}>
+                    {ability.name}
                   </div>
-                ))}
-             </div>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-[#21262d] rounded text-[#8b949e]">{ability.type}</span>
+                </div>
+                <div className="flex gap-1 flex-wrap mt-2">
+                  {ability.tags.map(t => (
+                    <span key={t} className="text-[9px] text-[#58a6ff] bg-[#58a6ff]/10 px-1 rounded flex items-center gap-1">
+                      <Tag size={8} /> {t.split('.').pop()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-6 overflow-y-auto bg-[#0a0a0f]">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="bg-[#11111a] border border-[#2a2b3d] rounded-lg p-6">
-              <h2 className="text-lg font-bold text-gray-200 mb-2">System Diagnostics</h2>
-              <p className="text-sm text-gray-400 mb-6">Real-time status and advanced configurations for Gameplay Ability System. All changes are hot-reloaded into the Omni Engine.</p>
+        {/* Center: Ability Editor Canvas */}
+        <div className="flex-1 flex flex-col bg-[#010409]">
+          {/* Editor Tabs */}
+          <div className="flex border-b border-[#30363d] bg-[#161b22]">
+            <button className="px-6 py-3 text-sm font-bold border-b-2 border-[#d29922] text-[#d29922] flex items-center gap-2">
+              <Activity size={16} /> Config & Execution
+            </button>
+            <button className="px-6 py-3 text-sm font-bold border-b-2 border-transparent text-[#8b949e] hover:text-[#c9d1d9] flex items-center gap-2">
+              <Layers size={16} /> Gameplay Effects (GE)
+            </button>
+            <button className="px-6 py-3 text-sm font-bold border-b-2 border-transparent text-[#8b949e] hover:text-[#c9d1d9] flex items-center gap-2">
+              <Tag size={16} /> Gameplay Tags
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6" style={{ backgroundImage: 'radial-gradient(#30363d 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
+            <div className="max-w-4xl mx-auto space-y-6">
               
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-[#0a0a0f] p-4 rounded border border-[#2a2b3d]">
-                  <div className="text-xs text-gray-500 uppercase mb-1">Status</div>
-                  <div className="text-xl font-mono text-green-400">ONLINE</div>
+              {/* Cost & Cooldown */}
+              <div className="bg-[#161b22]/90 backdrop-blur border border-[#30363d] rounded-xl overflow-hidden shadow-xl">
+                <div className="px-4 py-2 border-b border-[#30363d] bg-[#0d1117] text-xs font-bold text-[#8b949e] flex items-center gap-2">
+                  <Clock size={14} className="text-[#58a6ff]" /> COST & COOLDOWN (GE_Cost, GE_Cooldown)
                 </div>
-                <div className="bg-[#0a0a0f] p-4 rounded border border-[#2a2b3d]">
-                  <div className="text-xs text-gray-500 uppercase mb-1">Active Nodes</div>
-                  <div className="text-xl font-mono text-blue-400">{(Math.random() * 1000).toFixed(0)}</div>
-                </div>
-                <div className="bg-[#0a0a0f] p-4 rounded border border-[#2a2b3d]">
-                  <div className="text-xs text-gray-500 uppercase mb-1">Latency</div>
-                  <div className="text-xl font-mono text-yellow-400">{(Math.random() * 5).toFixed(2)}ms</div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-gray-300 border-b border-[#2a2b3d] pb-2">Core Parameters</h3>
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-[#0a0a0f] rounded border border-[#2a2b3d]">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-300 font-medium">Parameter {i}</span>
-                      <span className="text-xs text-gray-500">Adjust the sub-routine threshold for optimal performance.</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input type="range" className="w-32 accent-blue-500" />
-                      <span className="text-xs font-mono text-gray-400 w-8">{(Math.random() * 100).toFixed(0)}</span>
+                <div className="p-6 flex gap-8">
+                  <div className="flex-1">
+                    <div className="text-xs text-[#8b949e] mb-2">Resource Cost</div>
+                    <div className="flex items-center gap-2">
+                      <select className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-sm text-[#58a6ff] outline-none w-1/2">
+                        <option>Mana</option>
+                        <option>Stamina</option>
+                        <option>Health</option>
+                      </select>
+                      <input type="number" defaultValue="25" className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-sm text-white w-1/4 outline-none" />
+                      <span className="text-xs text-[#8b949e]">pts</span>
                     </div>
                   </div>
-                ))}
+                  <div className="w-px bg-[#30363d]"></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-[#8b949e] mb-2">Cooldown Duration</div>
+                    <div className="flex items-center gap-2">
+                      <input type="number" defaultValue="4.5" step="0.1" className="bg-[#0d1117] border border-[#30363d] rounded p-2 text-sm text-[#d29922] w-1/3 outline-none" />
+                      <span className="text-xs text-[#8b949e]">seconds</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-[#11111a] border border-[#2a2b3d] rounded-lg p-6">
-                 <h2 className="text-sm font-bold text-gray-300 mb-4">Memory Allocation Graph</h2>
-                 <div className="h-40 flex items-end gap-1">
-                    {Array.from({length: 20}).map((_, i) => (
-                      <div key={i} className="flex-1 bg-blue-600/40 rounded-t" style={{height: `${Math.random() * 100}%`}}></div>
-                    ))}
-                 </div>
-              </div>
-              <div className="bg-[#11111a] border border-[#2a2b3d] rounded-lg p-6">
-                 <h2 className="text-sm font-bold text-gray-300 mb-4">Execution Log</h2>
-                 <div className="space-y-2 h-40 overflow-y-auto pr-2">
-                    {Array.from({length: 8}).map((_, i) => (
-                      <div key={i} className="text-xs font-mono text-gray-500 border-l-2 border-green-500 pl-2">
-                        [{(new Date()).toISOString().split('T')[1].substring(0,8)}] Init routine 0x{Math.random().toString(16).substring(2,6)}
-                      </div>
-                    ))}
-                 </div>
-              </div>
-            </div>
 
+              {/* Tag Requirements */}
+              <div className="bg-[#161b22]/90 backdrop-blur border border-[#30363d] rounded-xl overflow-hidden shadow-xl">
+                <div className="px-4 py-2 border-b border-[#30363d] bg-[#0d1117] text-xs font-bold text-[#8b949e] flex items-center gap-2">
+                  <Tag size={14} className="text-[#3fb950]" /> ABILITY ACTIVATION TAGS
+                </div>
+                <div className="p-6 grid grid-cols-2 gap-6">
+                  <div>
+                    <div className="text-xs font-bold text-[#c9d1d9] mb-2 border-b border-[#30363d] pb-1">Activation Required Tags</div>
+                    <div className="text-[10px] text-[#8b949e] mb-2">Caster MUST have these tags to cast.</div>
+                    <div className="flex gap-2">
+                      <span className="px-2 py-1 bg-[#21262d] border border-[#30363d] rounded text-xs text-[#8b949e] italic">None</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#c9d1d9] mb-2 border-b border-[#30363d] pb-1">Activation Blocked Tags</div>
+                    <div className="text-[10px] text-[#8b949e] mb-2">Caster CANNOT cast if they have these.</div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-2 py-1 bg-[#f85149]/10 border border-[#f85149]/50 rounded text-xs text-[#f85149]">State.Dead</span>
+                      <span className="px-2 py-1 bg-[#f85149]/10 border border-[#f85149]/50 rounded text-xs text-[#f85149]">State.Stunned</span>
+                      <span className="px-2 py-1 bg-[#f85149]/10 border border-[#f85149]/50 rounded text-xs text-[#f85149]">State.Silenced</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Execution Graph Mock */}
+              <div className="bg-[#161b22]/90 backdrop-blur border border-[#30363d] rounded-xl overflow-hidden shadow-xl">
+                <div className="px-4 py-2 border-b border-[#30363d] bg-[#0d1117] text-xs font-bold text-[#8b949e] flex items-center gap-2">
+                  <Target size={14} className="text-[#f85149]" /> EXECUTION PIPELINE
+                </div>
+                <div className="p-6 overflow-x-auto">
+                  <div className="flex items-center min-w-max gap-4 p-4">
+                    
+                    <div className="w-48 bg-[#0d1117] border-2 border-[#58a6ff] rounded-lg p-3 relative">
+                      <div className="text-xs text-[#58a6ff] font-bold mb-1">1. TryActivateAbility</div>
+                      <div className="text-[10px] text-[#8b949e]">Checks Tags, Cost, Cooldown.</div>
+                    </div>
+                    
+                    <MoveRight className="text-[#30363d]" />
+                    
+                    <div className="w-48 bg-[#0d1117] border-2 border-[#d29922] rounded-lg p-3 relative">
+                      <div className="text-xs text-[#d29922] font-bold mb-1">2. Play Montages</div>
+                      <div className="text-[10px] text-[#8b949e]">Anim: Anim_CastFireball</div>
+                      <div className="text-[10px] text-[#8b949e]">Waits for AnimNotify event.</div>
+                    </div>
+
+                    <MoveRight className="text-[#30363d]" />
+
+                    <div className="w-48 bg-[#0d1117] border-2 border-[#f85149] rounded-lg p-3 relative shadow-[0_0_15px_rgba(248,81,73,0.2)]">
+                      <div className="text-xs text-[#f85149] font-bold mb-1">3. Apply Gameplay Effect</div>
+                      <div className="text-[10px] text-[#8b949e]">GE_FireballDamage</div>
+                      <div className="text-[10px] text-white mt-1 p-1 bg-[#21262d] rounded">Base Dmg: 150</div>
+                    </div>
+
+                    <MoveRight className="text-[#30363d]" />
+
+                    <div className="w-40 bg-[#0d1117] border-2 border-[#3fb950] rounded-lg p-3 relative">
+                      <div className="text-xs text-[#3fb950] font-bold mb-1">4. End Ability</div>
+                      <div className="text-[10px] text-[#8b949e]">Returns control to player.</div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   );

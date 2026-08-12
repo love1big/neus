@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
@@ -104,12 +104,18 @@ export const componentImports: Record<string, () => Promise<any>> = {
   ThaiPhoneticsEngine: () => import("./components/ThaiPhoneticsEngine"),
   NexusPluginArchitect: () => import("./components/NexusPluginArchitect"),
   TopologyUVPro: () => import("./components/TopologyUVPro"),
+  AIOfflineMapGenerator: () => import("./components/AIOfflineMapGenerator"),
+  AIOfflineModelGenerator: () => import("./components/AIOfflineModelGenerator"),
+  AIOfflineUIUXGenerator: () => import("./components/AIOfflineUIUXGenerator"),
+  AICodeQualityAuditor: () => import("./components/AICodeQualityAuditor"),
+  AIOfflineImageGenerator: () => import("./components/AIOfflineImageGenerator"),
   AIHubMasterMenu: () => import("./components/AIHubMasterMenu"),
   UIUXEditor: () => import("./components/UIUXEditor"),
   UXCognitiveLoadSim: () => import("./components/UXCognitiveLoadSim"),
   VRXREngineEditor: () => import("./components/VRXREngineEditor"),
   VehicleDynamicsEditor: () => import("./components/VehicleDynamicsEditor"),
   VehicleDynamicsTuner: () => import("./components/VehicleDynamicsTuner"),
+  ActiveRagdollEuphoriaEngine: () => import("./components/ActiveRagdollEuphoriaEngine"),
   Viewport3D: () => import("./components/Viewport3D"),
   WorldLoreEditor: () => import("./components/WorldLoreEditor"),
   ZBrushStyleSculptingStudio: () => import("./components/ZBrushStyleSculptingStudio"),
@@ -210,6 +216,7 @@ export const componentImports: Record<string, () => Promise<any>> = {
   CraftingRecipeManager: () => import("./components/CraftingRecipeManager"),
   DamageCalculationConfig: () => import("./components/DamageCalculationConfig"),
   DataTableJSONEditor: () => import("./components/DataTableJSONEditor"),
+  StateSerializationManager: () => import("./components/StateSerializationManager"),
   CSVXMLImporter: () => import("./components/CSVXMLImporter"),
   DatabaseMigrationTool: () => import("./components/DatabaseMigrationTool"),
   RemoteConfigABTesting: () => import("./components/RemoteConfigABTesting"),
@@ -370,6 +377,12 @@ const TerrainGenerator = React.lazy(componentImports.TerrainGenerator);
 const ThaiPhoneticsEngine = React.lazy(componentImports.ThaiPhoneticsEngine);
 const NexusPluginArchitect = React.lazy(componentImports.NexusPluginArchitect);
 const TopologyUVPro = React.lazy(componentImports.TopologyUVPro);
+const AIOfflineMapGenerator = React.lazy(componentImports.AIOfflineMapGenerator);
+const AIOfflineModelGenerator = React.lazy(componentImports.AIOfflineModelGenerator);
+const AIOfflineUIUXGenerator = React.lazy(componentImports.AIOfflineUIUXGenerator);
+const AICodeQualityAuditor = React.lazy(componentImports.AICodeQualityAuditor);
+const AIOfflineImageGenerator = React.lazy(componentImports.AIOfflineImageGenerator);
+const ActiveRagdollEuphoriaEngine = React.lazy(componentImports.ActiveRagdollEuphoriaEngine);
 const AIHubMasterMenu = React.lazy(componentImports.AIHubMasterMenu);
 const UIUXEditor = React.lazy(componentImports.UIUXEditor);
 const UXCognitiveLoadSim = React.lazy(componentImports.UXCognitiveLoadSim);
@@ -481,6 +494,7 @@ const LootTableEditor = React.lazy(componentImports.LootTableEditor);
 const CraftingRecipeManager = React.lazy(componentImports.CraftingRecipeManager);
 const DamageCalculationConfig = React.lazy(componentImports.DamageCalculationConfig);
 const DataTableJSONEditor = React.lazy(componentImports.DataTableJSONEditor);
+const StateSerializationManager = React.lazy(componentImports.StateSerializationManager);
 const CSVXMLImporter = React.lazy(componentImports.CSVXMLImporter);
 const DatabaseMigrationTool = React.lazy(componentImports.DatabaseMigrationTool);
 const RemoteConfigABTesting = React.lazy(componentImports.RemoteConfigABTesting);
@@ -573,6 +587,26 @@ export const tools = [
         { id: "VisualScripting", title: "Visual Script Editor", icon: <Network size={16} /> },
         { id: "VisualFlowDebugger", title: "Flow Debugger", icon: <Bug size={16} /> },
         { id: "CodeProfilerTracer", title: "Profiler & Tracer", icon: <Activity size={16} /> }
+      ]
+    },
+
+    // 2.5 🧠 AI HUB & OFFLINE MODELS
+    {
+      id: "AIHubMaster",
+      title: "AI Hub & Offline Models",
+      icon: <BrainCircuit size={20} />,
+      activeColor: "text-[#8a2be2]",
+      category: "🤖 AI & CODE",
+      subTools: [
+        { id: "AIHubMasterMenu", title: "AI Master Hub", icon: <Brain size={16} /> },
+        { id: "UltimateOfflineAIStudio", title: "Ultimate Offline AI", icon: <Cpu size={16} /> },
+        { id: "LocalAIStudio", title: "Local AI Models", icon: <HardDrive size={16} /> },
+        { id: "AIOfflineDownloader", title: "Offline Downloader", icon: <Download size={16} /> },
+        { id: "AIOfflineMapGenerator", title: "Offline AI Map", icon: <Map size={16} /> },
+        { id: "AIOfflineModelGenerator", title: "Offline AI 3D Model", icon: <Box size={16} /> },
+        { id: "AIOfflineUIUXGenerator", title: "Offline AI UI/UX", icon: <LayoutDashboard size={16} /> },
+        { id: "AICodeQualityAuditor", title: "Code Auditor and Standards", icon: <ShieldCheck size={16} /> },
+        { id: "AIOfflineImageGenerator", title: "Offline AI Image", icon: <Image size={16} /> }
       ]
     },
 
@@ -726,6 +760,7 @@ export const tools = [
       subTools: [
         { id: "ChaosPhysicsFluidEngine", title: "Chaos & Fluids", icon: <Flame size={16} /> },
         { id: "VehicleDynamicsTuner", title: "Vehicle Dynamics", icon: <Car size={16} /> },
+        { id: "ActiveRagdollEuphoriaEngine", title: "Euphoria Active Ragdoll", icon: <Activity size={16} /> },
         { id: "SoftBodyPhysicsTuner", title: "Soft Body Physics", icon: <Box size={16} /> },
         { id: "ChaosDestructionLab", title: "Destruction Lab", icon: <Bomb size={16} /> }
       ]
@@ -755,7 +790,9 @@ export const tools = [
       category: "📐 INTERFACE",
       subTools: [
         { id: "UIUXEdit", title: "UI Visual Builder", icon: <LayoutDashboard size={16} /> },
+        { id: "UIUXDataBindingEditor", title: "MVVM Data Binding", icon: <Link2 size={16} /> },
         { id: "DataTableJSONEditor", title: "Data Tables", icon: <Table size={16} /> },
+        { id: "StateSerializationManager", title: "Save/Load State Serializer", icon: <Save size={16} /> },
         { id: "UXCognitiveLoadSim", title: "UX Sim", icon: <Brain size={16} /> },
         { id: "Blueprint", title: "Blueprints", icon: <Network size={16} /> }
       ]

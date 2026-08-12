@@ -142,10 +142,10 @@ export default function AnimationRiggingStudio() {
                 
                 <div className="flex items-center gap-2 ml-auto text-[10px]">
                   <span className="text-gray-500 uppercase">FPS:</span>
-                  <select className="bg-black border border-[#3e3e42] text-white rounded px-2 py-0.5 outline-none">
+                  <select defaultValue="60" className="bg-black border border-[#3e3e42] text-white rounded px-2 py-0.5 outline-none">
                     <option>24</option>
                     <option>30</option>
-                    <option selected>60</option>
+                    <option>60</option>
                   </select>
                 </div>
              </div>

@@ -778,9 +778,9 @@ export default function UltimateOfflineAIStudio() {
                   <div className="flex flex-col gap-3 text-xs">
                     <div className="flex justify-between items-center">
                       <span className="text-[#a0aec0]">Adapter Rank (r):</span>
-                      <select className="bg-[#0b0e17] border border-[#2e3b52] rounded p-1.5 text-white font-mono">
+                      <select defaultValue="r = 16 (Balanced Standard)" className="bg-[#0b0e17] border border-[#2e3b52] rounded p-1.5 text-white font-mono">
                         <option>r = 8 (Fastest, Small RAM)</option>
-                        <option selected>r = 16 (Balanced Standard)</option>
+                        <option>r = 16 (Balanced Standard)</option>
                         <option>r = 32 (High Capacity)</option>
                         <option>r = 64 (Deep Specialization)</option>
                       </select>
@@ -793,9 +793,9 @@ export default function UltimateOfflineAIStudio() {
 
                     <div className="flex justify-between items-center">
                       <span className="text-[#a0aec0]">Alignment Optimizer:</span>
-                      <select className="bg-[#0b0e17] border border-[#2e3b52] rounded p-1.5 text-white font-mono">
+                      <select defaultValue="DPO (Direct Preference Optimization)" className="bg-[#0b0e17] border border-[#2e3b52] rounded p-1.5 text-white font-mono">
                         <option>ORPO (Odds Ratio Preference Optimization)</option>
-                        <option selected>DPO (Direct Preference Optimization)</option>
+                        <option>DPO (Direct Preference Optimization)</option>
                         <option>SFT (Supervised Fine-Tuning Only)</option>
                       </select>
                     </div>
@@ -1151,9 +1151,9 @@ export default function UltimateOfflineAIStudio() {
                   <div className="flex flex-col gap-3 mt-2 text-xs">
                     <div className="flex justify-between items-center">
                       <span className="text-[#a0aec0]">Active Experts (Top-K):</span>
-                      <select className="bg-[#0b0e17] border border-[#2e3b52] rounded p-1.5 text-white font-mono">
+                      <select defaultValue="Top-1 (2x Speed, Minimal Drop)" className="bg-[#0b0e17] border border-[#2e3b52] rounded p-1.5 text-white font-mono">
                         <option>Top-2 (Standard, High Quality)</option>
-                        <option selected>Top-1 (2x Speed, Minimal Drop)</option>
+                        <option>Top-1 (2x Speed, Minimal Drop)</option>
                       </select>
                     </div>
                     <div className="flex justify-between items-center">

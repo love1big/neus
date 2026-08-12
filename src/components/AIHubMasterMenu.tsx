@@ -3,6 +3,10 @@ import {
   Bot, Cpu, Brain, Waypoints, Cloud, Network, TerminalSquare, Sparkles, Zap, Activity, Layers, Server, HardDrive} from "lucide-react";
 
 import AIOfflineDownloader from "./AIOfflineDownloader";
+import AIOfflineMapGenerator from "./AIOfflineMapGenerator";
+import AIOfflineModelGenerator from "./AIOfflineModelGenerator";
+import AIOfflineUIUXGenerator from "./AIOfflineUIUXGenerator";
+import AIOfflineImageGenerator from "./AIOfflineImageGenerator";
 import AICommandCenter from "./AICommandCenter";
 import LocalAIStudio from "./LocalAIStudio";
 import OmniAIAssistantStudio from "./OmniAIAssistantStudio";
@@ -78,6 +82,34 @@ export default function AIHubMasterMenu({ initialTab }: { initialTab?: string } 
       desc: "สร้างพฤติกรรม AI ในเกมด้วย Visual Scripting ไม่ต้องเขียนโค้ด",
       icon: <Network size={18} className="text-[#ff7b72]" />,
       badge: "BEHAVIOR TREE"
+    },
+    {
+      id: "AIOfflineMapGenerator",
+      title: "Offline AI Map Generator",
+      desc: "สร้างแผนที่ ระดับเมือง และภูมิประเทศ 3 มิติแบบออฟไลน์",
+      icon: <Network size={18} className="text-[#3fb950]" />,
+      badge: "MAP GEN"
+    },
+    {
+      id: "AIOfflineModelGenerator",
+      title: "Offline AI 3D Model",
+      desc: "สร้างโมเดล 3 มิติจากข้อความโดยไม่ใช้อินเทอร์เน็ต",
+      icon: <Cpu size={18} className="text-[#d29922]" />,
+      badge: "3D ASSETS"
+    },
+    {
+      id: "AIOfflineUIUXGenerator",
+      title: "Offline AI UI/UX",
+      desc: "ออกแบบ UI/UX สำหรับเกมหรือเว็บ และเจนโค้ด Frontend อัตโนมัติ",
+      icon: <TerminalSquare size={18} className="text-[#03a9f4]" />,
+      badge: "UI/UX"
+    },
+    {
+      id: "AIOfflineImageGenerator",
+      title: "Offline AI Concept Art",
+      desc: "เจนรูปภาพ คอนเซปต์อาร์ต หรือเทกซ์เจอร์ด้วย Local Diffusion",
+      icon: <Sparkles size={18} className="text-[#bc8cff]" />,
+      badge: "IMAGE GEN"
     }
   ];
 
@@ -99,6 +131,14 @@ export default function AIHubMasterMenu({ initialTab }: { initialTab?: string } 
         return <BatchAIImporter />;
       case "OmniVisualScripting":
         return <OmniVisualScriptingEngine />;
+      case "AIOfflineMapGenerator":
+        return <AIOfflineMapGenerator />;
+      case "AIOfflineModelGenerator":
+        return <AIOfflineModelGenerator />;
+      case "AIOfflineUIUXGenerator":
+        return <AIOfflineUIUXGenerator />;
+      case "AIOfflineImageGenerator":
+        return <AIOfflineImageGenerator />;
       default:
         return <AICommandCenter />;
     }

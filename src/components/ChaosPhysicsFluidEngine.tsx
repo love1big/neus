@@ -80,10 +80,10 @@ export default function ChaosPhysicsFluidEngine() {
                     </div>
                     <div>
                       <label className="text-xs text-[#8b949e] flex justify-between"><span>Mass Density (kg/m³)</span> <span>2400 (Concrete)</span></label>
-                      <select className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-xs text-white mt-1">
+                      <select defaultValue="Concrete (2400)" className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-xs text-white mt-1">
                         <option>Wood (600)</option>
                         <option>Glass (2500)</option>
-                        <option selected>Concrete (2400)</option>
+                        <option>Concrete (2400)</option>
                         <option>Steel (7800)</option>
                       </select>
                     </div>
@@ -109,10 +109,10 @@ export default function ChaosPhysicsFluidEngine() {
                    <div className="space-y-4">
                      <div>
                         <label className="text-xs text-[#8b949e] flex justify-between"><span>Grid Resolution (Voxels)</span> <span>256^3</span></label>
-                        <select className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-xs text-white mt-1">
+                        <select defaultValue="256x256x256 (High)" className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1 text-xs text-white mt-1">
                           <option>64x64x64 (Low)</option>
                           <option>128x128x128 (Medium)</option>
-                          <option selected>256x256x256 (High)</option>
+                          <option>256x256x256 (High)</option>
                           <option>512x512x512 (Cinematic)</option>
                         </select>
                      </div>

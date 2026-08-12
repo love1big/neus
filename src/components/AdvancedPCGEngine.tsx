@@ -137,9 +137,9 @@ export default function AdvancedPCGEngine() {
                     <div className="flex-1 space-y-4">
                       <div>
                         <label className="text-xs text-[#8b949e] flex justify-between"><span>Grid Cell Size</span> <span>1024x1024</span></label>
-                        <select className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1.5 text-xs text-white mt-1">
+                        <select defaultValue="1024x1024 Units" className="w-full bg-[#0d1117] border border-[#30363d] rounded px-2 py-1.5 text-xs text-white mt-1">
                           <option>512x512 Units</option>
-                          <option selected>1024x1024 Units</option>
+                          <option>1024x1024 Units</option>
                           <option>2048x2048 Units</option>
                         </select>
                       </div>
