@@ -809,6 +809,7 @@ export const tools = [
         { id: "BuildPublish", title: "Build & Deploy", icon: <Cloud size={16} /> },
         { id: "VersionControlUI", title: "Version Control", icon: <GitCommit size={16} /> },
         { id: "CrashAnalyticsDashboard", title: "Analytics", icon: <Activity size={16} /> },
+        { id: "PerformanceDashboard", title: "Performance Telemetry", icon: <Gauge size={16} /> },
         { id: "MultiplayerServerOrchestrator", title: "Server Orchestrator", icon: <Server size={16} /> },
         { id: "AntiCheatSecurityHub", title: "Security Hub", icon: <Shield size={16} /> }
       ]
