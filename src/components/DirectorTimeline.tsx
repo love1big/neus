@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clapperboard, Play, Pause, SkipBack, SkipForward, Video, Scissors, Key, Layers, MousePointer2, Maximize, Settings, Camera, Move3d } from 'lucide-react';
+import { Clapperboard, Play, Pause, SkipBack, SkipForward, Video, Scissors, Key, Layers, MousePointer2, Maximize, Settings, Camera, Move3d, Film, Sparkles } from 'lucide-react';
 
 export default function DirectorTimeline() {
   const [isPlaying, setIsPlaying] = useState(false);

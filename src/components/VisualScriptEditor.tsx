@@ -92,7 +92,7 @@ const INITIAL_CONNECTIONS: NodeConnection[] = [
   { id: 'c2', fromNode: 'n_var1', fromPin: 'out_val', toNode: 'n_print', toPin: 'in_str' },
 ];
 
-export default function VisualScriptEditor() {
+export default function VisualScriptEditor({ toolId, tools }: { toolId?: string; tools?: any[] } = {}) {
   const [nodes, setNodes] = useState<ScriptNode[]>(INITIAL_NODES);
   const [connections, setConnections] = useState<NodeConnection[]>(INITIAL_CONNECTIONS);
   const [pan, setPan] = useState({ x: 0, y: 0 });

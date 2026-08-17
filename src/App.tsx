@@ -1,13 +1,20 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
+import OmniEngineIDE from "./components/OmniEngineIDE";
+import CommandPalette from "./components/CommandPalette";
+import NotificationSystem from "./components/NotificationSystem";
+import VisualScriptEditor from "./components/VisualScriptEditor";
+import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts";
 
 const TextureEditor = React.lazy(() => import('./components/TextureEditor'));
 
 export const componentImports: Record<string, () => Promise<any>> = {
+  ProjectProgressDashboard: () => import('./components/ProjectProgressDashboard'),
+  KeyboardShortcutMapper: () => import('./components/KeyboardShortcutMapper'),
   TextureEditor: () => import('./components/TextureEditor'),
   ProjectManagementSystem: () => import("./components/ProjectManagementSystem"),
   AdvancedPhysicsEngine: () => import("./components/AdvancedPhysicsEngine"),
@@ -275,9 +282,17 @@ export const componentImports: Record<string, () => Promise<any>> = {
   EconomyLiveOpsEditor: () => import("./components/EconomyLiveOpsEditor"),
   DestructibleMeshEditor: () => import("./components/DestructibleMeshEditor"),
   OfflineAICodingAssistant: () => import("./components/OfflineAICodingAssistant"),
+  RealTimeHouse3DPrintStudio: () => import("./components/RealTimeHouse3DPrintStudio"),
+  UXUISimulatorTestbed: () => import("./components/UXUISimulatorTestbed"),
+  GameProjectStarterCore: () => import("./components/GameProjectStarterCore"),
+  PBRTextureQualityAuditor: () => import("./components/PBRTextureQualityAuditor"),
+  ElectronicCircuitPCBStudio: () => import("./components/ElectronicCircuitPCBStudio"),
+  RuntimeGraphicsStreamingOptimizer: () => import("./components/RuntimeGraphicsStreamingOptimizer"),
+  HardwareResourceOptimizer: () => import("./components/HardwareResourceOptimizer"),
+  OfflineAIDataEngineManager: () => import("./components/OfflineAIDataEngineManager"),
 };
 
-export const preloadComponent = (id: string) => { if(componentImports[id]) componentImports[id](); };
+export const preloadComponent = (id: string) => { if(componentImports[id]) componentImports[id]().catch(console.error); };
 
 
 
@@ -347,7 +362,6 @@ const OmniAnimationStudio = React.lazy(componentImports.OmniAnimationStudio);
 const OmniAudioDSPStudio = React.lazy(componentImports.OmniAudioDSPStudio);
 const OmniBackendNetworkingStudio = React.lazy(componentImports.OmniBackendNetworkingStudio);
 const OmniCreatorMaster = React.lazy(componentImports.OmniCreatorMaster);
-const OmniEngineIDE = React.lazy(componentImports.OmniEngineIDE);
 const OmniMegaWorldBuilder = React.lazy(componentImports.OmniMegaWorldBuilder);
 const NextGenEngineHub = React.lazy(componentImports.NextGenEngineHub);
 const OmniNarrativeQuestStudio = React.lazy(componentImports.OmniNarrativeQuestStudio);
@@ -392,7 +406,6 @@ const VehicleDynamicsTuner = React.lazy(componentImports.VehicleDynamicsTuner);
 const Viewport3D = React.lazy(componentImports.Viewport3D);
 const WorldLoreEditor = React.lazy(componentImports.WorldLoreEditor);
 const ZBrushStyleSculptingStudio = React.lazy(componentImports.ZBrushStyleSculptingStudio);
-const CommandPalette = React.lazy(componentImports.CommandPalette);
 const RegexTesterPanel = React.lazy(componentImports.RegexTesterPanel);
 const FontEditor = React.lazy(componentImports.FontEditor);
 const EyeTrackingHeatmap = React.lazy(componentImports.EyeTrackingHeatmap);
@@ -405,7 +418,6 @@ const ASTNodeWeaver = React.lazy(componentImports.ASTNodeWeaver);
 const ProceduralGalaxyBuilder = React.lazy(componentImports.ProceduralGalaxyBuilder);
 const VisualShaderGraphEditor = React.lazy(componentImports.VisualShaderGraphEditor);
 const AIBehaviorGraphEngine = React.lazy(componentImports.AIBehaviorGraphEngine);
-const VisualScriptEditor = React.lazy(componentImports.VisualScriptEditor);
 const KernelDebugger = React.lazy(componentImports.KernelDebugger);
 const MemoryProfiler = React.lazy(componentImports.MemoryProfiler);
 
@@ -556,6 +568,10 @@ const EconomyLiveOpsEditor = React.lazy(componentImports.EconomyLiveOpsEditor);
 const DestructibleMeshEditor = React.lazy(componentImports.DestructibleMeshEditor);
 const OfflineAICodingAssistant = React.lazy(componentImports.OfflineAICodingAssistant);
 const ProjectManagementSystem = React.lazy(componentImports.ProjectManagementSystem);
+const ElectronicCircuitPCBStudio = React.lazy(componentImports.ElectronicCircuitPCBStudio);
+const RuntimeGraphicsStreamingOptimizer = React.lazy(componentImports.RuntimeGraphicsStreamingOptimizer);
+const HardwareResourceOptimizer = React.lazy(componentImports.HardwareResourceOptimizer);
+const OfflineAIDataEngineManager = React.lazy(componentImports.OfflineAIDataEngineManager);
 
 export const tools = [
     // 1. 🌟 DASHBOARD & PROJECT
@@ -569,6 +585,7 @@ export const tools = [
         { id: "OmniCreatorMaster", title: "Global Omniverse", icon: <Command size={16} /> },
         { id: "QuickStart", title: "Home / Project Hub", icon: <Rocket size={16} /> },
         { id: "ProjectManagementSystem", title: "Agile & Task Board", icon: <FolderTree size={16} /> },
+        { id: "ProjectProgressDashboard", title: "Dev Progress Tracker", icon: <Trophy size={16} /> },
         { id: "LiveOpsManager", title: "LiveOps & A/B Testing", icon: <Globe size={16} /> }
       ]
     },
@@ -599,6 +616,7 @@ export const tools = [
       category: "🤖 AI & CODE",
       subTools: [
         { id: "AIHubMasterMenu", title: "AI Master Hub", icon: <Brain size={16} /> },
+        { id: "OfflineAIDataEngineManager", title: "Offline AI High-Speed Data Engine", icon: <Zap size={16} /> },
         { id: "UltimateOfflineAIStudio", title: "Ultimate Offline AI", icon: <Cpu size={16} /> },
         { id: "LocalAIStudio", title: "Local AI Models", icon: <HardDrive size={16} /> },
         { id: "AIOfflineDownloader", title: "Offline Downloader", icon: <Download size={16} /> },
@@ -635,6 +653,8 @@ export const tools = [
       category: "🎨 ART STUDIO",
       subTools: [
         { id: "Modeling", title: "3D Modeling Studio", icon: <Box size={16} /> },
+        { id: "RealTimeHouse3DPrintStudio", title: "3D House CAD & Print Slicer", icon: <Home size={16} /> },
+        { id: "ElectronicCircuitPCBStudio", title: "PCB & Electronic Circuit Studio", icon: <CircuitBoard size={16} /> },
         { id: "ZBrushStyleSculptingStudio", title: "Sculpting Studio", icon: <Palette size={16} /> },
         { id: "PhotogrammetryMeshBuilder", title: "Photogrammetry", icon: <Camera size={16} /> },
         { id: "ModelOptimizer", title: "Model Optimizer", icon: <Minimize size={16} /> },
@@ -651,6 +671,7 @@ export const tools = [
       category: "🎨 ART STUDIO",
       subTools: [
         { id: "TextureEdit", title: "Texture Manager", icon: <Image size={16} /> },
+        { id: "PBRTextureQualityAuditor", title: "PBR Texture Quality Auditor", icon: <Layers size={16} /> },
         { id: "ImageEdit", title: "Texture Painter", icon: <Palette size={16} /> },
         { id: "VisualShaderGraphEditor", title: "Visual Shader Graph", icon: <Layers size={16} /> },
         { id: "MaterialInstanceEditor", title: "Material Instances", icon: <Layers size={16} /> },
@@ -713,6 +734,7 @@ export const tools = [
       category: "🎮 GAME DESIGN",
       subTools: [
         { id: "GameSystems", title: "Core Systems Editor", icon: <Blocks size={16} /> },
+        { id: "GameProjectStarterCore", title: "Game Starter Presets & Core", icon: <Database size={16} /> },
         { id: "EconomicBalancer", title: "Economy & Combat", icon: <Database size={16} /> },
         { id: "LootTableEditor", title: "Loot & Crafting", icon: <Gift size={16} /> },
         { id: "SkillTreeLevelingConfig", title: "Skill Trees & Levels", icon: <TrendingUp size={16} /> },
@@ -774,6 +796,7 @@ export const tools = [
       activeColor: "text-[#ffc107]",
       category: "💡 RENDERING",
       subTools: [
+        { id: "RuntimeGraphicsStreamingOptimizer", title: "4K Texture & Mesh Optimizer", icon: <Zap size={16} /> },
         { id: "CinematicLightingEditor", title: "Cinematic Lighting", icon: <Sun size={16} /> },
         { id: "GraphicsRender", title: "Graphics Render", icon: <Orbit size={16} /> },
         { id: "RaytracingConfigurator", title: "Raytracing & GI", icon: <Sun size={16} /> },
@@ -790,6 +813,7 @@ export const tools = [
       category: "📐 INTERFACE",
       subTools: [
         { id: "UIUXEdit", title: "UI Visual Builder", icon: <LayoutDashboard size={16} /> },
+        { id: "UXUISimulatorTestbed", title: "Multi-Device UI Simulator", icon: <Monitor size={16} /> },
         { id: "UIUXDataBindingEditor", title: "MVVM Data Binding", icon: <Link2 size={16} /> },
         { id: "DataTableJSONEditor", title: "Data Tables", icon: <Table size={16} /> },
         { id: "StateSerializationManager", title: "Save/Load State Serializer", icon: <Save size={16} /> },
@@ -809,7 +833,9 @@ export const tools = [
         { id: "BuildPublish", title: "Build & Deploy", icon: <Cloud size={16} /> },
         { id: "VersionControlUI", title: "Version Control", icon: <GitCommit size={16} /> },
         { id: "CrashAnalyticsDashboard", title: "Analytics", icon: <Activity size={16} /> },
+        { id: "KeyboardShortcutMapper", title: "Shortcut Mapper", icon: <Command size={16} /> },
         { id: "PerformanceDashboard", title: "Performance Telemetry", icon: <Gauge size={16} /> },
+        { id: "HardwareResourceOptimizer", title: "Hardware Resource Optimizer", icon: <Cpu size={16} /> },
         { id: "MultiplayerServerOrchestrator", title: "Server Orchestrator", icon: <Server size={16} /> },
         { id: "AntiCheatSecurityHub", title: "Security Hub", icon: <Shield size={16} /> }
       ]
@@ -821,57 +847,7 @@ export default function App() {
     return localStorage.getItem("omni_activeTool") || "OmniCreatorMaster";
   });
 
-
-  React.useEffect(() => {
-    const handleGlobalShortcuts = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) return;
-
-      const key = e.key.toLowerCase();
-      
-      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-        if (key === 'c') {
-          e.preventDefault();
-          setActiveTool('CodeEditor');
-        } else if (key === 'm') {
-          e.preventDefault();
-          setActiveTool('MapEdit');
-        } else if (key === 'u') {
-          e.preventDefault();
-          setActiveTool('UIUXEditor');
-        } else if (key === 'a') {
-          e.preventDefault();
-          setActiveTool('AudioMixingConsole');
-        } else if (key === 'v') {
-          e.preventDefault();
-          setActiveTool('VisualScriptEditor');
-        } else if (key === 't') {
-          e.preventDefault();
-          setActiveTool('TextureEditor');
-        } else if (key === '3') {
-          e.preventDefault();
-          setActiveTool('ModelingEditor');
-        }
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-        let toolToSelect = null;
-        switch (key) {
-          case '1': toolToSelect = 'CodeEditor'; break;
-          case '2': toolToSelect = 'ModelingEditor'; break;
-          case '3': toolToSelect = 'CinematicSequencerEditor'; break;
-          case '4': toolToSelect = 'AudioMixingConsole'; break;
-          case '5': toolToSelect = 'UIUXEditor'; break;
-          case '6': toolToSelect = 'TextureEditor'; break;
-        }
-        if (toolToSelect) {
-          e.preventDefault();
-          setActiveTool(toolToSelect);
-        }
-      }
-    };
-    window.addEventListener("keydown", handleGlobalShortcuts);
-    return () => window.removeEventListener("keydown", handleGlobalShortcuts);
-  }, []);
+  useGlobalShortcuts(setActiveTool);
 
   React.useEffect(() => {
     localStorage.setItem("omni_activeTool", activeTool);
@@ -968,6 +944,10 @@ const renderSubTool = (subToolId: string) => {
         setActiveTool={setActiveTool}
         renderActiveTool={renderActiveTool}
       />
+      
+      {/* Global Notification Manager */}
+      <NotificationSystem />
+
       {/* Global AI Chat Widget (Offline Copilot) */}
       <AIChatWidget activeTool={activeTool} tools={tools} />
     </div>
