@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Upload, Image as ImageIcon, Trash2, Sliders, Save, FileDown } from 'lucide-react';
+import { Upload, Image as ImageIcon, Trash2, Sliders, Save, FileDown, CircuitBoard, Sparkles, Layers } from 'lucide-react';
+import TexturePCBMasterStudio from './TexturePCBMasterStudio';
 
 interface Texture {
   id: string;
@@ -12,6 +13,7 @@ interface Texture {
 }
 
 export default function TextureEditor() {
+  const [activeMode, setActiveMode] = useState<'standard' | 'mega_pcb_texture'>('mega_pcb_texture');
   const [textures, setTextures] = useState<Texture[]>([
     { id: '1', name: 'grass_albedo.png', url: 'https://images.unsplash.com/photo-1596401057633-54a8fe8ef647?auto=format&fit=crop&q=80&w=256&h=256', width: 256, height: 256, type: 'Albedo' },
     { id: '2', name: 'brick_normal.png', url: 'https://images.unsplash.com/photo-1587155823708-3ab94d0c9f1a?auto=format&fit=crop&q=80&w=256&h=256', width: 256, height: 256, type: 'Normal' },
@@ -43,7 +45,45 @@ export default function TextureEditor() {
   };
 
   return (
-    <div className="flex h-full bg-slate-900 text-slate-200">
+    <div className="flex flex-col h-full bg-slate-900 text-slate-200">
+      {/* Top Mode Bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-950 border-b border-slate-800 shrink-0">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setActiveMode('mega_pcb_texture')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeMode === 'mega_pcb_texture'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <CircuitBoard size={14} />
+            <span>⚡ 600+ Mega Texture & PCB Studio</span>
+          </button>
+          <button
+            onClick={() => setActiveMode('standard')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeMode === 'standard'
+                ? 'bg-slate-700 text-white shadow-sm'
+                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <ImageIcon size={14} />
+            <span>Standard Canvas Editor</span>
+          </button>
+        </div>
+
+        <div className="text-xs text-slate-400 font-mono">
+          {activeMode === 'mega_pcb_texture' ? '300 PBR Texture + 300 PCB EDA Tools (600 Total)' : 'Interactive Layer Mode'}
+        </div>
+      </div>
+
+      {activeMode === 'mega_pcb_texture' ? (
+        <div className="flex-1 min-h-0">
+          <TexturePCBMasterStudio />
+        </div>
+      ) : (
+        <div className="flex flex-1 min-h-0 bg-slate-900 text-slate-200">
       {/* Left Sidebar - Texture Library */}
       <div className="w-64 border-r border-slate-700 bg-slate-800 flex flex-col">
         <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900">
@@ -215,7 +255,9 @@ export default function TextureEditor() {
             <p>Select a texture from the library or upload a new one.</p>
           </div>
         )}
+        </div>
       </div>
+      )}
     </div>
   );
 }

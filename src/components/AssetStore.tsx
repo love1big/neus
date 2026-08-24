@@ -1,12 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Star, Download, Filter, Package, Heart, Cpu, Layers, Monitor} from 'lucide-react';
+import { ShoppingCart, Search, Star, Download, Filter, Package, Heart, Cpu, Layers, Monitor, Sparkles, FolderTree } from 'lucide-react';
+import AIAssetAutoTagOrganizer from './AIAssetAutoTagOrganizer';
 
 export default function AssetStore() {
+  const [storeMode, setStoreMode] = useState<'store' | 'autotag'>('store');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeEngine, setActiveEngine] = useState('All');
   const [activeVersion, setActiveVersion] = useState('All');
   const [activeBackend, setActiveBackend] = useState('All');
   const [search, setSearch] = useState('');
+  const [downloadingAssetId, setDownloadingAssetId] = useState<number | null>(null);
+
+  const handleInstallOrUpdate = (asset: any) => {
+    setDownloadingAssetId(asset.id);
+    const version = asset.versions[0] || '1.0.0';
+
+    // Broadcast real-time Marketplace update event
+    window.dispatchEvent(new CustomEvent('marketplace-plugin-update', {
+      detail: {
+        pluginId: `plg_store_${asset.id}`,
+        name: asset.name,
+        pluginName: asset.name,
+        version: `v${version}`,
+        category: asset.category,
+        changeType: asset.category === 'Plugins' || asset.category === 'Tools' ? 'major_update' : 'asset_package',
+        timestamp: Date.now()
+      }
+    }));
+
+    try {
+      const bc = new BroadcastChannel('nexus_marketplace_events');
+      bc.postMessage({
+        pluginId: `plg_store_${asset.id}`,
+        name: asset.name,
+        pluginName: asset.name,
+        version: `v${version}`,
+        category: asset.category,
+        changeType: 'major_update'
+      });
+      bc.close();
+    } catch {}
+
+    setTimeout(() => {
+      setDownloadingAssetId(null);
+    }, 800);
+  };
 
   // Reset version when engine changes
   useEffect(() => {
@@ -47,6 +85,32 @@ export default function AssetStore() {
     { id: 18, name: 'Godot State Machine', author: 'OpenSourceGodot', rating: 4.9, price: 'Free', category: 'Scripts', engine: 'Godot', versions: ['4.3', '4.2', '4.1', '4.0'], backends: ['Vulkan'], img: 'https://images.unsplash.com/photo-1605379399642-870262d3d051?w=400&q=80', downloads: '15k' },
   ];
 
+  if (storeMode === 'autotag') {
+    return (
+      <div className="w-full h-full flex flex-col bg-[#0d1117]">
+        {/* Navigation Bar to switch back */}
+        <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d] shrink-0">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setStoreMode('store')}
+              className="px-3 py-1 text-xs font-bold rounded bg-[#21262d] text-[#8b949e] hover:text-white transition-colors"
+            >
+              ← Back to Marketplace Store
+            </button>
+            <span className="text-[#8b949e] text-xs">/</span>
+            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+              <Sparkles size={13} className="text-[#bc8cff]" />
+              AI Auto-Tagging & Smart Project Organizer
+            </span>
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <AIAssetAutoTagOrganizer />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col bg-[#0d1117] text-[#c9d1d9] overflow-hidden">
       {/* Header */}
@@ -58,7 +122,15 @@ export default function AssetStore() {
               <p className="text-[10px] text-[#8b949e]">Discover Unreal Engine, Unity, and Godot assets to accelerate your project.</p>
             </div>
          </div>
-         <div className="flex items-center gap-4">
+         <div className="flex items-center gap-3">
+            <button
+              onClick={() => setStoreMode('autotag')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-gradient-to-r from-[#8a2be2]/30 to-[#1f6feb]/30 hover:from-[#8a2be2]/50 hover:to-[#1f6feb]/50 border border-[#bc8cff]/40 text-white transition-all shadow-sm"
+            >
+              <Sparkles size={13} className="text-[#bc8cff]" />
+              <span>⚡ AI Auto-Tag & Project Folders</span>
+            </button>
+
             <div className="relative">
                 <Search size={14} className="absolute left-3 top-2 text-[#8b949e]" />
                 <input 
@@ -194,8 +266,18 @@ export default function AssetStore() {
                        
                        <div className="mt-auto flex items-center justify-between pt-3 border-t border-[#30363d]">
                           <span className={`font-bold text-lg ${asset.price === 'Free' ? 'text-[#3fb950]' : 'text-white'}`}>{asset.price}</span>
-                          <button className="bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 border border-[#bc8cff]/30 text-[#bc8cff] px-4 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-colors">
-                             {asset.price === 'Free' ? <><Download size={12}/> Get</> : <><ShoppingCart size={12}/> Buy</>}
+                          <button 
+                             onClick={() => handleInstallOrUpdate(asset)}
+                             disabled={downloadingAssetId === asset.id}
+                             className="bg-[#bc8cff]/10 hover:bg-[#bc8cff]/20 border border-[#bc8cff]/30 text-[#bc8cff] px-4 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                          >
+                             {downloadingAssetId === asset.id ? (
+                               <span>Syncing...</span>
+                             ) : asset.price === 'Free' ? (
+                               <><Download size={12}/> Get</>
+                             ) : (
+                               <><ShoppingCart size={12}/> Buy</>
+                             )}
                           </button>
                        </div>
                     </div>

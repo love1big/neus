@@ -22,6 +22,8 @@ import Viewport3D from "./Viewport3D";
 import OmniCreatorMaster from "./OmniCreatorMaster";
 import PerformanceHUD from "./PerformanceHUD";
 import SystemHealthDashboard from "./SystemHealthDashboard";
+import SystemResourceMonitor from "./SystemResourceMonitor";
+import FullEngineSemanticSearchModal from "./FullEngineSemanticSearchModal";
 
 interface OmniEngineIDEProps {
   tools?: any[];
@@ -38,6 +40,38 @@ export default function OmniEngineIDE({
 }: OmniEngineIDEProps) {
   const [consoleSearch, setConsoleSearch] = useState("");
   const [showFloatingViewport, setShowFloatingViewport] = useState(false);
+  const [showResourceOverlay, setShowResourceOverlay] = useState(false);
+  const [isSemanticSearchOpen, setIsSemanticSearchOpen] = useState(false);
+  const [semanticSearchInitialQuery, setSemanticSearchInitialQuery] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K, Cmd+K, or Slash '/' (when not focused in inputs)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSemanticSearchInitialQuery("");
+        setIsSemanticSearchOpen(true);
+      } else if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        setSemanticSearchInitialQuery("");
+        setIsSemanticSearchOpen(true);
+      }
+    };
+
+    const handleOpenSearch = (e: any) => {
+      const q = e?.detail?.query || '';
+      setSemanticSearchInitialQuery(q);
+      setIsSemanticSearchOpen(true);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-engine-search', handleOpenSearch);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-engine-search', handleOpenSearch);
+    };
+  }, []);
 
   const [sideTools, setSideTools] = useState(() => {
     const initialTools = tools.length > 0
@@ -331,6 +365,14 @@ export default function OmniEngineIDE({
     <div className="w-full h-full bg-[#0a0a0f] text-white flex flex-col font-sans overflow-hidden">
       <PerformanceHUD />
       <CommandPalette tools={tools} onSelect={setActiveTool} />
+      
+      {/* Full-Engine Semantic Search Modal */}
+      <FullEngineSemanticSearchModal
+        isOpen={isSemanticSearchOpen}
+        onClose={() => setIsSemanticSearchOpen(false)}
+        onSelectTool={setActiveTool}
+        initialQuery={semanticSearchInitialQuery}
+      />
 
       {/* Top Bar */}
       <div className="h-[36px] bg-[#11111b] border-b border-[#2a2b3d] flex items-center px-4 justify-between shrink-0">
@@ -391,6 +433,13 @@ export default function OmniEngineIDE({
               onOpen={() => setActiveMenuDropdown("edit")}
               onClose={() => setActiveMenuDropdown(null)}
               items={[
+                {
+                  label: "ค้นหาทั้งเอนจิน (Semantic Search)",
+                  shortcut: "Ctrl+K",
+                  icon: <Search size={14} className="text-[#58a6ff]" />,
+                  onClick: () => setIsSemanticSearchOpen(true),
+                },
+                { label: "", divider: true },
                 { label: "เลิกทำ", shortcut: "Ctrl+Z" },
                 { label: "ทำซ้ำ", shortcut: "Ctrl+Y" },
                 { label: "", divider: true },
@@ -615,6 +664,12 @@ export default function OmniEngineIDE({
                 { label: "โหมดเต็มหน้าจอ", shortcut: "F11" },
                 { label: "", divider: true },
                 {
+                  label: "ค้นหาทั้งเอนจิน (Semantic Search)",
+                  shortcut: "Ctrl+K / /",
+                  icon: <Search size={14} className="text-[#58a6ff]" />,
+                  onClick: () => setIsSemanticSearchOpen(true),
+                },
+                {
                   label: "เปิด Command Palette",
                   shortcut: "Ctrl+Shift+K",
                   onClick: () =>
@@ -689,6 +744,12 @@ export default function OmniEngineIDE({
         <div className="flex items-center gap-3">
           <SystemHealthDashboard />
           <button
+            onClick={() => setShowResourceOverlay(!showResourceOverlay)}
+            className={`px-3 py-1 text-[11px] font-bold rounded flex items-center gap-1.5 transition-colors border ${showResourceOverlay ? "bg-emerald-600/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.2)]" : "bg-[#1a1b2e] hover:bg-[#2a2b3d] text-gray-300 border-[#2a2b3d]"}`}
+          >
+            <Activity size={14} className={showResourceOverlay ? "text-emerald-400 animate-pulse" : "text-gray-400"} /> Resource Monitor
+          </button>
+          <button
             onClick={() => setShowFloatingViewport(!showFloatingViewport)}
             className={`px-3 py-1 text-[11px] font-bold rounded flex items-center gap-1.5 transition-colors border ${showFloatingViewport ? "bg-blue-600/20 text-blue-400 border-blue-500/50" : "bg-[#1a1b2e] hover:bg-[#2a2b3d] text-gray-300 border-[#2a2b3d]"}`}
           >
@@ -726,8 +787,31 @@ export default function OmniEngineIDE({
 
           <div className="w-[1px] h-5 bg-[#2a2b3d] mx-1"></div>
 
-          <div className="flex items-center justify-center w-7 h-7 hover:bg-[#2a2b3d] rounded cursor-pointer transition-colors">
-            <Search size={14} className="text-gray-400 hover:text-white" />
+          {/* Dedicated Full-Engine Semantic Search Bar */}
+          <button
+            onClick={() => {
+              setSemanticSearchInitialQuery("");
+              setIsSemanticSearchOpen(true);
+            }}
+            className="flex items-center gap-2 px-3 py-1 bg-[#1a1b2e] hover:bg-[#25273d] text-gray-300 hover:text-white rounded-md border border-[#2a2b3d] hover:border-[#58a6ff]/50 text-[11px] font-medium transition-all shadow-inner group cursor-pointer max-w-[240px]"
+            title="ค้นหาทั้งเอนจิน (Full-Engine Semantic Search - Ctrl+K / /)"
+          >
+            <Search size={13} className="text-[#58a6ff] group-hover:scale-110 transition-transform shrink-0" />
+            <span className="text-gray-400 group-hover:text-gray-200 truncate">ค้นหาทุกเครื่องมือ & แอสเซ็ต...</span>
+            <kbd className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#0d1117] text-gray-400 border border-[#2a2b3d] shrink-0 ml-1">
+              ⌘K
+            </kbd>
+          </button>
+
+          <div
+            onClick={() => {
+              setSemanticSearchInitialQuery("");
+              setIsSemanticSearchOpen(true);
+            }}
+            className="flex items-center justify-center w-7 h-7 hover:bg-[#2a2b3d] rounded cursor-pointer transition-colors"
+            title="Full Engine Search (Ctrl+K)"
+          >
+            <Search size={14} className="text-gray-400 hover:text-[#58a6ff]" />
           </div>
           <div className="flex items-center justify-center w-7 h-7 hover:bg-[#2a2b3d] rounded cursor-pointer transition-colors">
             <Settings size={14} className="text-gray-400 hover:text-white" />
@@ -1110,9 +1194,7 @@ export default function OmniEngineIDE({
                                 className="flex-1 min-w-[500px] h-full relative border border-[#2a2b3d] overflow-hidden rounded-[4px] shadow-lg"
                               >
                                 <div className="w-full h-full relative">
-                                  {activeTool !== "OmniCreatorMaster" &&
-                                  renderActiveTool &&
-                                  renderActiveTool() ? (
+                                  {renderActiveTool && renderActiveTool() ? (
                                     <div className="absolute inset-0">
                                       {renderActiveTool()}
                                     </div>
@@ -2295,6 +2377,13 @@ export default function OmniEngineIDE({
             />
           </div>
         </div>
+      )}
+
+      {showResourceOverlay && (
+        <SystemResourceMonitor
+          mode="overlay"
+          onClose={() => setShowResourceOverlay(false)}
+        />
       )}
 
       <style

@@ -76,87 +76,87 @@ export default function OmniCreatorMaster({ onSelectTool }: { onSelectTool?: (to
     { 
       id: 'engine', title: 'Core Game Engine & Architecture', icon: <Cpu />, color: 'text-blue-500', 
       desc: 'Absolute control over memory allocation, thread pools, pointer math, and entity-component-system (ECS) topology.', 
-      tools: ['IDECompilerCore', 'CodeProfilerTracer', 'EngineCore', 'PhysicsEngine', 'GraphicsRender', 'VoxelEngine', 'MemoryProfiler', 'KernelDebugger', 'CacheOptimizer', 'ThreadSyncMatrix', 'GarbageCollectionTuning', 'SIMD_Vectorize', 'JobSystemArch'] 
+      tools: ['DeterministicEngineeringSuite', 'IDECompilerCore', 'CodeProfilerTracer', 'EngineCore', 'PhysicsEngine', 'GraphicsRender', 'VoxelEngine', 'MemoryProfiler', 'KernelDebugger', 'CacheOptimizer', 'ThreadSyncMatrix', 'GarbageCollectionTuning', 'SIMD_Vectorize', 'JobSystemArch', 'RingBufferAllocator', 'BitfieldPacker', 'FixedPointMathVM', 'SpatialHashGrid', 'MortonBVH', 'SpinLockSynchronizer', 'FiberCoroutineScheduler', 'LockFreeQueue'] 
     },
     { 
       id: 'rendering', title: 'Advanced Rendering & Photorealism', icon: <Aperture />, color: 'text-cyan-400', 
       desc: 'Micro-polygon rendering, hardware raytracing, path tracing, BRDF materials, and volumetric atmospheric scattering.', 
-      tools: ['NaniteRasterizer', 'LumenGlobalIllum', 'PathTracerCore', 'VolumetricClouds', 'ScreenSpaceReflections', 'RaytracedAO', 'SubsurfaceScattering', 'HDAO_Plus', 'DeferredRenderer', 'ForwardPlusRender'] 
+      tools: ['NaniteRasterizer', 'LumenGlobalIllum', 'PathTracerCore', 'VolumetricClouds', 'ScreenSpaceReflections', 'RaytracedAO', 'SubsurfaceScattering', 'HDAO_Plus', 'DeferredRenderer', 'ForwardPlusRender', 'CookTorranceBRDF', 'SphericalHarmonics', 'CascadeShadowSplits', 'ACESToneMapper', 'FresnelOptics', 'BokehFFTConvolution', 'ParallaxOcclusion', 'AtmosphericScattering', 'FilmGrainSimplex'] 
     },
     { 
       id: 'art', title: '3D Sculpting & Asset Forge', icon: <Box />, color: 'text-orange-400', 
       desc: 'Vertex-level manipulation, ZBrush-level 200M+ polygon sculpting, auto-retopology, boolean cutting, and hard surface CAD.', 
-      tools: ['TopologyUVPro', 'SculptMaster', 'Photogrammetry', 'UVRetopology', 'MeshDecimation', 'AITextureSynthesizer', 'VertexColorWeaver', 'BlendShapeEditor', 'NURBS_Modeling', 'SDF_Renderer', 'HardSurfaceCAD'] 
+      tools: ['CSG3DBooleanEngine', 'TopologyUVPro', 'SculptMaster', 'Photogrammetry', 'UVRetopology', 'MeshDecimation', 'CatmullClarkSubdiv', 'Voronoi3DFracture', 'HarmonicQuadRetopo', 'MikkTSpaceTangents', 'MarchingCubesSDF', 'QEMDecimator', 'QuickHullConvex', 'SplineRoadSweeper', 'GeodesicDistanceMesh', 'VertexColorWeaver', 'BlendShapeEditor', 'NURBS_Modeling', 'SDF_Renderer', 'HardSurfaceCAD'] 
     },
     { 
       id: 'materials', title: 'Material & Texture Node Graphs', icon: <Combine />, color: 'text-amber-500', 
       desc: 'Procedural PBR texture generation, Substance-like node networks, baking (Normals, Curvature, AO), and decals.', 
-      tools: ['AITextureSynthesizer', 'TextureBaker', 'Material', 'ProceduralNoiseGen', 'DecalProjector', 'SubstanceGraph', 'AlbedoSynthesizer', 'RoughnessMapper', 'DisplacementBake'] 
+      tools: ['AITextureSynthesizer', 'TextureBaker', 'Material', 'ProceduralNoiseGen', 'DecalProjector', 'SubstanceGraph', 'AlbedoSynthesizer', 'RoughnessMapper', 'DisplacementBake', 'NormalMapPredictor', 'NeuralSuperResolution', 'PBRHeightParallax', 'CurvatureBakePass', 'AmbientOcclusionBake', 'ThicknessMapDiffusion', 'TriplanarMappingNode'] 
     },
     { 
       id: 'animation', title: 'Animation & Biomechanics', icon: <Layers />, color: 'text-pink-400', 
       desc: 'Muscle-based deformation, dual-quaternion skinning, inverse kinematics (IK), physics-driven hit reactions, and skeletal retargeting.', 
-      tools: ['MotionCapture', 'RiggingAnim', 'CharacterAnimator', 'AnimGraph', 'MuscleSim', 'PoseBlendTree', 'RootMotionExtr', 'FacialARKit', 'ClothSimulation'] 
+      tools: ['MotionCapture', 'RiggingAnim', 'CharacterAnimator', 'AnimGraph', 'MuscleSim', 'PoseBlendTree', 'RootMotionExtr', 'FacialARKit', 'ClothSimulation', 'FABRIK_InverseKinematics', 'DualQuaternionSkinning', 'BlazePose3DMoCap', 'VisemeLipSyncEngine', 'SpringBoneDynamics', 'RagdollActiveBlend', 'MotionMatchingSearch', 'TrajectoryPredictor'] 
     },
     { 
       id: 'world', title: 'World Architecture & Level Design', icon: <Map />, color: 'text-green-500', 
       desc: 'Manual BSP brush blockouts, grid mapping, hydraulic erosion, and infinite voxel terrain streaming.', 
-      tools: ['MapEdit', 'BSPBrushArchitect', 'NavMeshRouter', 'MegaWorldArchitect', 'UltimateMapBuilder', 'AdvancedTerrain', 'PCG', 'HydraulicErosion', 'FoliageScatter', 'BiomePainter', 'CityGenerator', 'RoadSplineSystem', 'RiverMeshGen'] 
+      tools: ['MapEdit', 'BSPBrushArchitect', 'NavMeshRouter', 'MegaWorldArchitect', 'UltimateMapBuilder', 'AdvancedTerrain', 'PCG', 'HydraulicErosion', 'FoliageScatter', 'BiomePainter', 'CityGenerator', 'RoadSplineSystem', 'RiverMeshGen', 'VoxelTerrainMarcher', 'OctreeLevelOfDetail', 'ThermalErosionSim', 'DungeonGrammarGen', 'WindCurrentField'] 
     },
     { 
       id: 'vfx', title: 'VFX & Fluid Dynamics Simulation', icon: <Atom />, color: 'text-[#fb8500]', 
       desc: 'GPU-accelerated particle systems, Navier-Stokes fluid dynamics, rigid body destruction, soft-body tearing, and volumetrics.', 
-      tools: ['VFXGraph', 'Niagara', 'OfflineVFX', 'FluidSimEularian', 'ChaosDestruction', 'SoftBodyJelly', 'HairFurSimulator', 'PyroSmokeFire', 'VectorFieldGen'] 
+      tools: ['VFXGraph', 'Niagara', 'OfflineVFX', 'FluidSimEularian', 'ChaosDestruction', 'SoftBodyJelly', 'HairFurSimulator', 'PyroSmokeFire', 'VectorFieldGen', 'SPHFluidDynamics', 'VerletClothSolver', 'ContinuousCollisionCCD', 'ConvexDecomposition', 'ParticleVortexTurbulence', 'VolumetricShockwave', 'RibbonTrailEmitter'] 
     },
     { 
       id: 'audio', title: 'Acoustics & DSP Audio Engine', icon: <Waves />, color: 'text-blue-300', 
       desc: 'Professional multi-track VST hosting, convolution reverb, manual foley mixing, and HRTF 3D spatialization.', 
-      tools: ['AudioEditor', 'VstMixerRack', 'AudioDAW', 'MetaSound', 'AudioDSP', 'WwiseIntegrator', 'AmbisonicsMix', 'DopplerShiftNode', 'AcousticRaytracer', 'SynthesizerFM'] 
+      tools: ['AudioEditor', 'VstMixerRack', 'AudioDAW', 'MetaSound', 'AudioDSP', 'WwiseIntegrator', 'AmbisonicsMix', 'DopplerShiftNode', 'AcousticRaytracer', 'SynthesizerFM', 'FFTSpectrumAnalyzer', 'ParametricBiquadEQ', 'ConvolutionReverbIR', 'ADSREnvelopeShaper', 'HRTF3DSpatializer', 'LookaheadLimiter', 'PhysicsImpactFoley', 'PhaseVocoder'] 
     },
     { 
       id: 'voice_music', title: 'AI & Manual Voice/Music Studio', icon: <Mic2 />, color: 'text-[#bc8cff]', 
       desc: 'Manual MIDI piano roll orchestration, lip-sync extractors, and neural voice dubbing.', 
-      tools: ['VoiceMusicStudio', 'MidiPianoRoll', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'VocalSynthCore', 'FoleyGeneratorAI', 'MidiOrchestrator', 'SheetMusicExporter'] 
+      tools: ['VoiceMusicStudio', 'MidiPianoRoll', 'VoiceDubbingStudio', 'DynamicOSTComposer', 'LipSyncAutomator', 'VocalSynthCore', 'FoleyGeneratorAI', 'MidiOrchestrator', 'SheetMusicExporter', 'WhisperOfflineSTT', 'PiperOfflineTTS', 'VisemeAcousticAligner', 'YINPitchTracker', 'RNNoiseDenoiser', 'SpectralFluxBPMTracker', 'AudioEventClassifier'] 
     },
     { 
       id: 'ai', title: 'Sentient AI & Neural Behavior', icon: <Brain />, color: 'text-purple-500', 
       desc: 'Reinforcement learning environments, GOAP (Goal-Oriented Action Planning), behavior trees, and LLM-driven NPC diplomacy.', 
-      tools: ['AIOfflineDownloader', 'AICommandCenter', 'LocalAIStudio', 'Workflow', 'BatchAIImporter', 'OmniAIAssistantStudio', 'SentientAI', 'MLAgents', 'BehaviorTree', 'AIBrowser', 'GOAP_Planner', 'NavMeshCrowd', 'LLM_Conversations', 'SteeringBehaviors', 'SensoryPerception'] 
+      tools: ['OfflineAIEngineSuite', 'AIOfflineDownloader', 'AICommandCenter', 'LocalAIStudio', 'Workflow', 'BatchAIImporter', 'OmniAIAssistantStudio', 'SentientAI', 'MLAgents', 'BehaviorTree', 'AIBrowser', 'GOAP_Planner', 'NavMeshCrowd', 'LLM_Conversations', 'SteeringBehaviors', 'SensoryPerception', 'MCTSStrategyEngine', 'HierarchicalTaskNetwork', 'FuzzyLogicEmotion', 'ReynoldsBoids100k', 'DDASkillTracker', 'HNSWVectorSearch', 'AllMiniLMEmbedder', 'BM25LexicalSearch', 'SemanticChunker', 'ReRankerCrossEncoder'] 
     },
     { 
       id: 'uiux', title: 'UI/UX Prototypes & QA', icon: <LayoutDashboard />, color: 'text-teal-400', 
       desc: 'Absolute manual UI layout construction using Figma-style anchors, state machines, and UX cognitive analyzers.', 
-      tools: ['FigmaStyleCanvas', 'FigmaClone', 'InteractionPrototyper', 'AccessibilityTester', 'UIUXEdit', 'FontEditor', 'VectorHybrid', 'UXCognitiveLoadSim', 'EyeTrackingHeatmap', 'StyleGraphNode'] 
+      tools: ['FigmaStyleCanvas', 'FigmaClone', 'InteractionPrototyper', 'AccessibilityTester', 'UIUXEdit', 'FontEditor', 'VectorHybrid', 'UXCognitiveLoadSim', 'EyeTrackingHeatmap', 'StyleGraphNode', 'MobileSAMSegmenter', 'KMeansPaletteExtractor', 'MediaPipeHandGesture', 'BNFGrammarJSONValidator', 'DesignTokenCompiler', 'ResponsiveSimulator'] 
     },
     { 
       id: 'backend', title: 'Netcode & Multiplayer Topology', icon: <Wifi />, color: 'text-yellow-400', 
       desc: 'Deterministic lockstep, GGPO-style rollback netcode, UDP packet optimization, spatial partitioning, and dedicated servers.', 
-      tools: ['Netcode', 'RelayServer', 'NetworkDebugger', 'ServerSim', 'RollbackCore', 'PacketSniffer', 'InterpolationSync', 'MatchmakingRank', 'VOIP_Server'] 
+      tools: ['Netcode', 'RelayServer', 'NetworkDebugger', 'ServerSim', 'RollbackCore', 'PacketSniffer', 'InterpolationSync', 'MatchmakingRank', 'VOIP_Server', 'DeterministicFixedPointVM', 'BitfieldStructPacker', 'LZ4ByteStreamCompressor', 'ZstdDictionaryCompressor', 'DeltaCompressionSync', 'LagCompensationHistorian', 'P2PRelayHolePuncher'] 
     },
     { 
       id: 'systems', title: 'Core Game Systems & Logic', icon: <Component />, color: 'text-indigo-400', 
       desc: 'Global state variable registries, complex branching dialogue weavers, and quest architecture logic.', 
-      tools: ['BranchingDialogueWeaver', 'GameStateFlagTree', 'GameSystems', 'EconomicBalancer', 'EconomySimulator', 'StoryGraph', 'LootTableGen', 'SkillTreeBuilder', 'FactionReputation', 'CraftingRecipeDB', 'DamageFormulaCalc'] 
+      tools: ['BranchingDialogueWeaver', 'GameStateFlagTree', 'GameSystems', 'EconomicBalancer', 'EconomySimulator', 'StoryGraph', 'LootTableGen', 'SkillTreeBuilder', 'FactionReputation', 'CraftingRecipeDB', 'DamageFormulaCalc', 'ProceduralQuestGrammar', 'UtilityAIEvaluator', 'InMemSQLiteRegistry', 'KnowledgeGraphTriplets', 'SaveGameHMACShield', 'DialogueStatePersistence'] 
     },
     { 
       id: 'security', title: 'Kernel Security & Anti-Cheat', icon: <Shield />, color: 'text-red-500', 
       desc: 'Ring-0 kernel memory protection, heuristic aimbot detection, binary obfuscation, encryption, and payload delivery.', 
-      tools: ['AntiCheat', 'EncryptionTool', 'HexInjector', 'HexEditor', 'MemoryScanner', 'ObfuscatorPass', 'HardwareBanDB', 'PayloadSigner', 'DRM_Wrapper'] 
+      tools: ['AntiCheat', 'EncryptionTool', 'HexInjector', 'HexEditor', 'MemoryScanner', 'ObfuscatorPass', 'HardwareBanDB', 'PayloadSigner', 'DRM_Wrapper', 'SaveGameHMACShield', 'DeterministicReplayVerifier', 'MemoryHookDetector', 'CodeIntegrityHasher', 'PointerEncryptionPass'] 
     },
     { 
       id: 'devops', title: 'Compile, CI/CD & Cloud Build', icon: <Cloud />, color: 'text-[#58a6ff]', 
       desc: 'Jenkins-style build pipelines, LLVM compiler flag tuning, cross-platform matrix export, version control, and CDN deployment.', 
-      tools: ['CloudBuildPipeline', 'DevOpsBuilder', 'CompilerTool', 'DockerManager', 'BuildPublish', 'AssetStore', 'GitConflictMerge', 'CDN_Distributor', 'AutomatedTesting'] 
+      tools: ['CloudBuildPipeline', 'DevOpsBuilder', 'CompilerTool', 'DockerManager', 'BuildPublish', 'AssetStore', 'GitConflictMerge', 'CDN_Distributor', 'AutomatedTesting', 'GGUFQuantizerEngine', 'WebGPUKernelDispatcher', 'ONNXRuntimeWebEngine', 'AssetDeduplicationPass', 'CrossPlatformPackagePacker'] 
     },
     { 
       id: 'analytics', title: 'LiveOps & Telemetry Analytics', icon: <Radar />, color: 'text-emerald-400', 
       desc: 'Real-time player heatmaps, churn rate prediction models, granular A/B testing configurations, and massive crash log aggregators.', 
-      tools: ['TelemetryAnalytics', 'LiveOps', 'LogViewer', 'SystemTap', 'PlayerHeatmap', 'MonetizationMetrics', 'AB_TestDeploy', 'CrashDumpAnalyzer'] 
+      tools: ['TelemetryAnalytics', 'LiveOps', 'LogViewer', 'SystemTap', 'PlayerHeatmap', 'MonetizationMetrics', 'AB_TestDeploy', 'CrashDumpAnalyzer', 'SystemResourceMonitor', 'HardwareResourceOptimizer', 'AttentionHeatmapTracker', 'CrashPatternTextRank', 'CohortRetentionEvaluator'] 
     },
     { 
       id: 'cinematics', title: 'Narrative & Cinematic Timeline', icon: <Clapperboard />, color: 'text-rose-400', 
       desc: 'Fully manual Non-Linear Editing (NLE), dope-sheet keyframing, multi-camera director tracking, and story continuity logic.', 
-      tools: ['MasterNarrativeCinematicEditor', 'CinematicDirector', 'Sequencer', 'ActionRecorder', 'VideoEncoder', 'CameraRigRail', 'ColorGradingLUT', 'TimelineKeyframer', 'SubtitleSync', 'VirtualScouting'] 
+      tools: ['MasterNarrativeCinematicEditor', 'CinematicDirector', 'Sequencer', 'ActionRecorder', 'VideoEncoder', 'CameraRigRail', 'ColorGradingLUT', 'TimelineKeyframer', 'SubtitleSync', 'VirtualScouting', 'ACESccColorPipeline', 'FourierLensBokeh', 'SimplexFilmGrain', 'DopeSheetSplineInterpolation'] 
     }
   ];
 

@@ -14,10 +14,14 @@ import AIWorkflowEditor from "./AIWorkflowEditor";
 import BatchAIImporter from "./BatchAIImporter";
 import OmniVisualScriptingEngine from "./OmniVisualScriptingEngine";
 import UltimateOfflineAIStudio from "./UltimateOfflineAIStudio";
+import OfflineAIEngineSuite from "./OfflineAIEngineSuite";
+import DeterministicEngineeringSuite from "./DeterministicEngineeringSuite";
+import OmniMegaEngine300Studio from "./OmniMegaEngine300Studio";
+import OfflineAIContinuousErrorLearningStudio from "./OfflineAIContinuousErrorLearningStudio";
 
 export default function AIHubMasterMenu({ initialTab }: { initialTab?: string } = {}) {
   const [activeSubTab, setActiveSubTab] = useState<string>(
-    initialTab && initialTab !== "AIHubMaster" ? initialTab : "AICommandCenter"
+    initialTab && initialTab !== "AIHubMaster" ? initialTab : "OmniMegaEngine300Studio"
   );
 
   React.useEffect(() => {
@@ -27,6 +31,34 @@ export default function AIHubMasterMenu({ initialTab }: { initialTab?: string } 
   }, [initialTab]);
 
   const aiSubMenus = [
+    {
+      id: "OfflineAIContinuousErrorLearningStudio",
+      title: "AI Error-Immunity & Continuous Memory",
+      desc: "ระบบ AI ออฟไลน์เรียนรู้ จดจำ และสร้างภูมิคุ้มกันป้องกันการทำข้อผิดพลาด/บัคซ้ำ 100% ตลอดชีพ",
+      icon: <Brain size={18} className="text-[#3fb950]" />,
+      badge: "ZERO-REPEAT"
+    },
+    {
+      id: "OmniMegaEngine300Studio",
+      title: "Omni 335+ Mega Engine & AI Suite",
+      desc: "สุดยอดคลังวิศวกรรมเกมและ AI ออฟไลน์ 335 ระบบ แยกตาม 12 หมวดหมู่วิศวกรรมระดับ AAA",
+      icon: <Cpu size={18} className="text-[#388bfd]" />,
+      badge: "335 AAA TOOLS"
+    },
+    {
+      id: "OfflineAIEngineSuite",
+      title: "50x Offline AI & Neural Intelligence Suite",
+      desc: "ชุดเครื่องมือ AI ออฟไลน์ 50 ชนิด: Local LLM, WebGPU Shaders, Vision AI, GOAP, Vector RAG",
+      icon: <Brain size={18} className="text-[#bc8cff]" />,
+      badge: "50 OFFLINE AI"
+    },
+    {
+      id: "DeterministicEngineeringSuite",
+      title: "50x Deterministic Non-AI Engineering Suite",
+      desc: "ชุดเครื่องมือวิศวกรรม 100% Non-AI 50 ชนิด: ฟิสิกส์ เรขาคณิต ออปติก DSP และ Byte Math",
+      icon: <Cpu size={18} className="text-[#58a6ff]" />,
+      badge: "50 PURE NON-AI"
+    },
     {
       id: "AICommandCenter",
       title: "AI Swarm Command Center",
@@ -115,6 +147,14 @@ export default function AIHubMasterMenu({ initialTab }: { initialTab?: string } 
 
   const renderActiveSubContent = () => {
     switch (activeSubTab) {
+      case "OfflineAIContinuousErrorLearningStudio":
+        return <OfflineAIContinuousErrorLearningStudio />;
+      case "OmniMegaEngine300Studio":
+        return <OmniMegaEngine300Studio />;
+      case "OfflineAIEngineSuite":
+        return <OfflineAIEngineSuite />;
+      case "DeterministicEngineeringSuite":
+        return <DeterministicEngineeringSuite />;
       case "AICommandCenter":
         return <AICommandCenter />;
       case "UltimateOfflineAIStudio":

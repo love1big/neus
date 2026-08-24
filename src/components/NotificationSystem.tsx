@@ -43,16 +43,24 @@ export default function NotificationSystem() {
       setNotifications(prev => [newNotif, ...prev].slice(0, 5)); // Keep max 5 toasts
 
       // Trigger Native Push Notification if requested and permitted
-      if (useNativePush && 'Notification' in window) {
-        if (Notification.permission === 'granted') {
-          new Notification(title, { body: message, icon: '/favicon.ico' });
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then(permission => {
-            setNativePerm(permission);
-            if (permission === 'granted') {
-              new Notification(title, { body: message, icon: '/favicon.ico' });
-            }
-          });
+      if (useNativePush && typeof window !== 'undefined' && 'Notification' in window) {
+        try {
+          if (Notification.permission === 'granted') {
+            new Notification(title, { body: message, icon: '/favicon.ico' });
+          } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+              setNativePerm(permission);
+              if (permission === 'granted') {
+                try {
+                  new Notification(title, { body: message, icon: '/favicon.ico' });
+                } catch (err) {
+                  // ignore
+                }
+              }
+            }).catch(() => {});
+          }
+        } catch (e) {
+          // Ignore iframe permission exceptions
         }
       }
     };

@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
@@ -13,6 +13,22 @@ import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts";
 const TextureEditor = React.lazy(() => import('./components/TextureEditor'));
 
 export const componentImports: Record<string, () => Promise<any>> = {
+  OfflineAIContinuousErrorLearningStudio: () => import('./components/OfflineAIContinuousErrorLearningStudio'),
+  ArchitectureHeatmap: () => import('./components/ArchitectureHeatmap'),
+  ModuleDependencyVisualizerStudio: () => import('./components/ModuleDependencyVisualizerStudio'),
+  InteractiveDebuggerStudio: () => import('./components/InteractiveDebuggerStudio'),
+  AIAssetAutoTagOrganizer: () => import('./components/AIAssetAutoTagOrganizer'),
+  MegaAudioDSPStudio: () => import('./components/MegaAudioDSPStudio'),
+  MegaCutsceneCinematicStudio: () => import('./components/MegaCutsceneCinematicStudio'),
+  OmniMegaEngine300Studio: () => import('./components/OmniMegaEngine300Studio'),
+  TexturePCBMasterStudio: () => import('./components/TexturePCBMasterStudio'),
+  MapMegaToolsExtension: () => import('./components/MapMegaToolsExtension'),
+  Mega3DModelStudio: () => import('./components/Mega3DModelStudio'),
+  MegaCodeIDEMaster: () => import('./components/MegaCodeIDEMaster'),
+  MegaUIUXMasterStudio: () => import('./components/MegaUIUXMasterStudio'),
+  DeterministicEngineeringSuite: () => import('./components/DeterministicEngineeringSuite'),
+  OfflineAIEngineSuite: () => import('./components/OfflineAIEngineSuite'),
+  SystemResourceMonitor: () => import('./components/SystemResourceMonitor'),
   ProjectProgressDashboard: () => import('./components/ProjectProgressDashboard'),
   KeyboardShortcutMapper: () => import('./components/KeyboardShortcutMapper'),
   TextureEditor: () => import('./components/TextureEditor'),
@@ -44,6 +60,7 @@ export const componentImports: Record<string, () => Promise<any>> = {
   PCGEditor: () => import("./components/PCGEditor"),
   LocalAIStudio: () => import("./components/LocalAIStudio"),
   BatchAIImporter: () => import("./components/BatchAIImporter"),
+  OfflineGameAudioStudio: () => import("./components/OfflineGameAudioStudio"),
   VoiceMusicStudio: () => import("./components/VoiceMusicStudio"),
   GPUComputeCluster: () => import("./components/GPUComputeCluster"),
   AIOfflineOCREngine: () => import("./components/AIOfflineOCREngine"),
@@ -290,6 +307,7 @@ export const componentImports: Record<string, () => Promise<any>> = {
   RuntimeGraphicsStreamingOptimizer: () => import("./components/RuntimeGraphicsStreamingOptimizer"),
   HardwareResourceOptimizer: () => import("./components/HardwareResourceOptimizer"),
   OfflineAIDataEngineManager: () => import("./components/OfflineAIDataEngineManager"),
+  BuildPublishAudit: () => import("./components/BuildPublishAudit"),
 };
 
 export const preloadComponent = (id: string) => { if(componentImports[id]) componentImports[id]().catch(console.error); };
@@ -572,6 +590,8 @@ const ElectronicCircuitPCBStudio = React.lazy(componentImports.ElectronicCircuit
 const RuntimeGraphicsStreamingOptimizer = React.lazy(componentImports.RuntimeGraphicsStreamingOptimizer);
 const HardwareResourceOptimizer = React.lazy(componentImports.HardwareResourceOptimizer);
 const OfflineAIDataEngineManager = React.lazy(componentImports.OfflineAIDataEngineManager);
+const ModuleDependencyVisualizerStudio = React.lazy(componentImports.ModuleDependencyVisualizerStudio);
+const OfflineAIContinuousErrorLearningStudio = React.lazy(componentImports.OfflineAIContinuousErrorLearningStudio);
 
 export const tools = [
     // 1. 🌟 DASHBOARD & PROJECT
@@ -598,6 +618,11 @@ export const tools = [
       activeColor: "text-[#ff7b72]",
       category: "🤖 AI & CODE",
       subTools: [
+        { id: "OfflineAIContinuousErrorLearningStudio", title: "🛡️ AI Continuous Error-Learning & Immunity", icon: <ShieldCheck size={16} /> },
+        { id: "ArchitectureHeatmap", title: "🔥 Architecture Heatmap & Churn", icon: <Flame size={16} /> },
+        { id: "ModuleDependencyVisualizerStudio", title: "🌐 Module & Node Dependency Tree", icon: <Network size={16} /> },
+        { id: "InteractiveDebuggerStudio", title: "⚡ Interactive Code Debugger", icon: <Bug size={16} /> },
+        { id: "MegaCodeIDEMaster", title: "⚡ 100x Code & AST Tools", icon: <Code2 size={16} /> },
         { id: "AICodeAgentStudio", title: "AI Code Agent Studio", icon: <Cpu size={16} /> },
         { id: "OfflineAICodingAssistant", title: "Offline AI Assistant", icon: <Bot size={16} /> },
         { id: "Select", title: "Text Code Editor", icon: <Code2 size={16} /> },
@@ -615,6 +640,8 @@ export const tools = [
       activeColor: "text-[#8a2be2]",
       category: "🤖 AI & CODE",
       subTools: [
+        { id: "OmniMegaEngine300Studio", title: "⚡ 335+ Mega Engine & AI Suite", icon: <Cpu size={16} /> },
+        { id: "OfflineAIEngineSuite", title: "50x Offline AI Suite", icon: <Brain size={16} /> },
         { id: "AIHubMasterMenu", title: "AI Master Hub", icon: <Brain size={16} /> },
         { id: "OfflineAIDataEngineManager", title: "Offline AI High-Speed Data Engine", icon: <Zap size={16} /> },
         { id: "UltimateOfflineAIStudio", title: "Ultimate Offline AI", icon: <Cpu size={16} /> },
@@ -636,6 +663,7 @@ export const tools = [
       activeColor: "text-[#58a6ff]",
       category: "🌍 WORLD BUILDING",
       subTools: [
+        { id: "MapMegaToolsExtension", title: "⚡ 300x Map & Level Tools", icon: <Mountain size={16} /> },
         { id: "OmniWorldBuilder", title: "MegaWorld Builder", icon: <Globe size={16} /> },
         { id: "MapEdit", title: "Map & Level Editor", icon: <Map size={16} /> },
         { id: "AdvancedPCGEngine", title: "Procedural City & Terrain", icon: <Mountain size={16} /> },
@@ -652,6 +680,8 @@ export const tools = [
       activeColor: "text-[#e3b341]",
       category: "🎨 ART STUDIO",
       subTools: [
+        { id: "AIAssetAutoTagOrganizer", title: "⚡ AI Model & Texture Auto-Tagger", icon: <FolderTree size={16} /> },
+        { id: "Mega3DModelStudio", title: "⚡ 500x 3D Modeling Tools", icon: <Box size={16} /> },
         { id: "Modeling", title: "3D Modeling Studio", icon: <Box size={16} /> },
         { id: "RealTimeHouse3DPrintStudio", title: "3D House CAD & Print Slicer", icon: <Home size={16} /> },
         { id: "ElectronicCircuitPCBStudio", title: "PCB & Electronic Circuit Studio", icon: <CircuitBoard size={16} /> },
@@ -670,6 +700,7 @@ export const tools = [
       activeColor: "text-[#ff9800]",
       category: "🎨 ART STUDIO",
       subTools: [
+        { id: "TexturePCBMasterStudio", title: "⚡ 600x Texture & PCB Tools", icon: <CircuitBoard size={16} /> },
         { id: "TextureEdit", title: "Texture Manager", icon: <Image size={16} /> },
         { id: "PBRTextureQualityAuditor", title: "PBR Texture Quality Auditor", icon: <Layers size={16} /> },
         { id: "ImageEdit", title: "Texture Painter", icon: <Palette size={16} /> },
@@ -687,6 +718,7 @@ export const tools = [
       activeColor: "text-[#bc8cff]",
       category: "🎬 ANIMATION",
       subTools: [
+        { id: "MegaCutsceneCinematicStudio", title: "⚡ 300x Cinematic & Director Tools", icon: <Film size={16} /> },
         { id: "Sequencer", title: "Cinematic Sequencer", icon: <Clapperboard size={16} /> },
         { id: "OmniAnimationStudio", title: "MoCap & Rigging", icon: <PersonStanding size={16} /> },
         { id: "FacialAnimationMocap", title: "Facial Animation", icon: <Smile size={16} /> },
@@ -718,6 +750,8 @@ export const tools = [
       activeColor: "text-[#e3b341]",
       category: "🎵 AUDIO",
       subTools: [
+        { id: "OfflineGameAudioStudio", title: "⚡ Offline Dynamic Audio & FX Engine", icon: <Volume2 size={16} /> },
+        { id: "MegaAudioDSPStudio", title: "⚡ 500x Audio DSP & Mastering Tools", icon: <Volume2 size={16} /> },
         { id: "OmniAudioStudio", title: "DSP Audio Studio", icon: <Mic2 size={16} /> },
         { id: "SpatialAudioFoley", title: "Spatial & Foley", icon: <Ear size={16} /> },
         { id: "GenerativeAudioStudio", title: "AI Audio Gen", icon: <Music size={16} /> },
@@ -780,6 +814,7 @@ export const tools = [
       activeColor: "text-[#ff5722]",
       category: "⚛️ SIMULATION",
       subTools: [
+        { id: "DeterministicEngineeringSuite", title: "50x Pure Engineering Suite", icon: <Calculator size={16} /> },
         { id: "ChaosPhysicsFluidEngine", title: "Chaos & Fluids", icon: <Flame size={16} /> },
         { id: "VehicleDynamicsTuner", title: "Vehicle Dynamics", icon: <Car size={16} /> },
         { id: "ActiveRagdollEuphoriaEngine", title: "Euphoria Active Ragdoll", icon: <Activity size={16} /> },
@@ -812,6 +847,7 @@ export const tools = [
       activeColor: "text-[#03a9f4]",
       category: "📐 INTERFACE",
       subTools: [
+        { id: "MegaUIUXMasterStudio", title: "⚡ 1,000x UI/UX Design System Tools", icon: <LayoutDashboard size={16} /> },
         { id: "UIUXEdit", title: "UI Visual Builder", icon: <LayoutDashboard size={16} /> },
         { id: "UXUISimulatorTestbed", title: "Multi-Device UI Simulator", icon: <Monitor size={16} /> },
         { id: "UIUXDataBindingEditor", title: "MVVM Data Binding", icon: <Link2 size={16} /> },
@@ -830,11 +866,13 @@ export const tools = [
       activeColor: "text-[#f85149]",
       category: "⚙️ DEVOPS",
       subTools: [
+        { id: "BuildPublishAudit", title: "Pre-Flight Build Audit", icon: <ShieldCheck size={16} /> },
         { id: "BuildPublish", title: "Build & Deploy", icon: <Cloud size={16} /> },
         { id: "VersionControlUI", title: "Version Control", icon: <GitCommit size={16} /> },
         { id: "CrashAnalyticsDashboard", title: "Analytics", icon: <Activity size={16} /> },
         { id: "KeyboardShortcutMapper", title: "Shortcut Mapper", icon: <Command size={16} /> },
         { id: "PerformanceDashboard", title: "Performance Telemetry", icon: <Gauge size={16} /> },
+        { id: "SystemResourceMonitor", title: "System Resource Monitor", icon: <Activity size={16} /> },
         { id: "HardwareResourceOptimizer", title: "Hardware Resource Optimizer", icon: <Cpu size={16} /> },
         { id: "MultiplayerServerOrchestrator", title: "Server Orchestrator", icon: <Server size={16} /> },
         { id: "AntiCheatSecurityHub", title: "Security Hub", icon: <Shield size={16} /> }
@@ -907,8 +945,7 @@ const getLazyComponent = (id: string) => {
 };
 
 const renderSubTool = (subToolId: string) => {
-  if (subToolId === "OmniCreatorMaster") return null;
-  const Component = getLazyComponent(subToolId);
+  const Component: any = getLazyComponent(subToolId);
   if (Component) {
     return (
       <ErrorBoundary key={subToolId}>
@@ -918,7 +955,7 @@ const renderSubTool = (subToolId: string) => {
             <div className="text-sm font-medium tracking-wide">Loading Module...</div>
           </div>
         }>
-          <Component />
+          <Component onSelectTool={setActiveTool} />
         </Suspense>
       </ErrorBoundary>
     );
@@ -927,7 +964,6 @@ const renderSubTool = (subToolId: string) => {
 };
 
   const renderActiveTool = () => {
-    if (activeTool === "OmniCreatorMaster") return null;
     const hub = tools.find(t => t.id === activeTool);
     if (hub && hub.subTools && hub.subTools.length > 0) {
       return <UnifiedHubWorkspace hub={hub} renderSubTool={renderSubTool} />;

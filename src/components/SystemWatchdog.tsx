@@ -174,14 +174,34 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
   // 0. Global Exception & Promise Handlers
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => {
-       console.error("[Watchdog] Caught global exception:", event.error);
-       addWarning(`Unhandled Exception: ${event.message}`);
+       if (event.message && event.message.includes('ResizeObserver loop')) {
+         return;
+       }
+       console.error("[Watchdog] Caught global exception:", event.error || event.message);
+       addWarning(`Unhandled Exception: ${event.message || 'Script error'}`);
        setThreatLevel('ELEVATED');
     };
     
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+       const reason = event.reason;
+       const reasonStr = typeof reason === 'string' 
+         ? reason 
+         : reason?.message || reason?.name || 'Async Promise Error';
+
+       if (
+         reasonStr.includes('The play() request was interrupted') ||
+         reasonStr.includes('AudioContext') ||
+         reasonStr.includes('user gesture') ||
+         reasonStr.includes('AbortError') ||
+         reasonStr.includes('clipboard') ||
+         reasonStr.includes('Permission denied')
+       ) {
+         console.debug('[Watchdog] Ignored benign background rejection:', reasonStr);
+         return;
+       }
+
        console.error("[Watchdog] Caught unhandled promise rejection:", event.reason);
-       addWarning(`Promise Rejection: ${event.reason}`);
+       addWarning(`Promise Rejection: ${reasonStr.substring(0, 80)}`);
     };
 
     window.addEventListener('error', handleGlobalError);

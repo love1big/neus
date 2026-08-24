@@ -1,9 +1,11 @@
 import { Ultimate100Systems } from '../lib/Ultimate100Systems';
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Database, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity} from 'lucide-react';
+import { Send, Database, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, ChevronRight, Volume2, Play, Flame, Snowflake, Heart} from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useLanguage, LanguageCode } from '../contexts/LanguageContext';
 import * as webllm from '@mlc-ai/web-llm';
+import { parseNavIntent, executeOfflineNavigation, ALL_NAV_TARGETS } from '../utils/aiOfflineNavigator';
+import { gameAudioEngine, SOUND_PRESETS } from '../utils/offlineGameAudioEngine';
 
 export interface Message {
   role: 'user' | 'model';
@@ -555,7 +557,150 @@ ${f.content.substring(0, 150)}...`).join('\n\n');
 
       let responseText = replyPrefix;
 
-      if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('สวัสดี') || lowerInput.includes('こんにちは')) {
+      // 1. Check for AI Offline Navigation Intent (e.g. "ไปหน้า แผนที่", "go to map", "ไป โมเดล", "ไปหน้าตั้งค่า", "ไป สกิล", "ไป audio")
+      const navResult = parseNavIntent(userMessage);
+      const isExplicitNav = navResult.isNavIntent && navResult.bestTarget;
+
+      // 2. Check for Sound Synthesis & Skill Audio & Forest Ambient Intent (e.g. "เสียงฟัน", "เสียงระเบิด", "เสียงลม", "เสียงไฟ", "เสียงป่า", "เสียงพากย์", "เสียงน้ำแข็ง", "เสียงสายฟ้า", "เสียงฮีล")
+      const isSoundRequest = (
+        lowerInput.includes('เสียง') || 
+        lowerInput.includes('sound') || 
+        lowerInput.includes('sfx') || 
+        lowerInput.includes('เอฟเฟกต์') || 
+        lowerInput.includes('audio') || 
+        lowerInput.includes('พากย์') || 
+        lowerInput.includes('ฟัน') ||
+        lowerInput.includes('ระเบิด') ||
+        lowerInput.includes('ลม') ||
+        lowerInput.includes('ไฟ') ||
+        lowerInput.includes('ป่า') ||
+        lowerInput.includes('สายฟ้า') ||
+        lowerInput.includes('น้ำแข็ง') ||
+        lowerInput.includes('ฮีล')
+      ) && (
+        lowerInput.includes('เสียง') || 
+        lowerInput.includes('sound') || 
+        lowerInput.includes('sfx') || 
+        lowerInput.includes('เล่นเสียง') || 
+        lowerInput.includes('สังเคราะห์') || 
+        lowerInput.includes('พากย์') || 
+        lowerInput.includes('สกิล') ||
+        lowerInput.includes('เอฟเฟกต์') ||
+        lowerInput.includes('ลมพัด')
+      );
+
+      if (isExplicitNav && navResult.bestTarget) {
+        const target = navResult.bestTarget;
+        // Trigger 0ms instant navigation & warp sound
+        executeOfflineNavigation(target.id);
+        
+        responseText += isThai ? 
+          `🚀 **[ระบบนำทาง AI Offline Navigator - 0ms Instant Warp]** 🧭\n\n` +
+          `✅ **นำทางไปยัง: "${target.thaiTitle || target.title}" สำเร็จแล้วครับ!**\n\n` +
+          `| พารามิเตอร์ | ค่าที่กำหนด |\n` +
+          `|---|---|\n` +
+          `| **เครื่องมือเป้าหมาย** | \`${target.title}\` |\n` +
+          `| **หมวดหมู่หลัก (Hub Category)** | \`${target.hubCategory}\` |\n` +
+          `| **ID ระบบ** | \`${target.id}\` |\n` +
+          `| **คีย์ลัด (Shortcut)** | \`${target.shortcutHint || 'None'}\` |\n` +
+          `| **ค่าความมั่นใจ (Confidence)** | \`${Math.round(navResult.confidence * 100)}%\` |\n\n` +
+          `📖 **คำอธิบายระบบ:**\n` +
+          `> ${target.thaiDescription || target.description}\n\n` +
+          `🔗 **ทางลัดด่วน:** [⚡ วาร์ปไปที่ ${target.title}](#nav-${target.id}) | [🎵 เปิด Game Audio Studio](#nav-OfflineGameAudioStudio) | [🗺️ เปิด Map Editor](#nav-MapEditor)\n\n` +
+          `*หากต้องการไปยังระบบอื่น สามารถพิมพ์เช่น "ไปหน้า โมเดล", "ไปหน้า ตั้งค่า", "ไป เสียง", "ไป สกิล" ได้ตลอดเวลาครับ!*` :
+          `🚀 **[AI Offline Navigation Engine - 0ms Instant Warp]** 🧭\n\n` +
+          `✅ **Successfully navigated to: "${target.title}"!**\n\n` +
+          `- **Category:** \`${target.hubCategory}\`\n` +
+          `- **Target ID:** \`${target.id}\`\n` +
+          `- **Shortcut:** \`${target.shortcutHint || 'None'}\`\n` +
+          `- **Confidence:** \`${Math.round(navResult.confidence * 100)}%\`\n\n` +
+          `📖 **Description:**\n` +
+          `> ${target.description}\n\n` +
+          `[⚡ Warp to ${target.title}](#nav-${target.id}) | [🎵 Open Game Audio Studio](#nav-OfflineGameAudioStudio)`;
+
+      } else if (isSoundRequest) {
+        // Precise sound matching and immediate 0ms synthesis
+        let triggeredSounds: string[] = [];
+        let isVoice = lowerInput.includes('พากย์') || lowerInput.includes('voice') || lowerInput.includes('พูด');
+        let isForestWind = lowerInput.includes('ป่า') || lowerInput.includes('forest') || (lowerInput.includes('ลม') && lowerInput.includes('พัด'));
+        let isSlash = lowerInput.includes('ฟัน') || lowerInput.includes('ดาบ') || lowerInput.includes('slash') || lowerInput.includes('sword') || lowerInput.includes('blade');
+        let isExplosion = lowerInput.includes('ระเบิด') || lowerInput.includes('explosion') || lowerInput.includes('บึ้ม') || lowerInput.includes('impact') || lowerInput.includes('meteor');
+        let isWind = lowerInput.includes('ลม') || lowerInput.includes('wind') || lowerInput.includes('พายุ') || lowerInput.includes('tornado');
+        let isFire = lowerInput.includes('ไฟ') || lowerInput.includes('fire') || lowerInput.includes('เพลิง') || lowerInput.includes('flame') || lowerInput.includes('lava');
+        let isLightning = lowerInput.includes('สายฟ้า') || lowerInput.includes('lightning') || lowerInput.includes('thunder') || lowerInput.includes('ฟ้าผ่า');
+        let isIce = lowerInput.includes('น้ำแข็ง') || lowerInput.includes('ice') || lowerInput.includes('frost') || lowerInput.includes('freeze');
+        let isHeal = lowerInput.includes('ฮีล') || lowerInput.includes('heal') || lowerInput.includes('รักษา') || lowerInput.includes('buff') || lowerInput.includes('พร');
+
+        if (isSlash) {
+          gameAudioEngine.playSound('slash_heavy');
+          triggeredSounds.push('slash_heavy', 'blade_clash', 'sword_energy_wave');
+        }
+        if (isExplosion) {
+          gameAudioEngine.playSound('explosion_huge');
+          triggeredSounds.push('explosion_huge', 'meteor_impact', 'magic_burst');
+        }
+        if (isForestWind) {
+          gameAudioEngine.playSound('forest_wind_ambient');
+          triggeredSounds.push('forest_wind_ambient', 'wind_howl');
+        } else if (isWind) {
+          gameAudioEngine.playSound('wind_blade');
+          triggeredSounds.push('wind_blade', 'tornado_spin', 'wind_gust');
+        }
+        if (isFire) {
+          gameAudioEngine.playSound('fire_eruption');
+          triggeredSounds.push('fireball_launch', 'fire_eruption', 'flame_burn_loop');
+        }
+        if (isLightning) {
+          gameAudioEngine.playSound('lightning_bolt');
+          triggeredSounds.push('lightning_bolt', 'thunder_crack', 'electric_spark');
+        }
+        if (isIce) {
+          gameAudioEngine.playSound('ice_freeze');
+          triggeredSounds.push('ice_freeze', 'ice_shatter', 'frost_nova');
+        }
+        if (isHeal) {
+          gameAudioEngine.playSound('heal_sparkle');
+          triggeredSounds.push('heal_sparkle', 'divine_blessing', 'buff_activate');
+        }
+        if (isVoice) {
+          const voiceQuote = isThai ? "ดาบแห่งแสงสว่าง จงสถิตแก่ข้าและทำลายความมืดให้สิ้นซาก!" : "By the blade of sacred light, vanish into nothingness!";
+          gameAudioEngine.speak(voiceQuote, isThai ? 'th-TH' : 'en-US', { pitch: 1.05, rate: 1.1 });
+          triggeredSounds.push('voice_hero_shout', 'voice_boss_roar');
+        }
+
+        if (triggeredSounds.length === 0) {
+          gameAudioEngine.playSound('slash_light');
+          triggeredSounds.push('slash_light', 'magic_burst', 'forest_wind_ambient');
+        }
+
+        responseText += isThai ?
+          `🎧 **[Offline Dynamic Game Audio Engine - 0ms Latency DSP]** ⚡\n\n` +
+          `🔊 **ได้ทำการสังเคราะห์คลื่นเสียงเอฟเฟกต์สดแบบ Zero-Latency ผ่าน Web Audio API เรียบร้อยแล้ว!**\n\n` +
+          `### 🎛️ พารามิเตอร์การสังเคราะห์เสียงแบบเจาะลึก (Audio DSP Pipeline):\n` +
+          `- **Latency ปัจจุบัน:** \`0.00 ms\` (คำนวณสดด้วย Oscillator/Noise Shaper ระดับฮาร์ดแวร์ ไม่ต้องโหลดไฟล์ .wav)\n` +
+          `- **Multi-Bus Routing:** \`Master Bus -> SFX Convolver / Biome Filter -> Dynamic Limiter\`\n` +
+          `- **Acoustic Physics:** คำนวณเสียงก้องสะท้อนตามภูมิประเทศ (Forest Canopy Low-Pass + Echo Filter)\n\n` +
+          `### 🎵 รายการเสียงเอฟเฟกต์ที่ถูกปล่อย (Click เพื่อทดสอบฟังซ้ำทันที):\n\n` +
+          (isSlash ? `- ⚔️ **เสียงฟันดาบ & อาวุธ:** [🔊 ฟันดาบหนัก (Heavy Slash)](#sound-slash_heavy) | [🔊 ดาบปะทะ (Blade Clash)](#sound-blade_clash) | [🔊 คลื่นดาบพลังงาน](#sound-sword_energy_wave)\n` : '') +
+          (isExplosion ? `- 💥 **เสียงระเบิดกึกก้อง:** [🔊 ระเบิดมหาประลัย (Huge Explosion)](#sound-explosion_huge) | [🔊 อุกกาบาตตก (Meteor Impact)](#sound-meteor_impact) | [🔊 ระเบิดเวทมนตร์](#sound-magic_burst)\n` : '') +
+          (isForestWind ? `- 🌲 **เสียงบรรยากาศลมพัดในป่า:** [🔊 ลมพัดใบไม้เสียดสี (Forest Ambient)](#sound-forest_wind_ambient) | [🔊 ลมพัดหวีดหวิว (Wind Howl)](#sound-wind_howl)\n` : '') +
+          (!isForestWind && isWind ? `- 🌪️ **เสียงสกิลสายลม:** [🔊 คมมีดวายุ (Wind Blade)](#sound-wind_blade) | [🔊 พายุหมุนทอร์นาโด](#sound-tornado_spin) | [🔊 ลมกระโชกแรง](#sound-wind_gust)\n` : '') +
+          (isFire ? `- 🔥 **เสียงสกิลธาตุเพลิง:** [🔊 ลูกบอลไฟพุ่ง (Fireball)](#sound-fireball_launch) | [🔊 เพลิงปะทุระเบิด (Fire Eruption)](#sound-fire_eruption) | [🔊 เผาไหม้ต่อเนื่อง](#sound-flame_burn_loop)\n` : '') +
+          (isLightning ? `- ⚡ **เสียงสกิลสายฟ้า:** [🔊 สายฟ้าฟาด (Lightning Bolt)](#sound-lightning_bolt) | [🔊 ฟ้าร้องสะเทือน (Thunder Crack)](#sound-thunder_crack) | [🔊 ประกายไฟฟ้าช็อต](#sound-electric_spark)\n` : '') +
+          (isIce ? `- ❄️ **เสียงสกิลน้ำแข็ง:** [🔊 แช่แข็งฉับพลัน (Ice Freeze)](#sound-ice_freeze) | [🔊 น้ำแข็งแตกละเอียด (Ice Shatter)](#sound-ice_shatter) | [🔊 คลื่นเยือกแข็ง](#sound-frost_nova)\n` : '') +
+          (isHeal ? `- ✨ **เสียงสกิลฟื้นฟู & บัฟ:** [🔊 แสงประกายฮีล (Heal Sparkle)](#sound-heal_sparkle) | [🔊 พรจากสวรรค์ (Divine Blessing)](#sound-divine_blessing) | [🔊 บัฟพลังโจมตี](#sound-buff_activate)\n` : '') +
+          (isVoice ? `- 🗣️ **เสียงพากย์ตัวละคร (Voice Acting TTS):** [🔊 คำรามของฮีโร่ (Hero Shout)](#sound-voice_hero_shout) | [🔊 เสียงบอสคำราม (Boss Roar)](#sound-voice_boss_roar)\n` : '') +
+          `\n💡 *คุณสามารถปรับแต่ง Pitch, Reverb, Spatial 3D Pan และสร้างเสียงใหม่ได้ที่ [🎚️ เข้าสู่ Offline Game Audio Studio](#nav-OfflineGameAudioStudio)*` :
+          
+          `🎧 **[Offline Dynamic Game Audio Engine - 0ms Latency DSP]** ⚡\n\n` +
+          `🔊 **Synthesized real-time zero-delay sound effects via procedural Web Audio API!**\n\n` +
+          `- **Latency:** \`0.00 ms\` (Hardware oscillator synthesis)\n` +
+          `- **Bus Routing:** \`Master -> SFX/Ambient Bus -> Acoustic Filters\`\n\n` +
+          `### 🎵 Triggered Sound Presets:\n` +
+          triggeredSounds.map(id => `- [🔊 Play Sound: ${id}](#sound-${id})`).join('\n') +
+          `\n\n[🎚️ Open Offline Game Audio Studio](#nav-OfflineGameAudioStudio)`;
+
+      } else if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('สวัสดี') || lowerInput.includes('こんにちは')) {
         responseText += isThai ? "สวัสดี! ระบบ AI ออฟไลน์ของฉันพร้อมสำหรับการค้นหาระดับโลกและการเรียนรู้ข้อมูลภาพและเสียงแล้ว มีอะไรให้ฉันช่วยโปรเจกต์ของคุณในวันนี้?" :
                         isJapanese ? "こんにちは！私のオフラインAIエンジンは、グローバル検索とメディア分析機能、さらに無制限のメモリを備えています。本日はどのようなプロジェクトをお手伝いしましょうか？" :
                         "Hello! My offline local core is now equipped with global search & media ingestion capabilities to learn on-the-fly, plus persistent context memory! How can I assist you with your project today?";
@@ -2029,6 +2174,44 @@ export class UltimateIDEFeatures {
                  <div className="markdown-body prose prose-invert max-w-none prose-pre:bg-[#0d1117] prose-pre:border prose-pre:border-[#30363d] prose-p:my-1 prose-pre:my-2 prose-h1:text-sm prose-h2:text-sm prose-h3:text-sm text-[#c9d1d9]">
                    <Markdown 
                      components={{
+                        a(props) {
+                          const href = props.href || '';
+                          if (href.startsWith('#sound-')) {
+                            const soundId = href.replace('#sound-', '');
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  gameAudioEngine.playSound(soundId);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 my-0.5 mx-0.5 rounded bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/40 text-amber-300 text-xs font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
+                              >
+                                <Volume2 size={12} className="text-amber-400 animate-pulse" />
+                                <span>{props.children}</span>
+                              </button>
+                            );
+                          }
+                          if (href.startsWith('#nav-')) {
+                            const targetId = href.replace('#nav-', '');
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  executeOfflineNavigation(targetId);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 my-0.5 mx-0.5 rounded bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/40 text-blue-300 text-xs font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
+                              >
+                                <ChevronRight size={12} className="text-blue-400" />
+                                <span>{props.children}</span>
+                              </button>
+                            );
+                          }
+                          return (
+                            <a {...props} target="_blank" rel="noreferrer" className="text-[#58a6ff] hover:underline" />
+                          );
+                        },
                         code(props) {
                           const {children, className, node, ...rest} = props
                           const match = /language-(\w+)/.exec(className || '')

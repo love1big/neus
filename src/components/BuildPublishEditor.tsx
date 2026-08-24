@@ -10,6 +10,11 @@ export default function BuildPublishEditor() {
       <div className="w-64 bg-[#161b22] border-r border-[#30363d] p-3 flex flex-col gap-2 shrink-0">
          <h2 className="text-[12px] font-bold text-[#8b949e] uppercase tracking-wider mb-2 flex items-center gap-2"><Globe size={14}/> DevOps & Publish</h2>
          
+         <button onClick={() => window.dispatchEvent(new CustomEvent('switch-tool', { detail: 'BuildPublishAudit' }))} className="flex items-center justify-between px-3 py-2 rounded text-[11px] font-semibold bg-[#1f6feb]/20 hover:bg-[#1f6feb]/30 text-[#58a6ff] border border-[#58a6ff]/40 transition-colors">
+            <span className="flex items-center gap-2"><ShieldCheck size={16}/> Pre-Flight Audit</span>
+            <span className="text-[9px] bg-[#58a6ff]/30 text-white font-mono px-1.5 py-0.2 rounded">SWEEP</span>
+         </button>
+         
          <button onClick={() => setActiveTab('build')} className={`flex items-center gap-2 px-3 py-2 rounded text-[11px] font-semibold transition-colors ${activeTab === 'build' ? 'bg-[#21262d] text-[#3fb950]' : 'text-[#c9d1d9] hover:bg-[#21262d]'}`}>
             <Package size={16}/> Build & Package
          </button>
