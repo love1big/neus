@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { FolderTree, Mountain, PersonStanding, Palette, Image, Music, Box, File as FileIcon, Search, UploadCloud, Trash2, ShieldCheck, FolderPlus, FilePlus, Network, Sparkles, Loader2, Database, Cog, X, Save, Settings2, Sliders} from 'lucide-react';
+import { RecentFilesTracker } from '../utils/RecentFilesTracker';
 
 interface Asset {
   id: string;
@@ -47,18 +48,37 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   
+  const handleSelectAsset = (asset: Asset) => {
+    setSelectedAssetId(asset.id);
+    const folder = folders.find(f => f.id === asset.folderId);
+    let itemType: any = 'asset';
+    if (asset.type === 'tex') itemType = 'texture';
+    else if (asset.type === 'bp') itemType = 'blueprint';
+    else if (asset.type === 'skm' || asset.type === 'obj' || asset.type === 'fbx') itemType = 'mesh';
+    else if (asset.type === 'wav') itemType = 'audio';
+
+    RecentFilesTracker.trackOpenedItem({
+      id: asset.id,
+      name: asset.name,
+      type: itemType,
+      category: folder?.name || 'Assets',
+      path: `${folder?.name || 'CoreAssets'}/${asset.name}`,
+      description: `${asset.type.toUpperCase()} asset in ${folder?.name || 'Content Browser'}`
+    });
+  };
+
   React.useEffect(() => {
     const handleOpenAsset = (e: any) => {
       const assetId = e.detail;
       const asset = assets.find(a => a.id === assetId);
       if (asset) {
         setActiveFolderId(asset.folderId);
-        setSelectedAssetId(asset.id);
+        handleSelectAsset(asset);
       }
     };
     window.addEventListener('open-asset', handleOpenAsset);
     return () => window.removeEventListener('open-asset', handleOpenAsset);
-  }, [assets]);
+  }, [assets, folders]);
 
   const processImportedFiles = async (files: File[]) => {
     setIsProcessing(true);
@@ -311,7 +331,7 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
              {filteredAssets.map(asset => (
                 <div key={asset.id} 
                      className={`flex flex-col items-center gap-2 cursor-pointer group p-2 rounded transition-colors ${selectedAssetId === asset.id ? 'bg-[#222]' : 'hover:bg-[#1a1a1a]'}`} 
-                     onClick={() => setSelectedAssetId(asset.id)} 
+                     onClick={() => handleSelectAsset(asset)} 
                      onDoubleClick={() => asset.type === 'bp' && onOpenBlueprint && onOpenBlueprint()}>
                    <div className={`w-16 h-16 bg-[#161616] border ${selectedAssetId === asset.id ? 'border-[#58a6ff]' : 'border-[#333] group-hover:border-[#888]'} rounded flex items-center justify-center p-1 relative overflow-hidden drop-shadow-md pb-[-1px]`}>
                       {renderAssetPreview(asset)}

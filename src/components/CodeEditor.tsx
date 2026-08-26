@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { LANGUAGES } from '../lib/constants';
 import { 
@@ -7,7 +7,7 @@ import {
   TerminalSquare, AlertTriangle, FileCode2, Package, GitBranch, LayoutGrid, 
   Terminal as TerminalIcon, Bug, AlignLeft, Settings, Bell, ChevronRight, 
   FileJson, Play, Copy, SplitSquareHorizontal, ExternalLink, Upload, Check, 
-  Sliders, FileCheck, RefreshCw, FolderOpen
+  Sliders, FileCheck, RefreshCw, FolderOpen, AlertCircle, Info, Wrench, ListFilter
 } from 'lucide-react';
 import PopOutPanel from './PopOutPanel';
 import { 
@@ -19,6 +19,14 @@ import {
   LanguageEditorConfigurator, 
   EditorConfigurationProfile 
 } from '../utils/LanguageEditorConfigurator';
+import {
+  LanguageCompletionProvider,
+  LanguageCompletionItem
+} from '../utils/LanguageCompletionProvider';
+import {
+  LanguageErrorChecker,
+  DiagnosticError
+} from '../utils/LanguageErrorChecker';
 
 interface CodeEditorProps {
   code?: string;
@@ -169,6 +177,7 @@ export default function CodeEditor({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
   const activeSuggestionRef = useRef<string | null>(null);
 
   const activeCode = externalCode !== undefined ? externalCode : internalCode;
@@ -205,7 +214,28 @@ export default function CodeEditor({
     return LanguageEditorConfigurator.getConfiguration(detectedResult);
   }, [detectedResult]);
 
-  // 3. Sync language back to parent if provided
+  // 3. Language-Specific Error Diagnostics Check
+  const diagnostics: DiagnosticError[] = useMemo(() => {
+    return LanguageErrorChecker.checkErrors(activeCode, detectedResult.id);
+  }, [activeCode, detectedResult.id]);
+
+  const errorCount = useMemo(() => diagnostics.filter(d => d.severity === 'error').length, [diagnostics]);
+  const warningCount = useMemo(() => diagnostics.filter(d => d.severity === 'warning').length, [diagnostics]);
+
+  // 4. Available Language-Specific Completions & Snippets
+  const languageCompletions: LanguageCompletionItem[] = useMemo(() => {
+    return LanguageCompletionProvider.getCompletions(detectedResult.monacoId);
+  }, [detectedResult.monacoId]);
+
+  // Sync Monaco markers and register completion provider
+  useEffect(() => {
+    if (monacoRef.current && editorRef.current) {
+      LanguageCompletionProvider.registerWithMonaco(monacoRef.current, detectedResult.monacoId);
+      LanguageErrorChecker.applyMonacoMarkers(monacoRef.current, editorRef.current, diagnostics);
+    }
+  }, [detectedResult.monacoId, diagnostics]);
+
+  // 5. Sync language back to parent if provided
   useEffect(() => {
     if (externalSetLanguage && detectedResult.monacoId) {
       externalSetLanguage(detectedResult.monacoId);
@@ -225,8 +255,8 @@ export default function CodeEditor({
   const [matches, setMatches] = useState<any[]>([]);
   const [currentMatch, setCurrentMatch] = useState(0);
 
-  // IDE Layout State
-  const [bottomPanelOpen, setBottomPanelOpen] = useState(true);
+  // IDE Layout State & Diagnostics Panel
+  const [bottomPanelTab, setBottomPanelTab] = useState<'none' | 'problems' | 'completions'>('none');
   const [isPoppedOut, setIsPoppedOut] = useState(false);
 
   // AI Suggestion State
@@ -343,6 +373,11 @@ export default function CodeEditor({
 
   const handleEditorDidMount = (editor: any, monacoInstance: any) => {
     editorRef.current = editor;
+    monacoRef.current = monacoInstance;
+
+    // Register completion provider for detected language
+    LanguageCompletionProvider.registerWithMonaco(monacoInstance, detectedResult.monacoId);
+    LanguageErrorChecker.applyMonacoMarkers(monacoInstance, editor, diagnostics);
 
     // Search Override
     editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyF, () => {
@@ -425,6 +460,44 @@ export default function CodeEditor({
          setShowSuggestion(true);
       }, 1200);
     });
+  };
+
+  const handleJumpToDiagnostic = (diag: DiagnosticError) => {
+    if (!editorRef.current) return;
+    editorRef.current.revealLineInCenter(diag.line);
+    editorRef.current.setPosition({ lineNumber: diag.line, column: diag.column });
+    editorRef.current.focus();
+  };
+
+  const handleApplyAutoFix = (diag: DiagnosticError) => {
+    if (diag.fixText && diag.line) {
+      const lines = activeCode.split('\n');
+      if (lines[diag.line - 1] !== undefined) {
+        lines[diag.line - 1] = lines[diag.line - 1] + diag.fixText;
+        updateCode(lines.join('\n'));
+      }
+    } else if (diag.code === 'PY_PRINT_PARENS') {
+      const lines = activeCode.split('\n');
+      const targetLine = lines[diag.line - 1];
+      if (targetLine) {
+        lines[diag.line - 1] = targetLine.replace(/print\s+(["'][^"']+["'])/, 'print($1)');
+        updateCode(lines.join('\n'));
+      }
+    }
+  };
+
+  const handleInsertSnippet = (snippet: LanguageCompletionItem) => {
+    if (!editorRef.current || !monacoRef.current) return;
+    const pos = editorRef.current.getPosition();
+    const range = new monacoRef.current.Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column);
+    const cleanedSnippet = snippet.insertText.replace(/\$\{\d+:?([^}]*)\}/g, '$1').replace(/\$0/g, '');
+    
+    editorRef.current.executeEdits('insert-snippet', [{
+      range,
+      text: cleanedSnippet,
+      forceMoveMarkers: true
+    }]);
+    editorRef.current.focus();
   };
 
   const handleUndo = () => editorRef.current?.trigger('keyboard', 'undo', null);
@@ -586,8 +659,46 @@ export default function CodeEditor({
             <div className="flex items-center gap-1 bg-[#21262d] border border-[#30363d] text-[#c9d1d9] px-1.5 py-0.5 rounded font-mono text-[9px]">
                  Syntax: <span className="text-[#58a6ff] font-bold">{editorConfig.monacoLanguage}</span> | Tab: {editorConfig.tabSize} spaces | {editorConfig.encoding}
             </div>
-            <span className="flex items-center gap-1 text-[#3fb950]"><ShieldCheck size={10} /> 0 Errors</span>
-            <span className="flex items-center gap-1 bg-[#0078d7]/20 border border-[#0078d7]/50 text-[#0078d7] px-1.5 py-0.5 rounded"><Zap size={10} /> Copilot</span>
+            
+            {/* Problems Drawer Trigger Button */}
+            <button
+               onClick={() => setBottomPanelTab(prev => prev === 'problems' ? 'none' : 'problems')}
+               className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] font-bold transition-all cursor-pointer ${
+                 errorCount > 0
+                   ? 'bg-[#f85149]/20 border-[#f85149]/50 text-[#f85149] animate-pulse'
+                   : warningCount > 0
+                   ? 'bg-[#d29922]/20 border-[#d29922]/50 text-[#d29922]'
+                   : 'bg-[#238636]/20 border-[#238636]/40 text-[#3fb950]'
+               }`}
+               title="Toggle Problems and Error Diagnostics Drawer"
+            >
+               {errorCount > 0 ? (
+                 <>
+                   <AlertCircle size={11} /> {errorCount} Error{errorCount > 1 ? 's' : ''}
+                 </>
+               ) : warningCount > 0 ? (
+                 <>
+                   <AlertTriangle size={11} /> {warningCount} Warning{warningCount > 1 ? 's' : ''}
+                 </>
+               ) : (
+                 <>
+                   <ShieldCheck size={11} /> 0 Errors
+                 </>
+               )}
+            </button>
+
+            {/* Completions & Snippets Trigger Button */}
+            <button
+               onClick={() => setBottomPanelTab(prev => prev === 'completions' ? 'none' : 'completions')}
+               className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold transition-colors cursor-pointer ${
+                 bottomPanelTab === 'completions'
+                   ? 'bg-[#58a6ff]/20 border-[#58a6ff]/50 text-[#58a6ff]'
+                   : 'bg-[#21262d] border-[#30363d] text-[#8b949e] hover:text-white'
+               }`}
+               title="View Language-Specific Code Completions & Snippets"
+            >
+               <Zap size={11} className="text-[#e3b341]" /> Snippets ({languageCompletions.length})
+            </button>
          </span>
       </div>
 
@@ -606,99 +717,240 @@ export default function CodeEditor({
       )}
 
       {/* Main Monaco Engine */}
-      <div className="flex-1 relative bg-[#151515]">
-         <Editor
-            height="100%"
-            language={editorConfig.monacoLanguage}
-            value={activeCode}
-            theme="nxs-dark"
-            beforeMount={beforeMount}
-            onChange={handleEditorChange}
-            onMount={handleEditorDidMount}
-            options={LanguageEditorConfigurator.getMonacoOptions(editorConfig)}
-         />
+      <div className="flex-1 relative bg-[#151515] flex flex-col min-h-0">
+         <div className="flex-1 relative">
+            <Editor
+               height="100%"
+               language={editorConfig.monacoLanguage}
+               value={activeCode}
+               theme="nxs-dark"
+               beforeMount={beforeMount}
+               onChange={handleEditorChange}
+               onMount={handleEditorDidMount}
+               options={LanguageEditorConfigurator.getMonacoOptions(editorConfig)}
+            />
 
-         {/* AI Suggestion Inline Overlay */}
-         {showSuggestion && suggestion && (
-            <div 
-              className="absolute pointer-events-none z-10 font-mono text-[14px] leading-relaxed flex"
-              style={{ 
-                 top: `${cursorPos.top + 16}px`, 
-                 left: `${cursorPos.left + 64}px`,
-              }}
-            >
-              <div className="flex flex-col relative">
-                 <pre className="text-[#888]/60 m-0">
-                    {suggestion}
-                 </pre>
-                 <div className="absolute -left-3 -top-2 w-px h-full bg-[#bc8cff]/40"></div>
-                 <div className="absolute top-full left-0 mt-2 bg-[#bc8cff]/10 border border-[#bc8cff]/30 text-[#bc8cff] text-[10px] uppercase font-bold tracking-wider px-2 py-1 flex items-center gap-2 shadow-lg rounded-[2px] backdrop-blur-md">
-                    <Sparkles size={12} />
-                    AI Suggestion
-                    <span className={`bg-[#bc8cff] text-black px-1.5 py-0.5 rounded-[2px] transition-transform ${enterPresses > 0 ? 'scale-110' : ''}`}>
-                      Action: press [ENTER] 3 times to accept ({enterPresses}/3)
-                    </span>
+            {/* AI Suggestion Inline Overlay */}
+            {showSuggestion && suggestion && (
+               <div 
+                 className="absolute pointer-events-none z-10 font-mono text-[14px] leading-relaxed flex"
+                 style={{ 
+                    top: `${cursorPos.top + 16}px`, 
+                    left: `${cursorPos.left + 64}px`,
+                 }}
+               >
+                 <div className="flex flex-col relative">
+                    <pre className="text-[#888]/60 m-0">
+                       {suggestion}
+                    </pre>
+                    <div className="absolute -left-3 -top-2 w-px h-full bg-[#bc8cff]/40"></div>
+                    <div className="absolute top-full left-0 mt-2 bg-[#bc8cff]/10 border border-[#bc8cff]/30 text-[#bc8cff] text-[10px] uppercase font-bold tracking-wider px-2 py-1 flex items-center gap-2 shadow-lg rounded-[2px] backdrop-blur-md">
+                       <Sparkles size={12} />
+                       AI Suggestion
+                       <span className={`bg-[#bc8cff] text-black px-1.5 py-0.5 rounded-[2px] transition-transform ${enterPresses > 0 ? 'scale-110' : ''}`}>
+                         Action: press [ENTER] 3 times to accept ({enterPresses}/3)
+                       </span>
+                    </div>
                  </div>
-              </div>
-            </div>
-         )}
-
-         {/* Custom Find & Replace Bar Overlay */}
-         {showSearch && (
-            <div className="absolute top-0 right-4 z-20 bg-[#151515] border border-[#222] border-t-0 shadow-lg p-2 w-[320px] flex flex-col gap-2 transition-all animate-in fade-in slide-in-from-top-2 rounded-b-[2px]">
-               {/* Find Row */}
-               <div className="flex items-center gap-2">
-                  <Search size={12} className="text-[#888] shrink-0" />
-                  <div className="relative flex-1">
-                     <input
-                     type="text"
-                     autoFocus
-                     placeholder="Find"
-                     value={findText}
-                     onChange={(e) => setFindText(e.target.value)}
-                     onKeyDown={(e) => { if (e.key === 'Enter') handleNext(); }}
-                     className="w-full bg-[#101012] border border-[#222] text-[#fff] text-[11px] pl-2 pr-12 py-1 rounded-[2px] outline-none focus:border-[#58a6ff] transition-colors"
-                     />
-                     <span className="absolute right-2 top-[3px] text-[9px] text-[#888]">
-                     {findText ? (matches.length > 0 ? `${currentMatch} / ${matches.length}` : 'No results') : ''}
-                     </span>
-                  </div>
-                  <div className="flex bg-[#101012] border border-[#222] rounded-[2px] shrink-0 overflow-hidden">
-                     <button onClick={handlePrev} className="p-1 hover:bg-[#202022] text-[#888] hover:text-[#fff] border-r border-[#222] transition-colors"><ChevronUp size={12}/></button>
-                     <button onClick={handleNext} className="p-1 hover:bg-[#202022] text-[#888] hover:text-[#fff] transition-colors"><ChevronDown size={12}/></button>
-                  </div>
-                  <button onClick={() => setShowSearch(false)} className="p-1 text-[#888] hover:text-[#f85149] rounded-[2px] hover:bg-[#202022] transition-colors shrink-0"><X size={12}/></button>
                </div>
-               
-               {/* Replace Row */}
-               <div className="flex items-center gap-2">
-                  <ReplaceIcon size={12} className="text-[#888] shrink-0" />
-                  <div className="relative flex-1">
-                     <input
-                     type="text"
-                     placeholder="Replace"
-                     value={replaceText}
-                     onChange={(e) => setReplaceText(e.target.value)}
-                     onKeyDown={(e) => { if (e.key === 'Enter') replaceCurrent(); }}
-                     className="w-full bg-[#101012] border border-[#222] text-[#fff] text-[11px] pl-2 pr-2 py-1 rounded-[2px] outline-none focus:border-[#58a6ff] transition-colors"
-                     />
+            )}
+
+            {/* Custom Find & Replace Bar Overlay */}
+            {showSearch && (
+               <div className="absolute top-0 right-4 z-20 bg-[#151515] border border-[#222] border-t-0 shadow-lg p-2 w-[320px] flex flex-col gap-2 transition-all animate-in fade-in slide-in-from-top-2 rounded-b-[2px]">
+                  {/* Find Row */}
+                  <div className="flex items-center gap-2">
+                     <Search size={12} className="text-[#888] shrink-0" />
+                     <div className="relative flex-1">
+                        <input
+                        type="text"
+                        autoFocus
+                        placeholder="Find"
+                        value={findText}
+                        onChange={(e) => setFindText(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleNext(); }}
+                        className="w-full bg-[#101012] border border-[#222] text-[#fff] text-[11px] pl-2 pr-12 py-1 rounded-[2px] outline-none focus:border-[#58a6ff] transition-colors"
+                        />
+                        <span className="absolute right-2 top-[3px] text-[9px] text-[#888]">
+                        {findText ? (matches.length > 0 ? `${currentMatch} / ${matches.length}` : 'No results') : ''}
+                        </span>
+                     </div>
+                     <div className="flex bg-[#101012] border border-[#222] rounded-[2px] shrink-0 overflow-hidden">
+                        <button onClick={handlePrev} className="p-1 hover:bg-[#202022] text-[#888] hover:text-[#fff] border-r border-[#222] transition-colors"><ChevronUp size={12}/></button>
+                        <button onClick={handleNext} className="p-1 hover:bg-[#202022] text-[#888] hover:text-[#fff] transition-colors"><ChevronDown size={12}/></button>
+                     </div>
+                     <button onClick={() => setShowSearch(false)} className="p-1 text-[#888] hover:text-[#f85149] rounded-[2px] hover:bg-[#202022] transition-colors shrink-0"><X size={12}/></button>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                     <button onClick={replaceCurrent} className="px-2 py-1 bg-[#202022] border border-[#222] hover:border-[#888] text-[#fff] rounded-[2px] text-[9px] font-bold uppercase transition-colors uppercase tracking-wider">Replace</button>
-                     <button onClick={replaceAll} className="px-2 py-1 bg-[#202022] border border-[#222] hover:border-[#888] text-[#fff] rounded-[2px] text-[9px] font-bold uppercase transition-colors uppercase tracking-wider">All</button>
+                  
+                  {/* Replace Row */}
+                  <div className="flex items-center gap-2">
+                     <ReplaceIcon size={12} className="text-[#888] shrink-0" />
+                     <div className="relative flex-1">
+                        <input
+                        type="text"
+                        placeholder="Replace"
+                        value={replaceText}
+                        onChange={(e) => setReplaceText(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') replaceCurrent(); }}
+                        className="w-full bg-[#101012] border border-[#222] text-[#fff] text-[11px] pl-2 pr-2 py-1 rounded-[2px] outline-none focus:border-[#58a6ff] transition-colors"
+                        />
+                     </div>
+                     <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={replaceCurrent} className="px-2 py-1 bg-[#202022] border border-[#222] hover:border-[#888] text-[#fff] rounded-[2px] text-[9px] font-bold uppercase transition-colors uppercase tracking-wider">Replace</button>
+                        <button onClick={replaceAll} className="px-2 py-1 bg-[#202022] border border-[#222] hover:border-[#888] text-[#fff] rounded-[2px] text-[9px] font-bold uppercase transition-colors uppercase tracking-wider">All</button>
+                     </div>
                   </div>
                </div>
-            </div>
-         )}
+            )}
 
-         {/* Floating Editor Controls */}
-         <div className="absolute top-4 right-6 z-10 flex items-center gap-3">
-            <div className="bg-[#151515]/90 backdrop-blur-md border border-[#222] rounded-[2px] flex shadow-md overflow-hidden text-[#888]">
-               <button onClick={handleUndo} className="p-1.5 hover:bg-[#202022] hover:text-[#fff] border-r border-[#222] transition-colors" title="Undo (Cmd+Z)"><Undo size={12} /></button>
-               <button onClick={handleRedo} className="p-1.5 hover:bg-[#202022] hover:text-[#fff] border-r border-[#222] transition-colors" title="Redo (Cmd+Shift+Z)"><Redo size={12} /></button>
-               <button onClick={() => setShowSearch(!showSearch)} className="p-1.5 hover:bg-[#202022] hover:text-[#fff] transition-colors" title="Find and Replace (Cmd+F)"><Search size={12} /></button>
+            {/* Floating Editor Controls */}
+            <div className="absolute top-4 right-6 z-10 flex items-center gap-3">
+               <div className="bg-[#151515]/90 backdrop-blur-md border border-[#222] rounded-[2px] flex shadow-md overflow-hidden text-[#888]">
+                  <button onClick={handleUndo} className="p-1.5 hover:bg-[#202022] hover:text-[#fff] border-r border-[#222] transition-colors" title="Undo (Cmd+Z)"><Undo size={12} /></button>
+                  <button onClick={handleRedo} className="p-1.5 hover:bg-[#202022] hover:text-[#fff] border-r border-[#222] transition-colors" title="Redo (Cmd+Shift+Z)"><Redo size={12} /></button>
+                  <button onClick={() => setShowSearch(!showSearch)} className="p-1.5 hover:bg-[#202022] hover:text-[#fff] transition-colors" title="Find and Replace (Cmd+F)"><Search size={12} /></button>
+               </div>
             </div>
          </div>
+
+         {/* Bottom Interactive Diagnostics / Snippets Drawer */}
+         {bottomPanelTab !== 'none' && (
+           <div className="h-56 bg-[#0d1117] border-t border-[#30363d] flex flex-col shrink-0">
+             {/* Panel Header */}
+             <div className="bg-[#161b22] px-3 py-1.5 border-b border-[#30363d] flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                 <button
+                   onClick={() => setBottomPanelTab('problems')}
+                   className={`flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded transition-colors ${
+                     bottomPanelTab === 'problems'
+                       ? 'bg-[#1f6feb] text-white'
+                       : 'text-[#8b949e] hover:text-white'
+                   }`}
+                 >
+                   <Bug size={13} /> Problems ({diagnostics.length})
+                 </button>
+                 <button
+                   onClick={() => setBottomPanelTab('completions')}
+                   className={`flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded transition-colors ${
+                     bottomPanelTab === 'completions'
+                       ? 'bg-[#1f6feb] text-white'
+                       : 'text-[#8b949e] hover:text-white'
+                   }`}
+                 >
+                   <Zap size={13} className="text-[#e3b341]" /> {detectedResult.name} Completions ({languageCompletions.length})
+                 </button>
+               </div>
+               <button
+                 onClick={() => setBottomPanelTab('none')}
+                 className="p-1 text-[#8b949e] hover:text-white rounded hover:bg-[#30363d] transition-colors"
+                 title="Close Panel"
+               >
+                 <X size={13} />
+               </button>
+             </div>
+
+             {/* Problems List View */}
+             {bottomPanelTab === 'problems' && (
+               <div className="flex-1 overflow-y-auto p-2 font-mono text-xs divide-y divide-[#21262d]">
+                 {diagnostics.length === 0 ? (
+                   <div className="h-full flex flex-col items-center justify-center text-[#8b949e] py-6">
+                     <ShieldCheck size={28} className="text-[#3fb950] mb-2" />
+                     <p className="font-sans font-bold text-white text-sm">No Syntax Errors Detected</p>
+                     <p className="font-sans text-xs text-[#8b949e]">Your {detectedResult.name} code passes all grammar and structure checks.</p>
+                   </div>
+                 ) : (
+                   diagnostics.map((diag) => (
+                     <div
+                       key={diag.id}
+                       className="py-1.5 px-2 hover:bg-[#161b22] rounded flex items-start justify-between gap-3 group transition-colors"
+                     >
+                       <div 
+                         onClick={() => handleJumpToDiagnostic(diag)}
+                         className="flex items-start gap-2.5 flex-1 cursor-pointer"
+                       >
+                         {diag.severity === 'error' ? (
+                           <AlertCircle size={14} className="text-[#f85149] shrink-0 mt-0.5" />
+                         ) : diag.severity === 'warning' ? (
+                           <AlertTriangle size={14} className="text-[#d29922] shrink-0 mt-0.5" />
+                         ) : (
+                           <Info size={14} className="text-[#58a6ff] shrink-0 mt-0.5" />
+                         )}
+                         <div className="flex-1">
+                           <div className="flex items-center gap-2">
+                             <span className="text-[#e6edf3] font-medium">{diag.message}</span>
+                             <span className="text-[10px] px-1 bg-[#21262d] text-[#8b949e] rounded font-semibold">
+                               {diag.code}
+                             </span>
+                           </div>
+                           {diag.suggestion && (
+                             <div className="text-[11px] text-[#58a6ff] mt-0.5">
+                               💡 Suggestion: {diag.suggestion}
+                             </div>
+                           )}
+                         </div>
+                       </div>
+
+                       <div className="flex items-center gap-2 shrink-0">
+                         {diag.autoFixable && (
+                           <button
+                             onClick={() => handleApplyAutoFix(diag)}
+                             className="px-2 py-0.5 bg-[#238636] hover:bg-[#2ea043] text-white text-[10px] font-sans font-bold rounded flex items-center gap-1 transition-colors"
+                             title="Automatically apply recommended fix"
+                           >
+                             <Wrench size={10} /> Auto-Fix
+                           </button>
+                         )}
+                         <button
+                           onClick={() => handleJumpToDiagnostic(diag)}
+                           className="px-2 py-0.5 bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-[#58a6ff] text-[10px] rounded transition-colors"
+                         >
+                           Ln {diag.line}, Col {diag.column}
+                         </button>
+                       </div>
+                     </div>
+                   ))
+                 )}
+               </div>
+             )}
+
+             {/* Completions & Snippets Browser View */}
+             {bottomPanelTab === 'completions' && (
+               <div className="flex-1 overflow-y-auto p-3 font-sans text-xs">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                   {languageCompletions.length === 0 ? (
+                     <div className="col-span-full text-center text-[#8b949e] py-6">
+                       No pre-packaged snippets registered for {detectedResult.name}.
+                     </div>
+                   ) : (
+                     languageCompletions.map((item, idx) => (
+                       <div
+                         key={idx}
+                         className="bg-[#161b22] border border-[#30363d] hover:border-[#58a6ff] p-2.5 rounded flex flex-col justify-between transition-all"
+                       >
+                         <div>
+                           <div className="flex items-center justify-between mb-1">
+                             <span className="font-mono font-bold text-[#58a6ff]">{item.label}</span>
+                             <span className="text-[9px] uppercase px-1.5 py-0.5 bg-[#21262d] text-[#8b949e] rounded font-bold">
+                               {item.kind}
+                             </span>
+                           </div>
+                           <p className="text-[11px] text-[#e6edf3] font-medium mb-1">{item.detail}</p>
+                           <p className="text-[10px] text-[#8b949e] leading-snug line-clamp-2">{item.documentation}</p>
+                         </div>
+                         <button
+                           onClick={() => handleInsertSnippet(item)}
+                           className="mt-2.5 w-full py-1 bg-[#21262d] hover:bg-[#1f6feb] hover:text-white text-[#c9d1d9] text-[10px] font-bold rounded flex items-center justify-center gap-1 transition-colors"
+                         >
+                           <Code2 size={11} /> Insert at Cursor
+                         </button>
+                       </div>
+                     ))
+                   )}
+                 </div>
+               </div>
+             )}
+           </div>
+         )}
       </div>
 
       {/* Editor Status Bar */}
@@ -713,6 +965,14 @@ export default function CodeEditor({
           <span>Monaco: <strong className="text-[#58a6ff]">{editorConfig.monacoLanguage}</strong></span>
           <span>•</span>
           <span>Indent: {editorConfig.tabSize} spaces</span>
+          <span>•</span>
+          <button 
+            onClick={() => setBottomPanelTab(prev => prev === 'problems' ? 'none' : 'problems')}
+            className={`flex items-center gap-1 hover:underline cursor-pointer ${errorCount > 0 ? 'text-[#f85149]' : warningCount > 0 ? 'text-[#d29922]' : 'text-[#3fb950]'}`}
+          >
+            {errorCount > 0 ? <AlertCircle size={11} /> : <ShieldCheck size={11} />}
+            {errorCount} errors, {warningCount} warnings
+          </button>
         </div>
         <div className="flex items-center gap-3 text-[10px]">
           <span>Linter: {editorConfig.linterName}</span>

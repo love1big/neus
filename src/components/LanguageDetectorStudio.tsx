@@ -45,7 +45,12 @@ import {
   FileSpreadsheet,
   Globe,
   Boxes,
-  Database
+  Database,
+  Bug,
+  Wrench,
+  Info,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import {
   LanguageDetectorEngine,
@@ -57,6 +62,14 @@ import {
   LanguageEditorConfigurator,
   EditorConfigurationProfile
 } from '../utils/LanguageEditorConfigurator';
+import {
+  LanguageCompletionProvider,
+  LanguageCompletionItem
+} from '../utils/LanguageCompletionProvider';
+import {
+  LanguageErrorChecker,
+  DiagnosticError
+} from '../utils/LanguageErrorChecker';
 
 // Preset sample code snippets for quick testing
 const PRESET_SAMPLES: { name: string; filename: string; code: string; expectedLang: string }[] = [
@@ -281,7 +294,7 @@ export default function LanguageDetectorStudio() {
   const [manualOverrideLang, setManualOverrideLang] = useState<string>('auto');
   const [autoDetectEnabled, setAutoDetectEnabled] = useState<boolean>(true);
   const [isCopied, setIsCopied] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'editor' | 'diagnostics' | 'associations'>('editor');
+  const [activeTab, setActiveTab] = useState<'editor' | 'completions' | 'diagnostics' | 'associations'>('editor');
   const [customExtensions, setCustomExtensions] = useState<Record<string, string>>({
     '.nxs': 'typescript',
     '.shader': 'glsl',
@@ -293,6 +306,8 @@ export default function LanguageDetectorStudio() {
   const [newExtLang, setNewExtLang] = useState('typescript');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
 
   // Compute live language detection
   const detectedResult: DetectedLanguageResult = useMemo(() => {
@@ -347,6 +362,33 @@ export default function LanguageDetectorStudio() {
     return LanguageEditorConfigurator.getConfiguration(detectedResult);
   }, [detectedResult]);
 
+  // Compute language completions
+  const languageCompletions = useMemo(() => {
+    return LanguageCompletionProvider.getCompletions(detectedResult.id);
+  }, [detectedResult.id]);
+
+  // Compute real-time syntax & semantic diagnostics
+  const diagnostics = useMemo(() => {
+    return LanguageErrorChecker.checkErrors(detectedResult.id, code);
+  }, [detectedResult.id, code]);
+
+  // Monaco life-cycle mount
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+    LanguageCompletionProvider.registerWithMonaco(monaco);
+  };
+
+  // Sync markers with Monaco model
+  useEffect(() => {
+    if (monacoRef.current && editorRef.current) {
+      const model = editorRef.current.getModel();
+      if (model) {
+        LanguageErrorChecker.applyMonacoMarkers(monacoRef.current, model, diagnostics);
+      }
+    }
+  }, [diagnostics]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -390,6 +432,40 @@ export default function LanguageDetectorStudio() {
     navigator.clipboard.writeText(code);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleInsertSnippet = (item: LanguageCompletionItem) => {
+    if (editorRef.current) {
+      const selection = editorRef.current.getSelection();
+      const insertSnippet = item.insertText.replace(/\$\{\d+:?([^}]*)\}/g, '$1').replace(/\$\d+/g, '');
+      const op = {
+        range: selection,
+        text: insertSnippet,
+        forceMoveMarkers: true
+      };
+      editorRef.current.executeEdits('snippet-insert', [op]);
+      editorRef.current.focus();
+      setActiveTab('editor');
+    } else {
+      setCode(prev => prev + '\n\n' + item.insertText.replace(/\$\{\d+:?([^}]*)\}/g, '$1').replace(/\$\d+/g, ''));
+      setActiveTab('editor');
+    }
+  };
+
+  const handleApplyAutoFix = (diag: DiagnosticError) => {
+    const fixed = LanguageErrorChecker.applyQuickFix(code, diag);
+    setCode(fixed);
+  };
+
+  const handleJumpToLine = (line: number, column: number) => {
+    setActiveTab('editor');
+    setTimeout(() => {
+      if (editorRef.current) {
+        editorRef.current.revealPositionInCenter({ lineNumber: line, column: column });
+        editorRef.current.setPosition({ lineNumber: line, column: column });
+        editorRef.current.focus();
+      }
+    }, 50);
   };
 
   return (
@@ -595,6 +671,17 @@ export default function LanguageDetectorStudio() {
               Monaco Syntax Editor
             </button>
             <button
+              onClick={() => setActiveTab('completions')}
+              className={`h-full flex items-center gap-1.5 px-2 border-b-2 font-medium transition-colors ${
+                activeTab === 'completions'
+                  ? 'border-[#58a6ff] text-white'
+                  : 'border-transparent text-[#8b949e] hover:text-[#c9d1d9]'
+              }`}
+            >
+              <Zap size={13} className="text-[#e3b341]" />
+              Code Completions ({languageCompletions.length})
+            </button>
+            <button
               onClick={() => setActiveTab('diagnostics')}
               className={`h-full flex items-center gap-1.5 px-2 border-b-2 font-medium transition-colors ${
                 activeTab === 'diagnostics'
@@ -602,8 +689,8 @@ export default function LanguageDetectorStudio() {
                   : 'border-transparent text-[#8b949e] hover:text-[#c9d1d9]'
               }`}
             >
-              <Cpu size={13} />
-              Detection Diagnostics & AST Profiles
+              <Bug size={13} className={diagnostics.length > 0 ? "text-[#f85149]" : "text-[#3fb950]"} />
+              Error Diagnostics ({diagnostics.length})
             </button>
             <button
               onClick={() => setActiveTab('associations')}
@@ -627,10 +714,28 @@ export default function LanguageDetectorStudio() {
                   language={editorConfig.monacoLanguage}
                   value={code}
                   theme="vs-dark"
+                  onMount={handleEditorDidMount}
                   onChange={(val) => setCode(val || '')}
                   options={LanguageEditorConfigurator.getMonacoOptions(editorConfig)}
                 />
               </div>
+
+              {/* Diagnostics mini footer banner */}
+              {diagnostics.length > 0 && (
+                <div className="bg-[#1f1917] border-t border-[#f85149]/30 px-4 py-1.5 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-[#f85149]">
+                    <AlertCircle size={14} />
+                    <span className="font-bold">{diagnostics.length} issue(s) detected in {detectedResult.name} code</span>
+                    <span className="text-[#8b949e]">— first error: {diagnostics[0].message}</span>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('diagnostics')}
+                    className="text-[#58a6ff] hover:underline font-bold text-[11px]"
+                  >
+                    View All Diagnostics →
+                  </button>
+                </div>
+              )}
 
               {/* Bottom Config Details Bar */}
               <div className="bg-[#101012] border-t border-[#21262d] px-4 py-1.5 flex flex-wrap items-center justify-between text-[11px] text-[#8b949e] shrink-0 font-mono">
@@ -642,19 +747,77 @@ export default function LanguageDetectorStudio() {
                   <span>Linter: <strong className="text-white">{editorConfig.linterName}</strong></span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span>Comment Prefix: <code className="bg-[#21262d] px-1 py-0.5 rounded text-white">{editorConfig.commentPrefix}</code></span>
+                  <span>Comment: <code className="bg-[#21262d] px-1 py-0.5 rounded text-white">{editorConfig.commentPrefix}</code></span>
                   <span>|</span>
-                  <span>Tab Size: {editorConfig.tabSize}</span>
+                  <span>Tab: {editorConfig.tabSize} spaces</span>
                   <span>|</span>
-                  <span>Encoding: {editorConfig.encoding}</span>
+                  <span>{editorConfig.encoding}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Tab 2: Diagnostics & AST Profiles */}
+          {/* Tab 2: Language-Specific Code Completions & Snippets */}
+          {activeTab === 'completions' && (
+            <div className="flex-1 p-6 overflow-y-auto space-y-6">
+              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Zap size={16} className="text-[#e3b341]" />
+                      IntelliSense Snippets & Keyword Dictionary for {detectedResult.name}
+                    </h3>
+                    <p className="text-xs text-[#8b949e] mt-1">
+                      These completion items are automatically registered with Monaco's CompletionItemProvider when {detectedResult.name} syntax is active.
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-1 bg-[#1f6feb]/20 border border-[#1f6feb]/40 text-[#58a6ff] rounded font-mono text-xs font-bold">
+                    {languageCompletions.length} Snippets Registered
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                  {languageCompletions.length === 0 ? (
+                    <div className="col-span-full py-8 text-center text-[#8b949e] text-xs">
+                      No custom snippets registered for {detectedResult.name}. Standard Monaco syntax tokens apply.
+                    </div>
+                  ) : (
+                    languageCompletions.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-[#0d1117] border border-[#21262d] hover:border-[#58a6ff] p-3 rounded-lg flex flex-col justify-between transition-all group"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-mono font-bold text-[#58a6ff] text-xs">{item.label}</span>
+                            <span className="text-[9px] uppercase px-1.5 py-0.5 bg-[#21262d] text-[#8b949e] rounded font-bold">
+                              {item.kind}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#e6edf3] font-medium mb-1">{item.detail}</p>
+                          <p className="text-[11px] text-[#8b949e] leading-snug mb-3">{item.documentation}</p>
+                          <pre className="p-2 bg-[#161b22] border border-[#30363d] rounded text-[10px] font-mono text-[#7ee787] overflow-x-auto whitespace-pre-wrap max-h-24">
+                            {item.insertText}
+                          </pre>
+                        </div>
+                        <button
+                          onClick={() => handleInsertSnippet(item)}
+                          className="mt-3 w-full py-1.5 bg-[#21262d] group-hover:bg-[#1f6feb] group-hover:text-white text-[#c9d1d9] text-xs font-bold rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <Code2 size={12} /> Insert into Editor
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Diagnostics & Error Checking */}
           {activeTab === 'diagnostics' && (
             <div className="flex-1 p-6 overflow-y-auto space-y-6">
+              {/* Header Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
                   <h3 className="text-xs font-bold text-[#8b949e] uppercase mb-2 flex items-center gap-1.5">
@@ -683,25 +846,25 @@ export default function LanguageDetectorStudio() {
 
                 <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
                   <h3 className="text-xs font-bold text-[#8b949e] uppercase mb-2 flex items-center gap-1.5">
-                    <Sliders size={14} className="text-[#58a6ff]" />
-                    Configured Editor Settings
+                    <Bug size={14} className="text-[#f85149]" />
+                    Real-time Syntax Diagnostics
                   </h3>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between py-1 border-b border-[#21262d]">
-                      <span className="text-[#8b949e]">Monaco Tokenizer ID</span>
-                      <span className="font-mono text-[#58a6ff]">{editorConfig.monacoLanguage}</span>
+                      <span className="text-[#8b949e]">Total Errors</span>
+                      <span className="font-bold text-[#f85149]">{diagnostics.filter(d => d.severity === 'error').length}</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-[#21262d]">
-                      <span className="text-[#8b949e]">Tab Spacing</span>
-                      <span className="font-mono text-white">{editorConfig.tabSize} spaces</span>
+                      <span className="text-[#8b949e]">Total Warnings</span>
+                      <span className="font-bold text-[#d29922]">{diagnostics.filter(d => d.severity === 'warning').length}</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-[#21262d]">
-                      <span className="text-[#8b949e]">Line Comment</span>
-                      <span className="font-mono text-white">{editorConfig.commentPrefix}</span>
+                      <span className="text-[#8b949e]">Auto-Fixable</span>
+                      <span className="font-bold text-[#3fb950]">{diagnostics.filter(d => d.autoFixable).length} issues</span>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-[#8b949e]">Word Wrap Mode</span>
-                      <span className="font-mono text-white">{editorConfig.wordWrap}</span>
+                      <span className="text-[#8b949e]">Monaco Markers</span>
+                      <span className="text-white font-mono">Synchronized</span>
                     </div>
                   </div>
                 </div>
@@ -730,6 +893,84 @@ export default function LanguageDetectorStudio() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Diagnostics List with Jump and Quick Fix */}
+              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <ShieldAlert size={16} className="text-[#f85149]" />
+                      Language-Specific Diagnostics Engine
+                    </h3>
+                    <p className="text-xs text-[#8b949e] mt-0.5">
+                      Evaluates language rules (e.g. Python indentation & colons, TypeScript types, GLSL headers, Rust semicolons).
+                    </p>
+                  </div>
+                  {diagnostics.length === 0 && (
+                    <span className="flex items-center gap-1.5 text-xs text-[#3fb950] font-bold bg-[#238636]/20 border border-[#238636]/40 px-2.5 py-1 rounded">
+                      <ShieldCheck size={14} /> Zero Errors Found
+                    </span>
+                  )}
+                </div>
+
+                {diagnostics.length === 0 ? (
+                  <div className="text-center py-8 bg-[#0d1117] border border-[#21262d] rounded-lg">
+                    <ShieldCheck size={36} className="text-[#3fb950] mx-auto mb-2" />
+                    <p className="font-bold text-white text-sm">Clean Syntax</p>
+                    <p className="text-xs text-[#8b949e] mt-1">No grammar or semantic anomalies detected in the current {detectedResult.name} code.</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[#21262d] border border-[#21262d] rounded-lg overflow-hidden bg-[#0d1117]">
+                    {diagnostics.map((diag) => (
+                      <div
+                        key={diag.id}
+                        className="p-3 flex items-start justify-between gap-4 hover:bg-[#161b22] transition-colors"
+                      >
+                        <div className="flex items-start gap-3 flex-1">
+                          {diag.severity === 'error' ? (
+                            <AlertCircle size={16} className="text-[#f85149] shrink-0 mt-0.5" />
+                          ) : diag.severity === 'warning' ? (
+                            <AlertTriangle size={16} className="text-[#d29922] shrink-0 mt-0.5" />
+                          ) : (
+                            <Info size={16} className="text-[#58a6ff] shrink-0 mt-0.5" />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-white text-xs">{diag.message}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-[#21262d] text-[#8b949e] font-mono rounded">
+                                {diag.code}
+                              </span>
+                            </div>
+                            {diag.suggestion && (
+                              <p className="text-xs text-[#58a6ff] mt-1 font-mono">
+                                💡 Fix: {diag.suggestion}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {diag.autoFixable && (
+                            <button
+                              onClick={() => handleApplyAutoFix(diag)}
+                              className="px-2.5 py-1 bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+                              title="Apply automatic fix"
+                            >
+                              <Wrench size={12} /> Apply Quick Fix
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleJumpToLine(diag.line, diag.column)}
+                            className="px-2.5 py-1 bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-[#58a6ff] text-xs font-mono rounded transition-colors cursor-pointer"
+                          >
+                            Line {diag.line}:{diag.column}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Matched Token Breakdown */}

@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
@@ -9,11 +9,14 @@ import CommandPalette from "./components/CommandPalette";
 import NotificationSystem from "./components/NotificationSystem";
 import VisualScriptEditor from "./components/VisualScriptEditor";
 import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts";
+import { RecentFilesTracker } from "./utils/RecentFilesTracker";
 
 const TextureEditor = React.lazy(() => import('./components/TextureEditor'));
 
 export const componentImports: Record<string, () => Promise<any>> = {
   OfflineAIContinuousErrorLearningStudio: () => import('./components/OfflineAIContinuousErrorLearningStudio'),
+  UniversalInFlightWatchdogView: () => import('./components/UniversalInFlightWatchdogView'),
+  MultiModalArtifactHealerView: () => import('./components/MultiModalArtifactHealerView'),
   ArchitectureHeatmap: () => import('./components/ArchitectureHeatmap'),
   ModuleDependencyVisualizerStudio: () => import('./components/ModuleDependencyVisualizerStudio'),
   InteractiveDebuggerStudio: () => import('./components/InteractiveDebuggerStudio'),
@@ -126,6 +129,9 @@ export const componentImports: Record<string, () => Promise<any>> = {
   TerrainImportUtility: () => import("./components/TerrainImportUtility"),
   TerrainGenerator: () => import("./components/TerrainGenerator"),
   ThaiPhoneticsEngine: () => import("./components/ThaiPhoneticsEngine"),
+  NaturalVocalVoiceStudio: () => import("./components/NaturalVocalVoiceStudio"),
+  AIOfflineVocalMusicWorkstation: () => import("./components/AIOfflineVocalMusicWorkstation"),
+  VoiceActorAI: () => import("./components/VoiceActorAI"),
   NexusPluginArchitect: () => import("./components/NexusPluginArchitect"),
   TopologyUVPro: () => import("./components/TopologyUVPro"),
   AIOfflineMapGenerator: () => import("./components/AIOfflineMapGenerator"),
@@ -619,6 +625,8 @@ export const tools = [
       category: "🤖 AI & CODE",
       subTools: [
         { id: "OfflineAIContinuousErrorLearningStudio", title: "🛡️ AI Continuous Error-Learning & Immunity", icon: <ShieldCheck size={16} /> },
+        { id: "UniversalInFlightWatchdogView", title: "⚡ Live In-Flight Watchdog Radar", icon: <Zap size={16} /> },
+        { id: "MultiModalArtifactHealerView", title: "🧬 Multi-Modal Artifact Self-Healer", icon: <Wrench size={16} /> },
         { id: "ArchitectureHeatmap", title: "🔥 Architecture Heatmap & Churn", icon: <Flame size={16} /> },
         { id: "ModuleDependencyVisualizerStudio", title: "🌐 Module & Node Dependency Tree", icon: <Network size={16} /> },
         { id: "InteractiveDebuggerStudio", title: "⚡ Interactive Code Debugger", icon: <Bug size={16} /> },
@@ -750,6 +758,11 @@ export const tools = [
       activeColor: "text-[#e3b341]",
       category: "🎵 AUDIO",
       subTools: [
+        { id: "AIOfflineVocalMusicWorkstation", title: "🎼 AI Offline Vocal, ACE-Step & Neural TTS Studio", icon: <Disc size={16} /> },
+        { id: "NaturalVocalVoiceStudio", title: "🎙️ Ultra-Natural Vocal, Dubbing & Singing Studio", icon: <Mic2 size={16} /> },
+        { id: "ThaiPhoneticsEngine", title: "🇹🇭 100% Thai Phonetics & Tone Engine", icon: <Globe size={16} /> },
+        { id: "VoiceActorAI", title: "🎭 Neural Character Dubbing & Emotions", icon: <Wand2 size={16} /> },
+        { id: "VoiceMusicStudio", title: "🎤 Expressive Singing & Melodic Synthesis", icon: <Music size={16} /> },
         { id: "OfflineGameAudioStudio", title: "⚡ Offline Dynamic Audio & FX Engine", icon: <Volume2 size={16} /> },
         { id: "MegaAudioDSPStudio", title: "⚡ 500x Audio DSP & Mastering Tools", icon: <Volume2 size={16} /> },
         { id: "OmniAudioStudio", title: "DSP Audio Studio", icon: <Mic2 size={16} /> },
@@ -889,6 +902,39 @@ export default function App() {
 
   React.useEffect(() => {
     localStorage.setItem("omni_activeTool", activeTool);
+
+    // Track active tool in Recent Files
+    let toolTitle = activeTool;
+    let toolCategory = "🌟 CORE";
+    let toolHubId = undefined;
+
+    // Search in tools hierarchy
+    const directTool = tools.find(t => t.id === activeTool);
+    if (directTool) {
+      toolTitle = directTool.title;
+      toolCategory = directTool.category || "🌟 CORE";
+    } else {
+      // Check in subtools
+      for (const hub of tools) {
+        const foundSub = hub.subTools?.find((st: any) => st.id === activeTool);
+        if (foundSub) {
+          toolTitle = foundSub.title;
+          toolCategory = hub.category || hub.title || "🌟 CORE";
+          toolHubId = hub.id;
+          break;
+        }
+      }
+    }
+
+    RecentFilesTracker.trackOpenedItem({
+      id: activeTool,
+      name: toolTitle,
+      type: 'component',
+      category: toolCategory,
+      hubId: toolHubId,
+      path: `/src/components/${activeTool}.tsx`,
+      description: `${toolCategory} • ${toolTitle}`
+    });
   }, [activeTool]);
 
   React.useEffect(() => {

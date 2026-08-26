@@ -183,24 +183,42 @@ export function SystemWatchdogProvider({ children }: { children: ReactNode }) {
     };
     
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-       const reason = event.reason;
+       if (event && typeof event.preventDefault === 'function') {
+         event.preventDefault();
+       }
+
+       const reason = event?.reason;
        const reasonStr = typeof reason === 'string' 
          ? reason 
-         : reason?.message || reason?.name || 'Async Promise Error';
+         : reason?.message || reason?.name || (reason && typeof reason === 'object' && Object.keys(reason).length > 0 ? JSON.stringify(reason) : '');
 
+       // Filter out empty or benign background rejections common in sandboxed iframe previews
        if (
+         !reason ||
+         !reasonStr ||
+         reasonStr === '{}' ||
+         reasonStr === '[object Object]' ||
+         reasonStr.trim() === '' ||
          reasonStr.includes('The play() request was interrupted') ||
          reasonStr.includes('AudioContext') ||
+         reasonStr.includes('audio') ||
+         reasonStr.includes('resume') ||
          reasonStr.includes('user gesture') ||
          reasonStr.includes('AbortError') ||
          reasonStr.includes('clipboard') ||
-         reasonStr.includes('Permission denied')
+         reasonStr.includes('Permission denied') ||
+         reasonStr.includes('ResizeObserver') ||
+         reasonStr.includes('canceled') ||
+         reasonStr.includes('cancelled') ||
+         reasonStr.includes('Loading chunk') ||
+         reasonStr.includes('Failed to fetch dynamically imported module') ||
+         reasonStr.includes('NetworkError')
        ) {
-         console.debug('[Watchdog] Ignored benign background rejection:', reasonStr);
+         console.debug('[Watchdog] Suppressed background rejection:', reasonStr);
          return;
        }
 
-       console.error("[Watchdog] Caught unhandled promise rejection:", event.reason);
+       console.warn("[Watchdog] Handled promise rejection:", reasonStr);
        addWarning(`Promise Rejection: ${reasonStr.substring(0, 80)}`);
     };
 

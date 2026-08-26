@@ -21,7 +21,7 @@ import {
   Brain, ShieldCheck, ShieldAlert, Bug, Zap, Cpu, 
   RefreshCw, Download, Upload, Search, Trash2, Filter, 
   Sparkles, CheckCircle2, AlertTriangle, Network, Layers, 
-  Activity, Play, Save, FileCode, Check
+  Activity, Play, Save, FileCode, Check, Wrench
 } from 'lucide-react';
 import { 
   BugDomain, 
@@ -36,9 +36,11 @@ import {
 import OfflineErrorRegressionShieldView from './OfflineErrorRegressionShieldView';
 import OfflineBugKnowledgeGraphView from './OfflineBugKnowledgeGraphView';
 import OfflineErrorPatchSynthesizerView from './OfflineErrorPatchSynthesizerView';
+import UniversalInFlightWatchdogView from './UniversalInFlightWatchdogView';
+import MultiModalArtifactHealerView from './MultiModalArtifactHealerView';
 
 export default function OfflineAIContinuousErrorLearningStudio({ onSelectTool }: { onSelectTool?: (toolId: string) => void }) {
-  const [activeTab, setActiveTab] = useState<'vault' | 'shield' | 'ingest' | 'simulator' | 'graph'>('vault');
+  const [activeTab, setActiveTab] = useState<'vault' | 'watchdog' | 'healer' | 'shield' | 'ingest' | 'simulator' | 'graph'>('vault');
   const [records, setRecords] = useState<BugKnowledgeRecord[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<BugKnowledgeRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -212,6 +214,30 @@ export default function OfflineAIContinuousErrorLearningStudio({ onSelectTool }:
           <span className="px-1.5 py-0.2 bg-[#21262d] rounded-full text-[10px] font-mono text-[#8b949e]">
             {records.length}
           </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('watchdog')}
+          className={`px-3 py-2 border-b-2 flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
+            activeTab === 'watchdog'
+              ? 'border-[#58a6ff] text-white font-bold bg-[#0d1117]'
+              : 'border-transparent text-[#8b949e] hover:text-white'
+          }`}
+        >
+          <Zap size={14} className="text-[#58a6ff]" />
+          <span>ดักจับขณะ AI สร้างงานสด (In-Flight Watchdog)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('healer')}
+          className={`px-3 py-2 border-b-2 flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
+            activeTab === 'healer'
+              ? 'border-[#58a6ff] text-white font-bold bg-[#0d1117]'
+              : 'border-transparent text-[#8b949e] hover:text-white'
+          }`}
+        >
+          <Wrench size={14} className="text-[#3fb950]" />
+          <span>ผ่าตัดซ่อมชิ้นงาน Multi-Modal (Artifact Self-Healer)</span>
         </button>
 
         <button
@@ -435,13 +461,19 @@ export default function OfflineAIContinuousErrorLearningStudio({ onSelectTool }:
           </div>
         )}
 
-        {/* TAB 2: CODE INTERCEPTOR */}
+        {/* TAB 2: IN-FLIGHT WATCHDOG */}
+        {activeTab === 'watchdog' && <UniversalInFlightWatchdogView />}
+
+        {/* TAB 3: MULTI-MODAL ARTIFACT SELF-HEALER */}
+        {activeTab === 'healer' && <MultiModalArtifactHealerView />}
+
+        {/* TAB 4: CODE INTERCEPTOR */}
         {activeTab === 'shield' && <OfflineErrorRegressionShieldView />}
 
-        {/* TAB 3: LIVE INGESTION LAB */}
+        {/* TAB 5: LIVE INGESTION LAB */}
         {activeTab === 'ingest' && <OfflineErrorPatchSynthesizerView onRecordLearned={loadData} />}
 
-        {/* TAB 4: MULTI-DOMAIN SIMULATOR & STRESS TESTBED */}
+        {/* TAB 6: MULTI-DOMAIN SIMULATOR & STRESS TESTBED */}
         {activeTab === 'simulator' && (
           <div className="flex-1 flex flex-col p-4 overflow-y-auto space-y-4">
             <div className="bg-[#161b22] border border-[#30363d] p-4 rounded-lg">
