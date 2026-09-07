@@ -43,6 +43,56 @@ export default function AIOfflineDownloader() {
 
   const OFFLINE_AIs: OFFLINE_AI[] = [
     {
+      id: 'ai_qwen_coder_32b',
+      name: '0. Qwen 2.5 Coder 32B (SOTA Flagship - Latest & Free)',
+      icon: <Sparkles size={28} className="text-emerald-400" />,
+      desc: 'สุดยอดโมเดลเขียนโค้ดและสถาปัตยกรรมเกมเทียบชั้น GPT-4o / Claude 3.5 Sonnet (100% Free)',
+      details: 'โมเดลเรือธง 32.5B สำหรับงานสร้างเกมระดับ AAA, Engine Systems, Refactoring ข้ามหลายไฟล์, ออกแบบ Shaders และ Advanced Algorithms รองรับ 128k context window',
+      size: '18.4 GB (GGUF Q4)',
+      modelId: 'Qwen2.5-Coder-32B-Instruct-GGUF',
+      tags: ['Qwen 2.5', 'Flagship SOTA', '128k Context', 'Open Weights Free'],
+      updateAvailable: true,
+      updateSize: '320 MB',
+      finetunes: [
+        { id: 'qwen_game_arch', name: 'AAA Game Engine Core Systems', size: '2.4 GB' },
+        { id: 'qwen_shader_vfx', name: 'HLSL/GLSL Raymarching Shaders', size: '850 MB' }
+      ]
+    },
+    {
+      id: 'ai_qwen_coder_7b',
+      name: '0.1. Qwen 2.5 Coder 7B (WebGPU Browser Native - Free)',
+      icon: <Zap size={28} className="text-cyan-400" />,
+      desc: 'โมเดลเขียนโค้ดยอดนิยม รันตรงในเบราว์เซอร์ผ่าน WebGPU ฟรี 100% ไม่ต้องต่อเน็ต',
+      details: 'ขนาด 7.6B พลังการเขียนโค้ด 88.4% HumanEval โหลดรันบน WebGPU/WASM ภายในเครื่องได้ทันที ตอบสนองไว ปลอดภัย ไม่ส่งข้อมูลออกนอกเครื่อง',
+      size: '4.3 GB',
+      modelId: 'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC',
+      tags: ['Qwen 2.5', 'WebGPU Native', 'Zero-Latency', 'Offline Free'],
+      updateAvailable: true,
+      updateSize: '65 MB'
+    },
+    {
+      id: 'ai_qwen_72b',
+      name: '0.2. Qwen 2.5 72B Instruct (Deep Multilingual Reasoning - Free)',
+      icon: <BrainCircuit size={28} className="text-purple-400" />,
+      desc: 'โมเดลภาษาทั่วไปและตรรกะระดับโลก (World-Class Multilingual & Game Lore)',
+      details: 'พลังสมองกล 72.7B เชี่ยวชาญทั้งภาษาไทย/อังกฤษ/ญี่ปุ่น การสร้างเนื้อเรื่องเกม เควสต์ และการคำนวณคณิตศาสตร์/ฟิสิกส์ชั้นสูง',
+      size: '41.5 GB (GGUF Q4)',
+      modelId: 'Qwen2.5-72B-Instruct-GGUF',
+      tags: ['Qwen 2.5', '72B Flagship', 'Multilingual', 'Deep Logic'],
+      updateAvailable: false
+    },
+    {
+      id: 'ai_qwen_vl_7b',
+      name: '0.3. Qwen 2.5-VL 7B (Vision & UI Multimodal - Free)',
+      icon: <Eye size={28} className="text-pink-400" />,
+      desc: 'โมเดลวิเคราะห์ภาพ 3D, หน้าจอ UI, และกราฟิกแบบ Multimodal 100% ฟรี',
+      details: 'วิเคราะห์ Screenshots, กราฟ Shader, และ Blueprint เกม เพื่อตรวจจับข้อผิดพลาดของภาพและจัดวาง Layout UI ได้อย่างสมบูรณ์แบบ',
+      size: '5.2 GB (GGUF Q4)',
+      modelId: 'Qwen2.5-VL-7B-Instruct-GGUF',
+      tags: ['Qwen 2.5-VL', 'Multimodal Vision', 'UI/UX Audit', 'Free'],
+      updateAvailable: false
+    },
+    {
       id: 'ai_commander',
       name: '1. AI Offline ผู้บัญชาการ (Commander)',
       icon: <ShieldAlert size={28} className="text-[#f85149]" />,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Activity,
   Cpu,
@@ -32,6 +32,9 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { useSystemTelemetry, setSimulatedStressProfile } from '../lib/telemetry';
+import ComputeTaskDispatcherPanel from './ComputeTaskDispatcherPanel';
+import { ProcessAffinityManagerNode } from '../utils/ProcessAffinityManagerNode';
+import { ProcessBinding } from '../types/processAffinity';
 
 export interface SystemResourceMonitorProps {
   mode?: 'overlay' | 'panel' | 'sidebar';
@@ -57,6 +60,21 @@ export default function SystemResourceMonitor({
   const [selectedSubsystem, setSelectedSubsystem] = useState<'all' | 'cpu' | 'gpu' | 'memory' | 'simulation'>('all');
   const [showStressTester, setShowStressTester] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showComputeDispatcher, setShowComputeDispatcher] = useState(false);
+  const [processBindings, setProcessBindings] = useState<ProcessBinding[]>([]);
+
+  // Subscribe to ProcessAffinityManagerNode updates
+  useEffect(() => {
+    const manager = ProcessAffinityManagerNode.getInstance();
+    const unsubscribe = manager.subscribe((bindings) => {
+      setProcessBindings(bindings);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const pinnedCount = useMemo(() => {
+    return processBindings.filter(b => b.isPinned).length;
+  }, [processBindings]);
 
   // Dragging state for overlay mode
   const [isDragging, setIsDragging] = useState(false);
@@ -122,6 +140,19 @@ export default function SystemResourceMonitor({
       engineVersion: 'Nexus 3D Engine v2.4 (WebGL 2.0 / WebGPU Ready)',
       activeProfile: stats.activeSimulationProfile,
       currentMetrics: stats,
+      computeTaskDispatcher: {
+        pinnedProcessesCount: pinnedCount,
+        bindings: processBindings.map(b => ({
+          process: b.name,
+          key: b.processKey,
+          targetTier: b.targetTier,
+          pinnedDeviceId: b.pinnedDeviceId,
+          pinnedVendor: b.pinnedVendor,
+          isPinned: b.isPinned,
+          latencyMs: b.latencyMs,
+          loadPercent: b.currentLoadPercent
+        }))
+      },
       historySamples: {
         cpu: cpuHistory,
         gpu: gpuHistory,
@@ -145,6 +176,11 @@ export default function SystemResourceMonitor({
 
   // Copy Markdown summary
   const copyMarkdownReport = () => {
+    const pinnedSummary = processBindings
+      .filter(b => b.isPinned)
+      .map(b => `${b.processKey} ➔ ${b.pinnedVendor ? `[${b.pinnedVendor}] ` : ''}${b.targetTier}`)
+      .join(', ');
+
     const md = `### 🚀 Nexus 3D System Resource Telemetry
 - **Timestamp**: ${new Date().toLocaleTimeString()}
 - **Profile**: ${stats.activeSimulationProfile}
@@ -153,6 +189,7 @@ export default function SystemResourceMonitor({
 - **GPU**: ${stats.gpu.toFixed(1)}% | ${stats.gpuTemp}°C | VRAM: ${stats.vramUsedGB} / ${stats.vramTotalGB} GB (${stats.vram.toFixed(1)}%)
 - **RAM**: ${stats.ramUsedGB} / ${stats.ramTotalGB} GB (${stats.ram.toFixed(1)}%) | Heap: ${stats.heapUsedMB} MB
 - **3D Render**: ${stats.drawCalls.toLocaleString()} Draw Calls | ${(stats.triangles / 1000000).toFixed(2)}M Triangles
+- **Compute Task Dispatcher**: ${pinnedCount > 0 ? `Pinned (${pinnedCount}): ${pinnedSummary}` : 'Auto-Balanced'}
 - **Diagnosis**: ${diagnosis.title} - ${diagnosis.detail}
 `;
     navigator.clipboard.writeText(md);
@@ -257,6 +294,26 @@ export default function SystemResourceMonitor({
 
         {/* Header Action Tools */}
         <div className="flex items-center gap-1.5">
+          {/* Compute Task Dispatcher Toggle */}
+          <button
+            onClick={() => setShowComputeDispatcher(!showComputeDispatcher)}
+            title={showComputeDispatcher ? 'Hide Compute Task Dispatcher' : 'Toggle Compute Task Dispatcher (Pin Processes to Hardware Tiers & Devices)'}
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+              showComputeDispatcher
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                : 'bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#2d333b]'
+            }`}
+          >
+            <Zap size={13} className={showComputeDispatcher ? 'text-amber-300 fill-amber-300' : 'text-blue-400'} />
+            <span className="hidden sm:inline">Compute Task Dispatcher</span>
+            <span className="sm:hidden">Dispatcher</span>
+            {pinnedCount > 0 && (
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 border border-blue-400/40">
+                {pinnedCount}
+              </span>
+            )}
+          </button>
+
           {/* Pause / Resume */}
           <button
             onClick={() => setIsPaused(!isPaused)}
@@ -399,6 +456,13 @@ export default function SystemResourceMonitor({
             <div className="text-[11px] text-gray-300 mt-0.5">{diagnosis.detail}</div>
           </div>
         </div>
+
+        {/* Compute Task Dispatcher: Dedicated Hardware Tier & Vendor Device Pinning */}
+        {showComputeDispatcher && (
+          <div className="animate-in fade-in zoom-in-95 duration-200">
+            <ComputeTaskDispatcherPanel onClose={() => setShowComputeDispatcher(false)} />
+          </div>
+        )}
 
         {isExpanded && (
           <>

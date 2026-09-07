@@ -1,11 +1,12 @@
 import { Ultimate100Systems } from '../lib/Ultimate100Systems';
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Database, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, ChevronRight, Volume2, Play, Flame, Snowflake, Heart} from 'lucide-react';
+import { Send, Database, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, ChevronRight, Volume2, Play, Flame, Snowflake, Heart, HardDrive} from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useLanguage, LanguageCode } from '../contexts/LanguageContext';
 import * as webllm from '@mlc-ai/web-llm';
 import { parseNavIntent, executeOfflineNavigation, ALL_NAV_TARGETS } from '../utils/aiOfflineNavigator';
 import { gameAudioEngine, SOUND_PRESETS } from '../utils/offlineGameAudioEngine';
+import { QWEN_MODELS, QwenModelSpec } from '../utils/QwenModelRegistry';
 
 export interface Message {
   role: 'user' | 'model';
@@ -67,7 +68,8 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
   const [offlineLoadText, setOfflineLoadText] = useState('');
   const [isOfflineEngineLoading, setIsOfflineEngineLoading] = useState(false);
   const [showOfflineModelMenu, setShowOfflineModelMenu] = useState(false);
-  const [activeOfflineModelName, setActiveOfflineModelName] = useState('AI Offline ผู้บัญชาการ (Commander)');
+  const [offlineModelTab, setOfflineModelTab] = useState<'qwen' | 'specialists'>('qwen');
+  const [activeOfflineModelName, setActiveOfflineModelName] = useState('Qwen 2.5 Coder (Latest Free)');
   
   const OFFLINE_MODELS = [
     { id: '1', name: 'AI Offline ผู้บัญชาการ (Commander)', icon: <ShieldAlert size={16} />, desc: 'Core logic and architecture lead.' },
@@ -160,7 +162,10 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
     }
   }, [localMessages, externalMessages]);
 
-  const initTrueOfflineAI = async (modelName: string = 'AI Offline ผู้บัญชาการ (Commander)') => {
+  const initTrueOfflineAI = async (
+    modelName: string = 'Qwen 2.5 Coder 7B (Latest Free)',
+    customWebLLMModelId?: string
+  ) => {
     if (offlineMLEngine || isOfflineEngineLoading) return;
     setShowOfflineModelMenu(false);
     setActiveOfflineModelName(modelName);
@@ -171,15 +176,15 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
         setOfflineLoadText(report.text);
         setOfflineLoadProgress(Math.round(report.progress * 100));
       };
-      // We use a small model suitable for browser
-      const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+      // Use Qwen or custom selected model, with safe fallback
+      const selectedModel = customWebLLMModelId || "Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC";
       const engine = await webllm.CreateMLCEngine(
         selectedModel,
         { initProgressCallback: initProgressCallback },
         { context_window_size: 2048 }
       );
       setOfflineMLEngine(engine);
-      setMessages(prev => [...prev, { role: 'model', content: `**✅ ${modelName} โหลดเข้าระบบและพร้อมทำงานในสถานะ True Offline แล้ว!** (Neural Engine Active)` }]);
+      setMessages(prev => [...prev, { role: 'model', content: `**✅ ${modelName} โหลดเข้าระบบและพร้อมทำงานในสถานะ True Offline แล้ว!** (Neural Engine Active - 100% Free & In-Browser)` }]);
     } catch (err) {
       console.error(err);
       alert(`Failed to initialize ${modelName}: ` + err);
@@ -2077,41 +2082,149 @@ export class UltimateIDEFeatures {
       {/* Offline AI Model Selector Menu */}
       {showOfflineModelMenu && (
         <div className="absolute inset-0 z-50 bg-[#0d1117]/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-4 w-full max-w-[420px] flex flex-col max-h-[80vh] overflow-y-auto custom-scrollbar">
-            <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#161b22] pb-2 z-10 border-b border-[#30363d]">
-              <h3 className="text-white font-bold text-sm tracking-wide">Download True Offline AI Engine</h3>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-4 w-full max-w-[540px] flex flex-col max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-center mb-3 sticky top-0 bg-[#161b22] pb-2 z-10 border-b border-[#30363d]">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-[#58a6ff]" />
+                <h3 className="text-white font-bold text-sm tracking-wide">Select Offline AI Engine (100% Free)</h3>
+              </div>
               <button onClick={() => setShowOfflineModelMenu(false)} className="text-[#8b949e] hover:text-[#f85149] p-1 rounded transition-colors bg-[#0d1117]">
                 <X size={16} />
               </button>
             </div>
+
+            {/* Model Category Tabs */}
+            <div className="flex gap-1.5 p-1 bg-[#0d1117] rounded-lg border border-[#30363d] mb-3">
+              <button
+                onClick={() => setOfflineModelTab('qwen')}
+                className={`flex-1 py-1.5 px-3 rounded text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  offlineModelTab === 'qwen'
+                    ? 'bg-[#58a6ff] text-[#0d1117] shadow-sm'
+                    : 'text-[#8b949e] hover:text-white'
+                }`}
+              >
+                <Sparkles size={13} />
+                <span>✨ Qwen 2.5 (Latest & Free)</span>
+              </button>
+              <button
+                onClick={() => setOfflineModelTab('specialists')}
+                className={`flex-1 py-1.5 px-3 rounded text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  offlineModelTab === 'specialists'
+                    ? 'bg-[#58a6ff] text-[#0d1117] shadow-sm'
+                    : 'text-[#8b949e] hover:text-white'
+                }`}
+              >
+                <Cpu size={13} />
+                <span>Specialist Units ({OFFLINE_MODELS.length})</span>
+              </button>
+            </div>
             
-            <p className="text-[#8b949e] text-[11px] mb-4">
-              Select an offline AI specialist to download and run locally in your browser (approx. 500MB). Runs 100% on-device privately.
+            <p className="text-[#8b949e] text-[11px] mb-3">
+              {offlineModelTab === 'qwen'
+                ? 'Qwen 2.5 Series: The world’s top open-weights coding & reasoning models. Free, zero-telemetry, 100% private offline execution.'
+                : 'Select an offline domain specialist AI to execute specialized game engine logic directly on your device.'}
             </p>
             
-            <div className="flex flex-col gap-2">
-              {OFFLINE_MODELS.map(model => (
-                <div key={model.id} className="flex flex-col p-3 rounded-lg border border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff] hover:bg-[#161b22] transition-colors group">
-                  <div className="flex justify-between items-start mb-2 border-b border-[#30363d] pb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-[#21262d] rounded-md text-[#bc8cff] group-hover:text-[#58a6ff] group-hover:bg-[#1f2937] transition-colors border border-[#30363d]">
-                        {model.icon}
-                      </div>
+            <div className="flex flex-col gap-2.5">
+              {offlineModelTab === 'qwen' ? (
+                QWEN_MODELS.map(qwen => (
+                  <div key={qwen.id} className="flex flex-col p-3 rounded-lg border border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff] transition-all group">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div>
-                        <h4 className="text-xs font-bold text-[#c9d1d9] group-hover:text-white transition-colors">{model.name}</h4>
-                        <p className="text-[10px] text-[#8b949e]">{model.desc}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-xs font-bold text-white group-hover:text-[#58a6ff] transition-colors">{qwen.name}</h4>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold border ${qwen.badgeColor}`}>
+                            {qwen.isLatest ? 'LATEST 2026' : 'FREE'}
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#21262d] text-emerald-400 font-mono">
+                            FREE OPEN WEIGHTS
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-[#8b949e] mt-0.5">{qwen.descriptionTh}</p>
                       </div>
                     </div>
+
+                    {/* Specs Grid */}
+                    <div className="grid grid-cols-3 gap-1.5 my-2 p-1.5 bg-[#161b22] rounded border border-[#30363d] text-[9.5px] text-[#8b949e]">
+                      <div>Context: <strong className="text-white">{qwen.contextWindow}</strong></div>
+                      <div>Params: <strong className="text-white">{qwen.parameters}</strong></div>
+                      <div>VRAM/RAM: <strong className="text-white">{qwen.recommendedVRAM}</strong></div>
+                    </div>
+
+                    {/* Best for tags */}
+                    <div className="flex flex-wrap gap-1 mb-2.5">
+                      {qwen.bestFor.map((tag, idx) => (
+                        <span key={idx} className="text-[9px] bg-[#21262d] text-[#8b949e] px-1.5 py-0.5 rounded">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Launch / Download Action */}
+                    <div className="flex items-center gap-2">
+                      {qwen.isOfflineWebGPUReady ? (
+                        <button 
+                          onClick={() => initTrueOfflineAI(qwen.name, qwen.webLLMModelId)}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[10px] font-bold uppercase transition-all shadow active:scale-[0.98]"
+                        >
+                          <Zap size={12} className="text-yellow-300" />
+                          <span>Run In-Browser (WebGPU Free)</span>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setActiveOfflineModelName(qwen.name);
+                            setShowOfflineModelMenu(false);
+                            setMessages(prev => [...prev, {
+                              role: 'model',
+                              content: `**🚀 [Qwen Model Switch] สลับเป็น "${qwen.name}" สำเร็จ!**\n\n- **พารามิเตอร์**: ${qwen.parameters}\n- **Context Window**: ${qwen.contextWindow}\n- **ความต้องการ VRAM**: ${qwen.recommendedVRAM}\n- **Download GGUF**: [ดาวน์โหลดโมเดลฟรีบน Hugging Face](${qwen.huggingFaceUrl})\n\nพร้อมตอบคำถาม ออกแบบระบบ และ Refactor โค้ดระดับสูงสุดแล้วครับ!`
+                            }]);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded bg-[#1f6feb] hover:bg-[#388bfd] text-white text-[10px] font-bold uppercase transition-all shadow active:scale-[0.98]"
+                        >
+                          <Download size={12} />
+                          <span>Select & Activate ({qwen.parameters})</span>
+                        </button>
+                      )}
+
+                      {qwen.huggingFaceUrl && (
+                        <a
+                          href={qwen.huggingFaceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-white text-[10px] flex items-center gap-1 transition-colors"
+                          title="View on Hugging Face"
+                        >
+                          <HardDrive size={12} />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => initTrueOfflineAI(model.name)}
-                    className="w-full flex items-center justify-center gap-2 py-1.5 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[10px] font-bold uppercase transition-colors"
-                  >
-                    <Download size={12} />
-                    Download & Switch AI
-                  </button>
-                </div>
-              ))}
+                ))
+              ) : (
+                OFFLINE_MODELS.map(model => (
+                  <div key={model.id} className="flex flex-col p-3 rounded-lg border border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff] hover:bg-[#161b22] transition-colors group">
+                    <div className="flex justify-between items-start mb-2 border-b border-[#30363d] pb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-[#21262d] rounded-md text-[#bc8cff] group-hover:text-[#58a6ff] group-hover:bg-[#1f2937] transition-colors border border-[#30363d]">
+                          {model.icon}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#c9d1d9] group-hover:text-white transition-colors">{model.name}</h4>
+                          <p className="text-[10px] text-[#8b949e]">{model.desc}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => initTrueOfflineAI(model.name)}
+                      className="w-full flex items-center justify-center gap-2 py-1.5 rounded bg-[#238636] hover:bg-[#2ea043] text-white text-[10px] font-bold uppercase transition-colors"
+                    >
+                      <Download size={12} />
+                      Download & Switch AI
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

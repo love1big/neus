@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Cpu, Server, Zap, HardDrive, RefreshCw, Power, Activity, Network, ShieldAlert, Monitor, CheckCircle2, Layers, Settings, Play, Pause, Gauge, Radio, Sparkles, Terminal, Sliders, AlertTriangle, Disc, Box, Flame, BarChart3, Database, Workflow, ShieldCheck, Microchip} from 'lucide-react';
+import HeterogeneousMultiComputeStudio from './HeterogeneousMultiComputeStudio';
 
 export type VendorCategory = 'NVIDIA' | 'AMD' | 'Intel' | 'Apple' | 'Qualcomm/ARM' | 'Retro/3dfx' | 'Retro/Matrox' | 'Retro/S3/VIA';
 export type ComputeNodeType = 'Discrete GPU' | 'Integrated Onboard' | 'Neural NPU' | 'CPU SIMD Threads' | 'Legacy Virtualized GPU';
@@ -25,7 +26,7 @@ interface ComputeNode {
 }
 
 export default function GPUComputeCluster() {
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'MODERN_GPU' | 'RETRO_GPU' | 'CPU_NPU' | 'DISPATCHER'>('DASHBOARD');
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'HETEROGENEOUS' | 'MODERN_GPU' | 'RETRO_GPU' | 'CPU_NPU' | 'DISPATCHER'>('DASHBOARD');
   const [clusterOnline, setClusterOnline] = useState(true);
   const [isStressTesting, setIsStressTesting] = useState(false);
   const [detectedBrowserVendor, setDetectedBrowserVendor] = useState<string>('Detecting...');
@@ -493,6 +494,16 @@ export default function GPUComputeCluster() {
         </button>
 
         <button
+          onClick={() => setActiveTab('HETEROGENEOUS')}
+          className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition cursor-pointer shrink-0 ${
+            activeTab === 'HETEROGENEOUS' ? 'border-[#58a6ff] text-white bg-[#1f6feb]/20' : 'border-transparent text-[#58a6ff] hover:text-white'
+          }`}
+        >
+          <Microchip size={14} className="text-[#58a6ff]" />
+          <span>⚡ Multi-Vendor Studio (NVIDIA/AMD/Intel/Apple/Groq)</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('MODERN_GPU')}
           className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition cursor-pointer shrink-0 ${
             activeTab === 'MODERN_GPU' ? 'border-[#58a6ff] text-white bg-[#21262d]/50' : 'border-transparent text-[#8b949e] hover:text-white'
@@ -532,6 +543,13 @@ export default function GPUComputeCluster() {
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 overflow-y-auto p-6 bg-[#050505]">
         
+        {/* --- TAB: HETEROGENEOUS MULTI-VENDOR STUDIO --- */}
+        {activeTab === 'HETEROGENEOUS' && (
+          <div className="h-full w-full">
+            <HeterogeneousMultiComputeStudio />
+          </div>
+        )}
+
         {/* --- TAB 1: MASTER UNIFIED OVERVIEW --- */}
         {activeTab === 'DASHBOARD' && (
           <div className="space-y-6 max-w-7xl mx-auto">

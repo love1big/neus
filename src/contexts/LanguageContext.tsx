@@ -11,6 +11,11 @@ interface LanguageContextType {
   setLanguage: (lang: LanguageCode) => void;
   langName: string;
   t: (key: string) => string;
+  // Code Editor Programming Language Override & Sync State
+  editorLanguage: string;
+  setEditorLanguage: (lang: string) => void;
+  codeLanguage: string;
+  setCodeLanguage: (lang: string) => void;
 }
 
 export const languages: { code: LanguageCode, name: string }[] = [
@@ -141,6 +146,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [language, setLanguage] = useState<LanguageCode>('en');
+  const [editorLanguage, setEditorLanguage] = useState<string>('auto');
 
   const t = (key: string): string => {
     // If not found in current lang, fallback to english, if not found then return key
@@ -150,7 +156,16 @@ export const LanguageProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const langName = languages.find(l => l.code === language)?.name || 'English';
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, langName, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      langName, 
+      t,
+      editorLanguage,
+      setEditorLanguage,
+      codeLanguage: editorLanguage,
+      setCodeLanguage: setEditorLanguage
+    }}>
       {children}
     </LanguageContext.Provider>
   );

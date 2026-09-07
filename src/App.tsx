@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc, Languages } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
@@ -8,12 +8,34 @@ import OmniEngineIDE from "./components/OmniEngineIDE";
 import CommandPalette from "./components/CommandPalette";
 import NotificationSystem from "./components/NotificationSystem";
 import VisualScriptEditor from "./components/VisualScriptEditor";
+import OptimizationHelperTooltip from "./components/OptimizationHelperTooltip";
+import PerformanceHUD from "./components/PerformanceHUD";
+import StudioRecoveryModal from "./components/StudioRecoveryModal";
 import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts";
+import { useStudioAutoSave } from "./hooks/useStudioAutoSave";
 import { RecentFilesTracker } from "./utils/RecentFilesTracker";
 
 const TextureEditor = React.lazy(() => import('./components/TextureEditor'));
 
 export const componentImports: Record<string, () => Promise<any>> = {
+  AssetDependencyGraphStudio: () => import('./components/AssetDependencyGraphStudio'),
+  OmniMasterCreatorSuite: () => import('./components/OmniMasterCreatorSuite'),
+  OmniGameCreationStudio: () => import('./components/OmniGameCreationStudio'),
+  OmniSoftwareIDEStudio: () => import('./components/OmniSoftwareIDEStudio'),
+  Omni3D2DVRModelStudio: () => import('./components/Omni3D2DVRModelStudio'),
+  OmniWorldMapStudio: () => import('./components/OmniWorldMapStudio'),
+  OmniTextureCinematicStudio: () => import('./components/OmniTextureCinematicStudio'),
+  OmniMusicVocalDAWStudio: () => import('./components/OmniMusicVocalDAWStudio'),
+  GlobalOfflineAITranslationStudio: () => import('./components/GlobalOfflineAITranslationStudio'),
+  GlobalPhonetics30Studio: () => import('./components/GlobalPhonetics30Studio'),
+  ThaiRoyalSpeechAndSingingStudio: () => import('./components/ThaiRoyalSpeechAndSingingStudio'),
+  OmniLocalizationStudio: () => import('./components/OmniLocalizationStudio'),
+  OmniPCBDesignStudio: () => import('./components/OmniPCBDesignStudio'),
+  AdvancedWorldGenStudio: () => import('./components/AdvancedWorldGenStudio'),
+  Procedural3DMeshSynthesisStudio: () => import('./components/Procedural3DMeshSynthesisStudio'),
+  AdvancedLocomotionMotionStudio: () => import('./components/AdvancedLocomotionMotionStudio'),
+  HighPerformanceNetcodeStudio: () => import('./components/HighPerformanceNetcodeStudio'),
+  CinematicCutsceneTextureStudio: () => import('./components/CinematicCutsceneTextureStudio'),
   OfflineAIContinuousErrorLearningStudio: () => import('./components/OfflineAIContinuousErrorLearningStudio'),
   UniversalInFlightWatchdogView: () => import('./components/UniversalInFlightWatchdogView'),
   MultiModalArtifactHealerView: () => import('./components/MultiModalArtifactHealerView'),
@@ -21,6 +43,7 @@ export const componentImports: Record<string, () => Promise<any>> = {
   ModuleDependencyVisualizerStudio: () => import('./components/ModuleDependencyVisualizerStudio'),
   InteractiveDebuggerStudio: () => import('./components/InteractiveDebuggerStudio'),
   AIAssetAutoTagOrganizer: () => import('./components/AIAssetAutoTagOrganizer'),
+  BatchAIProcessingDashboard: () => import('./components/BatchAIProcessingDashboard'),
   MegaAudioDSPStudio: () => import('./components/MegaAudioDSPStudio'),
   MegaCutsceneCinematicStudio: () => import('./components/MegaCutsceneCinematicStudio'),
   OmniMegaEngine300Studio: () => import('./components/OmniMegaEngine300Studio'),
@@ -66,6 +89,7 @@ export const componentImports: Record<string, () => Promise<any>> = {
   OfflineGameAudioStudio: () => import("./components/OfflineGameAudioStudio"),
   VoiceMusicStudio: () => import("./components/VoiceMusicStudio"),
   GPUComputeCluster: () => import("./components/GPUComputeCluster"),
+  HeterogeneousMultiComputeStudio: () => import("./components/HeterogeneousMultiComputeStudio"),
   AIOfflineOCREngine: () => import("./components/AIOfflineOCREngine"),
   AIOfflinePCBStudio: () => import("./components/AIOfflinePCBStudio"),
   AICommandCenter: () => import("./components/AICommandCenter"),
@@ -129,6 +153,8 @@ export const componentImports: Record<string, () => Promise<any>> = {
   TerrainImportUtility: () => import("./components/TerrainImportUtility"),
   TerrainGenerator: () => import("./components/TerrainGenerator"),
   ThaiPhoneticsEngine: () => import("./components/ThaiPhoneticsEngine"),
+  ThaiVoiceDubbingStudio: () => import("./components/ThaiVoiceDubbingStudio"),
+  VoiceQualityAssuranceStudio: () => import("./components/VoiceQualityAssuranceStudio"),
   NaturalVocalVoiceStudio: () => import("./components/NaturalVocalVoiceStudio"),
   AIOfflineVocalMusicWorkstation: () => import("./components/AIOfflineVocalMusicWorkstation"),
   VoiceActorAI: () => import("./components/VoiceActorAI"),
@@ -600,295 +626,234 @@ const ModuleDependencyVisualizerStudio = React.lazy(componentImports.ModuleDepen
 const OfflineAIContinuousErrorLearningStudio = React.lazy(componentImports.OfflineAIContinuousErrorLearningStudio);
 
 export const tools = [
-    // 1. 🌟 DASHBOARD & PROJECT
+    // 1. 🚀 OMNI MASTER CREATOR SUITE (8-IN-1 ECOSYSTEM)
+    {
+      id: "OmniMasterCreatorSuite",
+      title: "🚀 Omni 8-in-1 Creator Suite",
+      icon: <Sparkles size={20} />,
+      activeColor: "text-amber-400",
+      category: "🚀 FLAGSHIP CREATOR SUITE",
+      subTools: [
+        { id: "OmniMasterCreatorSuite", title: "⭐ Master 8-in-1 Hub", icon: <Sparkles size={16} /> },
+        { id: "OmniGameCreationStudio", title: "1. โปรแกรมสร้างเกม เขียนเกม (Game Studio)", icon: <Gamepad2 size={16} /> },
+        { id: "OmniSoftwareIDEStudio", title: "2. โปรแกรมสร้างโปรแกรม เขียนโค้ด (IDE Studio)", icon: <Code2 size={16} /> },
+        { id: "Omni3D2DVRModelStudio", title: "3. โปรแกรมสร้างโมเดล 3D/2D/VR (Model Studio)", icon: <Box size={16} /> },
+        { id: "OmniWorldMapStudio", title: "4. โปรแกรมสร้างแผนที่ 3D/2D/VR (World Map)", icon: <Globe size={16} /> },
+        { id: "OmniTextureCinematicStudio", title: "5. เท็กเจอร์ รูปภาพ คัทซีนเกม (Cinematics)", icon: <Film size={16} /> },
+        { id: "OmniMusicVocalDAWStudio", title: "6. เสียงดนตรี เสียงพากย์ เพลง (Music DAW)", icon: <Disc size={16} /> },
+        { id: "OmniLocalizationStudio", title: "7. โปรแกรมแปลภาษาสำหรับเกม (Localization)", icon: <Languages size={16} /> },
+        { id: "GlobalOfflineAITranslationStudio", title: "⭐ สตูดิโอแปลภาษา AI ออฟไลน์ 70+ ภาษา (70+ AI Translation & 8D Audit)", icon: <Globe size={16} /> },
+        { id: "OmniPCBDesignStudio", title: "8. โปรแกรมจัดการ PCB มืออาชีพ (PCB CAD)", icon: <CircuitBoard size={16} /> }
+      ]
+    },
+
+    // 2. 🌟 DASHBOARD & PROJECT MANAGEMENT
     {
       id: "ProjectHub",
-      title: "Dashboard & Project Hub",
+      title: "Project & Pipeline Hub",
       icon: <Command size={20} />,
       activeColor: "text-[#f85149]",
-      category: "🌟 CORE",
+      category: "🌟 PROJECT & PIPELINE",
       subTools: [
-        { id: "OmniCreatorMaster", title: "Global Omniverse", icon: <Command size={16} /> },
-        { id: "QuickStart", title: "Home / Project Hub", icon: <Rocket size={16} /> },
-        { id: "ProjectManagementSystem", title: "Agile & Task Board", icon: <FolderTree size={16} /> },
-        { id: "ProjectProgressDashboard", title: "Dev Progress Tracker", icon: <Trophy size={16} /> },
-        { id: "LiveOpsManager", title: "LiveOps & A/B Testing", icon: <Globe size={16} /> }
+        { id: "OmniCreatorMaster", title: "Global Omniverse Dashboard", icon: <Command size={16} /> },
+        { id: "QuickStart", title: "Project Hub & Quick Start", icon: <Rocket size={16} /> },
+        { id: "ProjectManagementSystem", title: "Agile Kanban & Sprint Board", icon: <FolderTree size={16} /> },
+        { id: "ProjectProgressDashboard", title: "Dev Progress & Milestones Tracker", icon: <Trophy size={16} /> },
+        { id: "LiveOpsManager", title: "LiveOps, Remote Config & A/B Testing", icon: <Globe size={16} /> }
       ]
     },
 
-    // 2. 🤖 AI & CODE IDE
+    // 3. 💻 UNIFIED AI & CODE DEVELOPMENT
     {
       id: "CodeIDEHub",
-      title: "AI & Code IDE",
-      icon: <TerminalSquare size={20} />,
+      title: "AI & Code IDE Studio",
+      icon: <Code2 size={20} />,
       activeColor: "text-[#ff7b72]",
-      category: "🤖 AI & CODE",
+      category: "💻 AI & CODE IDE",
       subTools: [
-        { id: "OfflineAIContinuousErrorLearningStudio", title: "🛡️ AI Continuous Error-Learning & Immunity", icon: <ShieldCheck size={16} /> },
+        { id: "OmniSoftwareIDEStudio", title: "Master Multi-File IDE & VM Runner", icon: <Code2 size={16} /> },
+        { id: "AICodeAgentStudio", title: "AI Code Copilot & Agent Studio", icon: <Bot size={16} /> },
+        { id: "OfflineAIContinuousErrorLearningStudio", title: "🛡️ AI Error-Learning & Immunity Studio", icon: <ShieldCheck size={16} /> },
         { id: "UniversalInFlightWatchdogView", title: "⚡ Live In-Flight Watchdog Radar", icon: <Zap size={16} /> },
-        { id: "MultiModalArtifactHealerView", title: "🧬 Multi-Modal Artifact Self-Healer", icon: <Wrench size={16} /> },
-        { id: "ArchitectureHeatmap", title: "🔥 Architecture Heatmap & Churn", icon: <Flame size={16} /> },
-        { id: "ModuleDependencyVisualizerStudio", title: "🌐 Module & Node Dependency Tree", icon: <Network size={16} /> },
-        { id: "InteractiveDebuggerStudio", title: "⚡ Interactive Code Debugger", icon: <Bug size={16} /> },
-        { id: "MegaCodeIDEMaster", title: "⚡ 100x Code & AST Tools", icon: <Code2 size={16} /> },
-        { id: "AICodeAgentStudio", title: "AI Code Agent Studio", icon: <Cpu size={16} /> },
-        { id: "OfflineAICodingAssistant", title: "Offline AI Assistant", icon: <Bot size={16} /> },
-        { id: "Select", title: "Text Code Editor", icon: <Code2 size={16} /> },
-        { id: "VisualScripting", title: "Visual Script Editor", icon: <Network size={16} /> },
-        { id: "VisualFlowDebugger", title: "Flow Debugger", icon: <Bug size={16} /> },
-        { id: "CodeProfilerTracer", title: "Profiler & Tracer", icon: <Activity size={16} /> }
+        { id: "InteractiveDebuggerStudio", title: "⚡ Interactive Step Debugger", icon: <Bug size={16} /> },
+        { id: "VisualScripting", title: "Visual Node Blueprint & Logic", icon: <Network size={16} /> },
+        { id: "CodeProfilerTracer", title: "Code Profiler & Function Call Tracer", icon: <Activity size={16} /> },
+        { id: "ModuleDependencyVisualizerStudio", title: "Module & Node Dependency Tree", icon: <Network size={16} /> }
       ]
     },
 
-    // 2.5 🧠 AI HUB & OFFLINE MODELS
+    // 4. 🧠 OFFLINE AI INTELLIGENCE & NEURAL HUB
     {
       id: "AIHubMaster",
-      title: "AI Hub & Offline Models",
+      title: "Offline AI & Neural Models",
       icon: <BrainCircuit size={20} />,
       activeColor: "text-[#8a2be2]",
-      category: "🤖 AI & CODE",
+      category: "🤖 NEURAL & MACHINE LEARNING",
       subTools: [
+        { id: "GlobalOfflineAITranslationStudio", title: "🌟 🌐 AI แปลภาษาออฟไลน์ 70++ ภาษาทั่วโลก", icon: <Languages size={16} /> },
+        { id: "HeterogeneousMultiComputeStudio", title: "⚡ 🖥️ คลัสเตอร์ CPU/GPU/NPU หลากยี่ห้อ (Multi-Vendor Grid)", icon: <Microchip size={16} /> },
         { id: "OmniMegaEngine300Studio", title: "⚡ 335+ Mega Engine & AI Suite", icon: <Cpu size={16} /> },
-        { id: "OfflineAIEngineSuite", title: "50x Offline AI Suite", icon: <Brain size={16} /> },
-        { id: "AIHubMasterMenu", title: "AI Master Hub", icon: <Brain size={16} /> },
-        { id: "OfflineAIDataEngineManager", title: "Offline AI High-Speed Data Engine", icon: <Zap size={16} /> },
-        { id: "UltimateOfflineAIStudio", title: "Ultimate Offline AI", icon: <Cpu size={16} /> },
-        { id: "LocalAIStudio", title: "Local AI Models", icon: <HardDrive size={16} /> },
-        { id: "AIOfflineDownloader", title: "Offline Downloader", icon: <Download size={16} /> },
-        { id: "AIOfflineMapGenerator", title: "Offline AI Map", icon: <Map size={16} /> },
-        { id: "AIOfflineModelGenerator", title: "Offline AI 3D Model", icon: <Box size={16} /> },
-        { id: "AIOfflineUIUXGenerator", title: "Offline AI UI/UX", icon: <LayoutDashboard size={16} /> },
-        { id: "AICodeQualityAuditor", title: "Code Auditor and Standards", icon: <ShieldCheck size={16} /> },
-        { id: "AIOfflineImageGenerator", title: "Offline AI Image", icon: <Image size={16} /> }
+        { id: "OfflineAIEngineSuite", title: "50x Offline AI Model Farm", icon: <Brain size={16} /> },
+        { id: "OfflineAIDataEngineManager", title: "High-Speed Offline Vector Engine", icon: <Zap size={16} /> },
+        { id: "AIOfflineDownloader", title: "Local Model & Weights Downloader", icon: <Download size={16} /> },
+        { id: "AICodeQualityAuditor", title: "Code Standards & Security Auditor", icon: <ShieldCheck size={16} /> }
       ]
     },
 
-    // 3. 🌍 WORLD & ENVIRONMENT
+    // 5. 🌍 WORLD, MAP & LEVEL ARCHITECTURE
     {
       id: "WorldHub",
-      title: "World & Environment",
+      title: "World & Level Studio",
       icon: <Globe size={20} />,
       activeColor: "text-[#58a6ff]",
-      category: "🌍 WORLD BUILDING",
+      category: "🌍 LEVEL & ENVIRONMENT",
       subTools: [
-        { id: "MapMegaToolsExtension", title: "⚡ 300x Map & Level Tools", icon: <Mountain size={16} /> },
-        { id: "OmniWorldBuilder", title: "MegaWorld Builder", icon: <Globe size={16} /> },
-        { id: "MapEdit", title: "Map & Level Editor", icon: <Map size={16} /> },
-        { id: "AdvancedPCGEngine", title: "Procedural City & Terrain", icon: <Mountain size={16} /> },
-        { id: "WeatherAtmosphereEditor", title: "Weather & Sky", icon: <CloudRain size={16} /> },
-        { id: "NavMeshBakingStudio", title: "NavMesh Baker", icon: <Route size={16} /> }
+        { id: "AdvancedWorldGenStudio", title: "🌟 AAA Procedural World & Map Studio", icon: <Globe size={16} /> },
+        { id: "OmniWorldMapStudio", title: "Fractal Biome & 3D/2D World Map", icon: <Globe size={16} /> },
+        { id: "OmniWorldBuilder", title: "MegaWorld Landscape & Foliage", icon: <Mountain size={16} /> },
+        { id: "MapEdit", title: "Tilemap & Level Editor", icon: <Map size={16} /> },
+        { id: "AdvancedPCGEngine", title: "Procedural Cities, Terrain & Dungeons", icon: <Building size={16} /> },
+        { id: "WeatherAtmosphereEditor", title: "Dynamic Weather & Volumetric Sky", icon: <CloudRain size={16} /> },
+        { id: "NavMeshBakingStudio", title: "NavMesh Baker & A* Path Debugger", icon: <Route size={16} /> }
       ]
     },
 
-    // 4. 🎨 3D MODELING & ART
+    // 6. 🎨 3D MODELING, SCULPTING & HARDWARE CAD
     {
       id: "ArtStudioHub",
-      title: "3D Modeling & Art",
+      title: "3D Modeling & Hardware CAD",
       icon: <Box size={20} />,
       activeColor: "text-[#e3b341]",
-      category: "🎨 ART STUDIO",
+      category: "🎨 3D & HARDWARE DESIGN",
       subTools: [
-        { id: "AIAssetAutoTagOrganizer", title: "⚡ AI Model & Texture Auto-Tagger", icon: <FolderTree size={16} /> },
-        { id: "Mega3DModelStudio", title: "⚡ 500x 3D Modeling Tools", icon: <Box size={16} /> },
-        { id: "Modeling", title: "3D Modeling Studio", icon: <Box size={16} /> },
-        { id: "RealTimeHouse3DPrintStudio", title: "3D House CAD & Print Slicer", icon: <Home size={16} /> },
-        { id: "ElectronicCircuitPCBStudio", title: "PCB & Electronic Circuit Studio", icon: <CircuitBoard size={16} /> },
-        { id: "ZBrushStyleSculptingStudio", title: "Sculpting Studio", icon: <Palette size={16} /> },
-        { id: "PhotogrammetryMeshBuilder", title: "Photogrammetry", icon: <Camera size={16} /> },
-        { id: "ModelOptimizer", title: "Model Optimizer", icon: <Minimize size={16} /> },
-        { id: "DestructibleMeshEditor", title: "Destruction Editor", icon: <Scissors size={16} /> }
+        { id: "AssetDependencyGraphStudio", title: "🕸️ Asset Dependency Graph (Force Topology)", icon: <Network size={16} /> },
+        { id: "Procedural3DMeshSynthesisStudio", title: "🌟 AAA Procedural 3D Mesh Synthesis Studio", icon: <Box size={16} /> },
+        { id: "Omni3D2DVRModelStudio", title: "3D/2D/VR Parametric Mesh Studio", icon: <Box size={16} /> },
+        { id: "ZBrushStyleSculptingStudio", title: "Multi-Res Sculpting Studio", icon: <Palette size={16} /> },
+        { id: "RealTimeHouse3DPrintStudio", title: "3D Architectural CAD & Slicer", icon: <Home size={16} /> },
+        { id: "OmniPCBDesignStudio", title: "Professional Multi-Layer PCB CAD", icon: <CircuitBoard size={16} /> },
+        { id: "PhotogrammetryMeshBuilder", title: "3D Photogrammetry Scanner", icon: <Camera size={16} /> },
+        { id: "DestructibleMeshEditor", title: "Mesh Destruction & Voronoi Fracture", icon: <Scissors size={16} /> },
+        { id: "ModelOptimizer", title: "LOD Generator & Mesh Optimizer", icon: <Minimize size={16} /> }
       ]
     },
 
-    // 5. 🖌️ TEXTURE & MATERIALS
+    // 7. 🖌️ TEXTURES, SHADERS & PBR MATERIALS
     {
       id: "TextureHub",
-      title: "Texture & Materials",
+      title: "Textures, Shaders & PBR",
       icon: <Palette size={20} />,
       activeColor: "text-[#ff9800]",
-      category: "🎨 ART STUDIO",
+      category: "🎨 TEXTURES & SHADERS",
       subTools: [
-        { id: "TexturePCBMasterStudio", title: "⚡ 600x Texture & PCB Tools", icon: <CircuitBoard size={16} /> },
-        { id: "TextureEdit", title: "Texture Manager", icon: <Image size={16} /> },
-        { id: "PBRTextureQualityAuditor", title: "PBR Texture Quality Auditor", icon: <Layers size={16} /> },
-        { id: "ImageEdit", title: "Texture Painter", icon: <Palette size={16} /> },
-        { id: "VisualShaderGraphEditor", title: "Visual Shader Graph", icon: <Layers size={16} /> },
-        { id: "MaterialInstanceEditor", title: "Material Instances", icon: <Layers size={16} /> },
-        { id: "AITextureGenerator", title: "AI Texture Gen", icon: <Sparkles size={16} /> }
+        { id: "CinematicCutsceneTextureStudio", title: "🌟 AAA Procedural Texture & PBR Baker", icon: <Layers size={16} /> },
+        { id: "OmniTextureCinematicStudio", title: "4-Channel PBR Texture Synthesis", icon: <Layers size={16} /> },
+        { id: "BatchAIProcessingDashboard", title: "🤖 Multi-Agent Batch AI PBR Synthesis", icon: <Cpu size={16} /> },
+        { id: "VisualShaderGraphEditor", title: "Visual Node Shader Graph", icon: <Network size={16} /> },
+        { id: "MaterialInstanceEditor", title: "Dynamic Material Instances", icon: <Layers size={16} /> },
+        { id: "PBRTextureQualityAuditor", title: "PBR & Normal Map Quality Auditor", icon: <ShieldCheck size={16} /> },
+        { id: "ImageEdit", title: "2D Texture Painter & Layers", icon: <Palette size={16} /> },
+        { id: "DecalProjectorManager", title: "Surface Decals & Stickers Projector", icon: <Sticker size={16} /> }
       ]
     },
 
-    // 6. 🎬 CINEMATICS & ANIMATION
+    // 8. 🎬 ANIMATION & CINEMATIC SEQUENCING
     {
       id: "AnimationHub",
       title: "Cinematics & Animation",
       icon: <Clapperboard size={20} />,
       activeColor: "text-[#bc8cff]",
-      category: "🎬 ANIMATION",
+      category: "🎬 ANIMATION & CINEMATICS",
       subTools: [
-        { id: "MegaCutsceneCinematicStudio", title: "⚡ 300x Cinematic & Director Tools", icon: <Film size={16} /> },
-        { id: "Sequencer", title: "Cinematic Sequencer", icon: <Clapperboard size={16} /> },
-        { id: "OmniAnimationStudio", title: "MoCap & Rigging", icon: <PersonStanding size={16} /> },
-        { id: "FacialAnimationMocap", title: "Facial Animation", icon: <Smile size={16} /> },
-        { id: "SpriteAnimationEditor", title: "2D Sprite Animator", icon: <Image size={16} /> },
-        { id: "VirtualProductionStudio", title: "Virtual Production", icon: <Video size={16} /> }
+        { id: "AdvancedLocomotionMotionStudio", title: "🌟 AAA Locomotion & Kinematics Studio", icon: <PersonStanding size={16} /> },
+        { id: "CinematicCutsceneTextureStudio", title: "🌟 AAA Cinematic Cutscene Sequencer", icon: <Clapperboard size={16} /> },
+        { id: "Sequencer", title: "Cinematic Timeline Sequencer", icon: <Clapperboard size={16} /> },
+        { id: "OmniAnimationStudio", title: "MoCap, IK Rigging & Skeleton Retargeting", icon: <PersonStanding size={16} /> },
+        { id: "FacialAnimationMocap", title: "Facial Blendshapes & Lip-Sync", icon: <Smile size={16} /> },
+        { id: "SpriteAnimationEditor", title: "2D Pixel & Sprite Sheet Animator", icon: <Image size={16} /> },
+        { id: "VirtualProductionStudio", title: "Virtual Camera & Multi-Cam Rig", icon: <Video size={16} /> }
       ]
     },
 
-    // 7. ✨ VFX & PARTICLES
-    {
-      id: "VFXHub",
-      title: "VFX & Particles",
-      icon: <Wand2 size={20} />,
-      activeColor: "text-[#4caf50]",
-      category: "✨ EFFECTS",
-      subTools: [
-        { id: "OmniVFXStudio", title: "Ultimate VFX Studio", icon: <Wand2 size={16} /> },
-        { id: "ParticleEffectEditor", title: "Particle Designer", icon: <Sparkles size={16} /> },
-        { id: "PostProcessingStack", title: "Post-Processing", icon: <Camera size={16} /> },
-        { id: "DecalProjectorManager", title: "Decal Manager", icon: <Sticker size={16} /> }
-      ]
-    },
-
-    // 8. 🎵 AUDIO & SOUND
+    // 9. 🎵 ULTRA-NATURAL AUDIO, DAW & DUBBING
     {
       id: "AudioHub",
-      title: "Audio & Sound",
+      title: "Audio, DAW & Voice Studio",
       icon: <Mic2 size={20} />,
       activeColor: "text-[#e3b341]",
-      category: "🎵 AUDIO",
+      category: "🎵 SOUND & VOICE STUDIO",
       subTools: [
-        { id: "AIOfflineVocalMusicWorkstation", title: "🎼 AI Offline Vocal, ACE-Step & Neural TTS Studio", icon: <Disc size={16} /> },
-        { id: "NaturalVocalVoiceStudio", title: "🎙️ Ultra-Natural Vocal, Dubbing & Singing Studio", icon: <Mic2 size={16} /> },
-        { id: "ThaiPhoneticsEngine", title: "🇹🇭 100% Thai Phonetics & Tone Engine", icon: <Globe size={16} /> },
-        { id: "VoiceActorAI", title: "🎭 Neural Character Dubbing & Emotions", icon: <Wand2 size={16} /> },
-        { id: "VoiceMusicStudio", title: "🎤 Expressive Singing & Melodic Synthesis", icon: <Music size={16} /> },
-        { id: "OfflineGameAudioStudio", title: "⚡ Offline Dynamic Audio & FX Engine", icon: <Volume2 size={16} /> },
-        { id: "MegaAudioDSPStudio", title: "⚡ 500x Audio DSP & Mastering Tools", icon: <Volume2 size={16} /> },
-        { id: "OmniAudioStudio", title: "DSP Audio Studio", icon: <Mic2 size={16} /> },
-        { id: "SpatialAudioFoley", title: "Spatial & Foley", icon: <Ear size={16} /> },
-        { id: "GenerativeAudioStudio", title: "AI Audio Gen", icon: <Music size={16} /> },
-        { id: "AudioMixingConsole", title: "Mixing Console", icon: <Sliders size={16} /> }
+        { id: "GlobalOfflineAITranslationStudio", title: "🌟 🌐 AI แปลภาษาออฟไลน์ 70++ ภาษาทั่วโลก", icon: <Languages size={16} /> },
+        { id: "GlobalPhonetics30Studio", title: "🌟 🌐 สัทศาสตร์ 30++ ภาษา & สตรีมมิ่ง AI ออฟไลน์", icon: <Globe size={16} /> },
+        { id: "ThaiRoyalSpeechAndSingingStudio", title: "🌟 🇹🇭 ระบบอ่านออกเสียง & ร้องเพลงราชบัณฑิตยสถาน", icon: <Mic2 size={16} /> },
+        { id: "OmniMusicVocalDAWStudio", title: "16-Step Polyphonic DAW & SFX Lab", icon: <Disc size={16} /> },
+        { id: "ThaiVoiceDubbingStudio", title: "🇹🇭 Thai Phonetics & Neural Dubbing", icon: <Mic size={16} /> },
+        { id: "NaturalVocalVoiceStudio", title: "Ultra-Natural Vocal & Singing Synthesis", icon: <Mic2 size={16} /> },
+        { id: "VoiceActorAI", title: "Character Emotion & Dialogue Dubbing", icon: <Wand2 size={16} /> },
+        { id: "OmniAudioStudio", title: "Professional DSP, 8-Band EQ & Mastering", icon: <Sliders size={16} /> },
+        { id: "SpatialAudioFoley", title: "3D Binaural Spatial Audio & Foley Studio", icon: <Ear size={16} /> },
+        { id: "VoiceQualityAssuranceStudio", title: "Voice QC/QA & Acoustic Validator", icon: <ShieldCheck size={16} /> }
       ]
     },
 
-    // 9. 🎮 GAME SYSTEMS & ECONOMY
+    // 10. 🎮 GAME SYSTEMS, CHARACTERS & QUESTS
     {
       id: "GameDesignHub",
-      title: "Game Systems & Economy",
-      icon: <Blocks size={20} />,
+      title: "Game Systems & Narrative",
+      icon: <Gamepad2 size={20} />,
       activeColor: "text-[#58a6ff]",
-      category: "🎮 GAME DESIGN",
+      category: "🎮 GAME SYSTEMS & STORY",
       subTools: [
-        { id: "GameSystems", title: "Core Systems Editor", icon: <Blocks size={16} /> },
-        { id: "GameProjectStarterCore", title: "Game Starter Presets & Core", icon: <Database size={16} /> },
-        { id: "EconomicBalancer", title: "Economy & Combat", icon: <Database size={16} /> },
-        { id: "LootTableEditor", title: "Loot & Crafting", icon: <Gift size={16} /> },
-        { id: "SkillTreeLevelingConfig", title: "Skill Trees & Levels", icon: <TrendingUp size={16} /> },
-        { id: "GameplayAbilitySystem", title: "Ability System", icon: <Zap size={16} /> }
+        { id: "OmniGameCreationStudio", title: "Core ECS Engine & Gameplay Sandbox", icon: <Gamepad2 size={16} /> },
+        { id: "GameSystems", title: "Gameplay Ability System (GAS) & Stats", icon: <Blocks size={16} /> },
+        { id: "EconomicBalancer", title: "Economy, Loot Tables & Crafting", icon: <Database size={16} /> },
+        { id: "NPCEdit", title: "NPCs, MetaHuman & AI Behavior Trees", icon: <Users size={16} /> },
+        { id: "MonsterEdit", title: "Monster & Boss AI Stat Configurator", icon: <Ghost size={16} /> },
+        { id: "WorldLore", title: "World Lore, Quests & Dialogue Graphs", icon: <BookOpen size={16} /> },
+        { id: "OmniLocalizationStudio", title: "Multilingual Game Translation & i18n", icon: <Languages size={16} /> },
+        { id: "GlobalOfflineAITranslationStudio", title: "Global 70+ Offline AI Translation & Phonetics", icon: <Globe size={16} /> }
       ]
     },
 
-    // 10. 👤 CHARACTERS & AI
-    {
-      id: "CharacterAIHub",
-      title: "Characters & AI NPC",
-      icon: <Users size={20} />,
-      activeColor: "text-[#e91e63]",
-      category: "🎮 GAME DESIGN",
-      subTools: [
-        { id: "NPCEdit", title: "NPC & MetaHuman", icon: <Users size={16} /> },
-        { id: "MonsterEdit", title: "Monster Editor", icon: <Ghost size={16} /> },
-        { id: "AINPCBehaviorTreeEditor", title: "AI Behavior Trees", icon: <BrainCircuit size={16} /> },
-        { id: "CrowdSimulationTool", title: "Crowd Simulation", icon: <Activity size={16} /> }
-      ]
-    },
-
-    // 11. 📖 STORY & QUESTS
-    {
-      id: "StoryQuestHub",
-      title: "Story & Quests",
-      icon: <BookOpen size={20} />,
-      activeColor: "text-[#9c27b0]",
-      category: "🎮 GAME DESIGN",
-      subTools: [
-        { id: "WorldLore", title: "World Lore", icon: <BookOpen size={16} /> },
-        { id: "QuestDesigner", title: "Quest Designer", icon: <MapPin size={16} /> },
-        { id: "AdvancedDialogueSystem", title: "Dialogue System", icon: <MessageCircle size={16} /> },
-        { id: "FactionReputationSystem", title: "Factions & Rep", icon: <Flag size={16} /> }
-      ]
-    },
-
-    // 12. ⚛️ PHYSICS & SIMULATION
+    // 11. ⚛️ PHYSICS, SIMULATION & RENDERING
     {
       id: "PhysicsHub",
-      title: "Physics & Simulation",
-      icon: <Activity size={20} />,
+      title: "Physics, VFX & Rendering",
+      icon: <Flame size={20} />,
       activeColor: "text-[#ff5722]",
-      category: "⚛️ SIMULATION",
+      category: "⚛️ SIMULATION & RENDERING",
       subTools: [
-        { id: "DeterministicEngineeringSuite", title: "50x Pure Engineering Suite", icon: <Calculator size={16} /> },
-        { id: "ChaosPhysicsFluidEngine", title: "Chaos & Fluids", icon: <Flame size={16} /> },
-        { id: "VehicleDynamicsTuner", title: "Vehicle Dynamics", icon: <Car size={16} /> },
-        { id: "ActiveRagdollEuphoriaEngine", title: "Euphoria Active Ragdoll", icon: <Activity size={16} /> },
-        { id: "SoftBodyPhysicsTuner", title: "Soft Body Physics", icon: <Box size={16} /> },
-        { id: "ChaosDestructionLab", title: "Destruction Lab", icon: <Bomb size={16} /> }
+        { id: "DeterministicEngineeringSuite", title: "Deterministic Physics & Math Engine", icon: <Calculator size={16} /> },
+        { id: "ChaosPhysicsFluidEngine", title: "Chaos Destruction & Fluid Dynamics", icon: <Flame size={16} /> },
+        { id: "OmniVFXStudio", title: "Ultimate GPU Particle Designer & VFX", icon: <Wand2 size={16} /> },
+        { id: "VehicleDynamicsTuner", title: "Vehicle Suspension & Aerodynamics", icon: <Car size={16} /> },
+        { id: "ActiveRagdollEuphoriaEngine", title: "Euphoria Active Ragdoll & Muscles", icon: <Activity size={16} /> },
+        { id: "CinematicLightingEditor", title: "Cinematic Lighting, GI & Raytracing", icon: <Sun size={16} /> },
+        { id: "RuntimeGraphicsStreamingOptimizer", title: "4K Texture & Mesh Streaming Optimizer", icon: <Zap size={16} /> },
+        { id: "RenderFarmManager", title: "Distributed Render Farm Manager", icon: <Server size={16} /> }
       ]
     },
 
-    // 13. 💡 LIGHTING & RENDER
-    {
-      id: "RenderHub",
-      title: "Lighting & Render",
-      icon: <Sun size={20} />,
-      activeColor: "text-[#ffc107]",
-      category: "💡 RENDERING",
-      subTools: [
-        { id: "RuntimeGraphicsStreamingOptimizer", title: "4K Texture & Mesh Optimizer", icon: <Zap size={16} /> },
-        { id: "CinematicLightingEditor", title: "Cinematic Lighting", icon: <Sun size={16} /> },
-        { id: "GraphicsRender", title: "Graphics Render", icon: <Orbit size={16} /> },
-        { id: "RaytracingConfigurator", title: "Raytracing & GI", icon: <Sun size={16} /> },
-        { id: "RenderFarmManager", title: "Render Farm", icon: <Server size={16} /> }
-      ]
-    },
-
-    // 14. 📐 UI/UX & DATA
-    {
-      id: "UIUXDataHub",
-      title: "UI/UX & Data",
-      icon: <LayoutDashboard size={20} />,
-      activeColor: "text-[#03a9f4]",
-      category: "📐 INTERFACE",
-      subTools: [
-        { id: "MegaUIUXMasterStudio", title: "⚡ 1,000x UI/UX Design System Tools", icon: <LayoutDashboard size={16} /> },
-        { id: "UIUXEdit", title: "UI Visual Builder", icon: <LayoutDashboard size={16} /> },
-        { id: "UXUISimulatorTestbed", title: "Multi-Device UI Simulator", icon: <Monitor size={16} /> },
-        { id: "UIUXDataBindingEditor", title: "MVVM Data Binding", icon: <Link2 size={16} /> },
-        { id: "DataTableJSONEditor", title: "Data Tables", icon: <Table size={16} /> },
-        { id: "StateSerializationManager", title: "Save/Load State Serializer", icon: <Save size={16} /> },
-        { id: "UXCognitiveLoadSim", title: "UX Sim", icon: <Brain size={16} /> },
-        { id: "Blueprint", title: "Blueprints", icon: <Network size={16} /> }
-      ]
-    },
-
-    // 15. ⚙️ DEVOPS & PUBLISH
+    // 12. 📐 UI/UX DESIGN & DEVOPS PUBLISHING
     {
       id: "DevOpsHub",
-      title: "DevOps & Publishing",
-      icon: <Zap size={20} />,
-      activeColor: "text-[#f85149]",
-      category: "⚙️ DEVOPS",
+      title: "UI/UX & DevOps Operations",
+      icon: <LayoutDashboard size={20} />,
+      activeColor: "text-[#03a9f4]",
+      category: "⚙️ INTERFACE & DEVOPS",
       subTools: [
-        { id: "BuildPublishAudit", title: "Pre-Flight Build Audit", icon: <ShieldCheck size={16} /> },
-        { id: "BuildPublish", title: "Build & Deploy", icon: <Cloud size={16} /> },
-        { id: "VersionControlUI", title: "Version Control", icon: <GitCommit size={16} /> },
-        { id: "CrashAnalyticsDashboard", title: "Analytics", icon: <Activity size={16} /> },
-        { id: "KeyboardShortcutMapper", title: "Shortcut Mapper", icon: <Command size={16} /> },
-        { id: "PerformanceDashboard", title: "Performance Telemetry", icon: <Gauge size={16} /> },
-        { id: "SystemResourceMonitor", title: "System Resource Monitor", icon: <Activity size={16} /> },
-        { id: "HardwareResourceOptimizer", title: "Hardware Resource Optimizer", icon: <Cpu size={16} /> },
-        { id: "MultiplayerServerOrchestrator", title: "Server Orchestrator", icon: <Server size={16} /> },
-        { id: "AntiCheatSecurityHub", title: "Security Hub", icon: <Shield size={16} /> }
+        { id: "MegaUIUXMasterStudio", title: "UI/UX Component Design System", icon: <LayoutDashboard size={16} /> },
+        { id: "UIUXEdit", title: "Visual UI Layout & Canvas Builder", icon: <LayoutDashboard size={16} /> },
+        { id: "UXUISimulatorTestbed", title: "Multi-Device Simulator & Safe Zones", icon: <Monitor size={16} /> },
+        { id: "DataTableJSONEditor", title: "Game Data Tables & Serialization", icon: <Table size={16} /> },
+        { id: "StateSerializationManager", title: "Save/Load Binary & JSON Serializer", icon: <Save size={16} /> },
+        { id: "BuildPublishAudit", title: "Pre-Flight Build Safety Audit", icon: <ShieldCheck size={16} /> },
+        { id: "BuildPublish", title: "Cross-Platform Build & Deploy Targets", icon: <Cloud size={16} /> },
+        { id: "VersionControlUI", title: "Git Branching & Version Control", icon: <GitCommit size={16} /> },
+        { id: "PerformanceDashboard", title: "System Resource Telemetry & Profiler", icon: <Gauge size={16} /> },
+        { id: "HighPerformanceNetcodeStudio", title: "🌟 AAA High-Performance Netcode & Prediction Studio", icon: <Wifi size={16} /> },
+        { id: "MultiplayerServerOrchestrator", title: "Dedicated Server Orchestrator", icon: <Server size={16} /> },
+        { id: "AntiCheatSecurityHub", title: "Anti-Cheat & Memory Integrity Shield", icon: <Shield size={16} /> }
       ]
     }
 ];
@@ -897,6 +862,9 @@ export default function App() {
   const [activeTool, setActiveTool] = React.useState(() => {
     return localStorage.getItem("omni_activeTool") || "OmniCreatorMaster";
   });
+
+  // Global Studio Auto-Save & Recovery Hook
+  const autoSave = useStudioAutoSave(activeTool);
 
   useGlobalShortcuts(setActiveTool);
 
@@ -1032,6 +1000,32 @@ const renderSubTool = (subToolId: string) => {
 
       {/* Global AI Chat Widget (Offline Copilot) */}
       <AIChatWidget activeTool={activeTool} tools={tools} />
+
+      {/* Context-Sensitive Optimization Encyclopedia Tooltip Helper */}
+      <OptimizationHelperTooltip
+        activeTool={activeTool}
+        tools={tools}
+        onSelectTool={setActiveTool}
+      />
+
+      {/* Persistent Engine Performance HUD Overlay (CPU, GPU, RAM, Thermals, Sparklines) */}
+      <PerformanceHUD
+        onOpenFullMonitor={() => setActiveTool('SystemResourceMonitor')}
+        onSelectTool={setActiveTool}
+      />
+
+      {/* Emergency Crash & Session Recovery Modal */}
+      <StudioRecoveryModal
+        isOpen={autoSave.hasCrashRecovery}
+        crashInfo={autoSave.crashInfo}
+        onRestore={() => {
+          if (autoSave.crashInfo?.lastState?.activeTool) {
+            setActiveTool(autoSave.crashInfo.lastState.activeTool);
+          }
+          autoSave.dismissCrashRecovery();
+        }}
+        onDismiss={autoSave.dismissCrashRecovery}
+      />
     </div>
   );
 }

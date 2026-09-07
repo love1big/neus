@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Settings, Play, Bot, Menu, ChevronRight, Search, Plus, PlayCircle, Box, Layers, MousePointer2, Move, RotateCw, Scaling, Grid, Camera, Pipette, Mountain, Sun, Film, Mic, Flame, Sparkles, Cuboid, Hexagon, Component, RefreshCw, FolderTree, Database, Code2, Waypoints, LayoutDashboard, Puzzle, AlertTriangle, XCircle, X, Maximize2, Move3d, Cloud, Image, Ghost, ChevronDown, UserSquare, Users, AudioWaveform as ObjectIcon, Waves, BookOpen, Map, Gamepad2, Terminal, TerminalSquare, Filter, Globe, Zap, MonitorPlay, Network, Server, Wifi, Activity, AlignLeft, Wrench, GitMerge, HardDrive, Microchip, Eye, BoxSelect, Paintbrush, Cpu, } from "lucide-react";
+  Settings, Play, Bot, Menu, ChevronRight, Search, Plus, PlayCircle, Box, Layers, MousePointer2, Move, RotateCw, Scaling, Grid, Camera, Pipette, Mountain, Sun, Film, Mic, Flame, Sparkles, Cuboid, Hexagon, Component, RefreshCw, FolderTree, Database, Code2, Waypoints, LayoutDashboard, Puzzle, AlertTriangle, XCircle, X, Maximize2, Move3d, Cloud, Image, Ghost, ChevronDown, UserSquare, Users, AudioWaveform as ObjectIcon, Waves, BookOpen, Map, Gamepad2, Terminal, TerminalSquare, Filter, Globe, Zap, MonitorPlay, Network, Server, Wifi, Activity, AlignLeft, Wrench, GitMerge, HardDrive, Microchip, Eye, BoxSelect, Paintbrush, Cpu, Workflow, } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -24,6 +24,10 @@ import PerformanceHUD from "./PerformanceHUD";
 import SystemHealthDashboard from "./SystemHealthDashboard";
 import SystemResourceMonitor from "./SystemResourceMonitor";
 import FullEngineSemanticSearchModal from "./FullEngineSemanticSearchModal";
+import OmniWorkflowNavigatorModal from "./OmniWorkflowNavigatorModal";
+import GlobalAutoSaveStatusWidget from "./GlobalAutoSaveStatusWidget";
+import { GlobalStudioAutoSaveManager } from "../utils/GlobalStudioAutoSaveManager";
+import { triggerNotification } from "./NotificationSystem";
 
 interface OmniEngineIDEProps {
   tools?: any[];
@@ -43,6 +47,7 @@ export default function OmniEngineIDE({
   const [showResourceOverlay, setShowResourceOverlay] = useState(false);
   const [isSemanticSearchOpen, setIsSemanticSearchOpen] = useState(false);
   const [semanticSearchInitialQuery, setSemanticSearchInitialQuery] = useState("");
+  const [isWorkflowNavigatorOpen, setIsWorkflowNavigatorOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -391,39 +396,81 @@ export default function OmniEngineIDE({
                 {
                   label: "โปรเจกต์ใหม่",
                   shortcut: "Ctrl+N",
-                  onClick: () => alert("New Project"),
+                  onClick: () => {
+                    if (window.confirm("คุณต้องการสร้างโปรเจกต์ใหม่และรีเซ็ตสถานะใช่หรือไม่?")) {
+                      setActiveTool("OmniCreatorMaster");
+                      triggerNotification("info", "สร้างโปรเจกต์ใหม่", "เปิดหน้าหลัก Omni Creator Master แล้ว", false);
+                    }
+                  },
                 },
                 {
                   label: "เปิดโปรเจกต์...",
                   shortcut: "Ctrl+O",
-                  onClick: () => alert("Open Project"),
+                  onClick: () => setActiveTool("OmniCreatorMaster"),
                 },
                 {
-                  label: "บันทึก",
+                  label: "จัดการโปรเจกต์โค้ด (Code Projects Workspace)...",
+                  shortcut: "Ctrl+Shift+P",
+                  onClick: () => {
+                    setActiveTool("ScriptEditor");
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent('open-code-project-modal', { detail: { tab: 'list' } }));
+                    }, 100);
+                  },
+                },
+                {
+                  label: "บันทึกสถานะสตูดิโอ (Save Studio)",
                   shortcut: "Ctrl+S",
-                  onClick: () => alert("Saved"),
+                  onClick: () => {
+                    GlobalStudioAutoSaveManager.saveNow({ trigger: 'manual' }).then((state) => {
+                      triggerNotification("success", "บันทึกสถานะสตูดิโอสำเร็จ", `บันทึกข้อมูลเครื่องมือ "${state.activeTool}" และการตั้งค่าแล้ว`, false);
+                    });
+                  },
                 },
                 {
-                  label: "บันทึกเป็น...",
+                  label: "บันทึกจุดกู้คืน (Named Bookmark)...",
                   shortcut: "Ctrl+Shift+S",
-                  onClick: () => alert("Save As"),
+                  onClick: () => {
+                    const name = window.prompt("ตั้งชื่อจุดกู้คืน (Snapshot Bookmark):", `Checkpoint_${new Date().toLocaleTimeString()}`);
+                    if (name) {
+                      GlobalStudioAutoSaveManager.createNamedBookmark(name);
+                      triggerNotification("success", "สร้างจุดกู้คืนแล้ว", `บันทึก "${name}" ลงในประวัติย้อนหลังเรียบร้อย`, false);
+                    }
+                  },
                 },
                 { label: "", divider: true },
+                {
+                  label: "ส่งออกไฟล์สำรอง (Export JSON Backup)",
+                  shortcut: "Ctrl+E",
+                  onClick: () => {
+                    try {
+                      const json = GlobalStudioAutoSaveManager.exportStateAsJSON();
+                      const blob = new Blob([json], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `OmniStudio_Backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_')}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      triggerNotification("success", "ส่งออกไฟล์สำรองสำเร็จ", "ดาวน์โหลดไฟล์สำรองข้อมูลสตูดิโอเรียบร้อย", false);
+                    } catch (err) {
+                      console.error("Export backup error:", err);
+                    }
+                  },
+                },
                 {
                   label: "นำเข้าแอสเซ็ต...",
                   shortcut: "Ctrl+I",
                   onClick: () => setActiveTool("AssetPipeline"),
                 },
-                {
-                  label: "ส่งออก",
-                  shortcut: "Ctrl+E",
-                  onClick: () => setActiveTool("BuildPublish"),
-                },
                 { label: "", divider: true },
                 {
                   label: "ออกจากโปรแกรม",
                   shortcut: "Alt+F4",
-                  onClick: () => alert("Exit"),
+                  onClick: () => {
+                    GlobalStudioAutoSaveManager.saveNowSync({ trigger: 'beforeunload' });
+                    triggerNotification("info", "บันทึกก่อนออก", "บันทึกสถานะปัจจุบันของคุณเรียบร้อยแล้ว", false);
+                  },
                 },
               ]}
             />
@@ -742,7 +789,15 @@ export default function OmniEngineIDE({
         </div>
 
         <div className="flex items-center gap-3">
+          <GlobalAutoSaveStatusWidget activeTool={activeTool} onSelectTool={setActiveTool} />
           <SystemHealthDashboard />
+          <button
+            onClick={() => setIsWorkflowNavigatorOpen(true)}
+            className="px-3 py-1 text-[11px] font-bold rounded flex items-center gap-1.5 transition-colors border bg-gradient-to-r from-amber-600/20 to-blue-600/20 text-amber-300 hover:text-white border-amber-500/40 hover:border-amber-400 shadow-sm cursor-pointer"
+            title="ผังรวม 12 สตูดิโอหลัก (Master Studio Navigator)"
+          >
+            <Workflow size={13} className="text-amber-400" /> แผนผังสตูดิโอ
+          </button>
           <button
             onClick={() => setShowResourceOverlay(!showResourceOverlay)}
             className={`px-3 py-1 text-[11px] font-bold rounded flex items-center gap-1.5 transition-colors border ${showResourceOverlay ? "bg-emerald-600/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.2)]" : "bg-[#1a1b2e] hover:bg-[#2a2b3d] text-gray-300 border-[#2a2b3d]"}`}
@@ -2385,6 +2440,16 @@ export default function OmniEngineIDE({
           onClose={() => setShowResourceOverlay(false)}
         />
       )}
+
+      <OmniWorkflowNavigatorModal
+        isOpen={isWorkflowNavigatorOpen}
+        onClose={() => setIsWorkflowNavigatorOpen(false)}
+        onSelectTool={(id) => {
+          setActiveTool(id);
+          setIsWorkflowNavigatorOpen(false);
+        }}
+        tools={tools}
+      />
 
       <style
         dangerouslySetInnerHTML={{

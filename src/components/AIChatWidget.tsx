@@ -109,8 +109,8 @@ export default function AIChatWidget({ activeTool, tools }: AIChatWidgetProps) {
               <div>
                 <div className="text-xs font-bold text-white flex items-center gap-1.5">
                   AI Offline Copilot
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                    GGUF
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                    Qwen 2.5 Free
                   </span>
                 </div>
                 {activeToolObj && (

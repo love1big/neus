@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings2, Globe, Cpu, Server, Volume2, Network, Eye, Wand2, Database, Info, MonitorPlay, Workflow, Layers, CheckCircle2, Zap, Layers3, Move, HardDrive, Map, Gamepad2, Glasses, Sparkles, Bot, ShieldAlert, Bug, Code, Braces, Brush, Aperture, Activity, Binary, Target, Ear, Flame, Fingerprint, BookOpen, Scissors, Cpu as CpuIcon, Microchip, Filter, FunctionSquare, Brain, GitBranch, Terminal, Infinity, Scale, Archive, Link2, MessageSquare, Users, Share2, Gavel, Clock, Palette, Lightbulb, Dna, Waves, Flower2, Ghost, Skull, PenTool, EyeOff} from 'lucide-react';
 
 export default function OptimizationEncyclopedia() {
-  const [activeTab, setActiveTab] = useState('archetypes');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('omni_opt_active_tab') || 'archetypes';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('omni_opt_active_tab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const handleOpenTab = (e: any) => {
+      if (e?.detail && typeof e.detail === 'string') {
+        setActiveTab(e.detail);
+      }
+    };
+    window.addEventListener('open-optimization-tab', handleOpenTab);
+    return () => window.removeEventListener('open-optimization-tab', handleOpenTab);
+  }, []);
 
   const tabs = [
     { id: 'archetypes', name: 'Game Archetypes', icon: <Gamepad2 size={16}/> },

@@ -144,7 +144,11 @@ export class LanguageErrorChecker {
 
     // If explicit fixText is provided
     if (diag.fixText !== undefined && diag.line >= 1 && diag.line <= lines.length) {
-      lines[diag.line - 1] = diag.fixText;
+      if (diag.fixText === ':') {
+        lines[diag.line - 1] = lines[diag.line - 1].trimEnd() + ':';
+      } else {
+        lines[diag.line - 1] = diag.fixText;
+      }
       return lines.join('\n');
     }
 
@@ -154,6 +158,30 @@ export class LanguageErrorChecker {
         const lineIdx = diag.line - 1;
         if (lineIdx >= 0 && lineIdx < lines.length) {
           lines[lineIdx] = lines[lineIdx].trimEnd() + ':';
+        }
+        return lines.join('\n');
+      }
+
+      case 'PY_PRINT_PARENS': {
+        const lineIdx = diag.line - 1;
+        if (lineIdx >= 0 && lineIdx < lines.length) {
+          lines[lineIdx] = lines[lineIdx].replace(/print\s+(["'][^"']+["'])/, 'print($1)');
+        }
+        return lines.join('\n');
+      }
+
+      case 'TS_CONST_UNINITIALIZED': {
+        const lineIdx = diag.line - 1;
+        if (lineIdx >= 0 && lineIdx < lines.length) {
+          lines[lineIdx] = lines[lineIdx].replace(/;?$/, ' = null;');
+        }
+        return lines.join('\n');
+      }
+
+      case 'TS_INTERFACE_OPEN': {
+        const lineIdx = diag.line - 1;
+        if (lineIdx >= 0 && lineIdx < lines.length) {
+          lines[lineIdx] = lines[lineIdx].trimEnd() + ' {\n}';
         }
         return lines.join('\n');
       }
@@ -184,16 +212,162 @@ export class LanguageErrorChecker {
         return code + '\n}';
       }
 
+      case 'SYNTAX_UNMATCHED_DELIMITER': {
+        const lineIdx = diag.line - 1;
+        if (lineIdx >= 0 && lineIdx < lines.length) {
+          // Remove rogue unclosed delimiter
+          const targetCol = diag.column - 1;
+          const targetLine = lines[lineIdx];
+          lines[lineIdx] = targetLine.slice(0, targetCol) + targetLine.slice(targetCol + 1);
+        }
+        return lines.join('\n');
+      }
+
       default:
-        // Generic fallback: if suggestion has replacement text
+        // Generic fallback: if suggestion has replacement text or keyword
         if (diag.suggestion) {
           const lineIdx = diag.line - 1;
           if (lineIdx >= 0 && lineIdx < lines.length) {
-            lines[lineIdx] = lines[lineIdx] + ' // Fixed: ' + diag.suggestion;
+            if (diag.suggestion.includes('Add a semicolon')) {
+              lines[lineIdx] = lines[lineIdx].trimEnd() + ';';
+            } else if (diag.suggestion.includes('Add a colon')) {
+              lines[lineIdx] = lines[lineIdx].trimEnd() + ':';
+            } else {
+              lines[lineIdx] = lines[lineIdx] + ' // Fixed by AI: ' + diag.suggestion;
+            }
           }
         }
         return lines.join('\n');
     }
+  }
+
+  /**
+   * Apply all auto-fixable diagnostics sequentially to the code buffer
+   */
+  public static applyAllQuickFixes(code: string, diagnostics: DiagnosticError[]): { code: string; fixedCount: number } {
+    let currentCode = code;
+    let fixedCount = 0;
+
+    // Filter auto-fixable diagnostics and sort in reverse line order to prevent line offset drift
+    const fixable = diagnostics
+      .filter(d => d.autoFixable || d.suggestion || d.fixText)
+      .sort((a, b) => b.line - a.line);
+
+    for (const diag of fixable) {
+      try {
+        const nextCode = this.applyQuickFix(currentCode, diag);
+        if (nextCode !== currentCode) {
+          currentCode = nextCode;
+          fixedCount++;
+        }
+      } catch (e) {
+        console.warn('Failed to apply quick fix for diag:', diag.id, e);
+      }
+    }
+
+    return { code: currentCode, fixedCount };
+  }
+
+  private static registeredProviders: any[] = [];
+
+  /**
+   * Register Monaco Code Action (Quick-Fix) and Hover Providers for Real-time AI fix tooltips
+   */
+  public static registerMonacoProviders(monaco: any, languageId: string, onFixWithAI: (diag: DiagnosticError) => void): void {
+    if (!monaco || !monaco.languages) return;
+
+    // Dispose previous providers to prevent duplicates
+    if (this.registeredProviders.length > 0) {
+      this.registeredProviders.forEach(p => {
+        try { p.dispose(); } catch (e) {}
+      });
+      this.registeredProviders = [];
+    }
+
+    // 1. Monaco Code Action Provider (Ctrl+. / Quick Fix lightbulb)
+    const actionProvider = monaco.languages.registerCodeActionProvider(languageId, {
+      provideCodeActions: (model: any, range: any, context: any) => {
+        const markers = context.markers || [];
+        const code = model.getValue();
+        const currentDiags = LanguageErrorChecker.checkErrors(code, languageId);
+        
+        const actions = markers.map((marker: any) => {
+          const matchingDiag = currentDiags.find(d => 
+            d.line === marker.startLineNumber && d.code === marker.code
+          ) || {
+            id: `diag_${marker.startLineNumber}`,
+            line: marker.startLineNumber,
+            column: marker.startColumn,
+            endLine: marker.endLineNumber,
+            endColumn: marker.endColumn,
+            message: marker.message,
+            severity: marker.severity === monaco.MarkerSeverity.Error ? 'error' : 'warning',
+            code: marker.code || 'SYNTAX_ISSUE',
+            suggestion: 'Fix syntax error automatically',
+            autoFixable: true
+          } as DiagnosticError;
+
+          const fixedCode = LanguageErrorChecker.applyQuickFix(code, matchingDiag);
+
+          return {
+            title: `✨ Fix with AI: ${matchingDiag.suggestion || matchingDiag.message}`,
+            kind: 'quickfix',
+            diagnostics: [marker],
+            isPreferred: true,
+            edit: {
+              edits: [
+                {
+                  resource: model.uri,
+                  textEdit: {
+                    range: model.getFullModelRange(),
+                    text: fixedCode
+                  }
+                }
+              ]
+            }
+          };
+        });
+
+        return {
+          actions,
+          dispose: () => {}
+        };
+      }
+    });
+
+    // 2. Monaco Hover Provider for Syntax Errors with Rich Markdown & Fix Action link
+    const hoverProvider = monaco.languages.registerHoverProvider(languageId, {
+      provideHover: (model: any, position: any) => {
+        const code = model.getValue();
+        const diags = LanguageErrorChecker.checkErrors(code, languageId);
+        const match = diags.find(d => 
+          d.line === position.lineNumber && 
+          position.column >= d.column && 
+          position.column <= (d.endColumn || d.column + 10)
+        );
+
+        if (!match) return null;
+
+        const isErr = match.severity === 'error';
+        const icon = isErr ? '🔴' : '🟡';
+        
+        return {
+          range: new monaco.Range(
+            match.line, 
+            match.column, 
+            match.endLine || match.line, 
+            match.endColumn || match.column + 5
+          ),
+          contents: [
+            { value: `**${icon} Syntax Diagnostic: ${match.severity.toUpperCase()}**` },
+            { value: `${match.message} \`[${match.code}]\`` },
+            match.suggestion ? { value: `💡 **AI Suggestion:** ${match.suggestion}` } : { value: '' }
+          ].filter(c => c.value !== '')
+        };
+      }
+    });
+
+    this.registeredProviders.push(actionProvider, hoverProvider);
   }
 
   /**
@@ -218,7 +392,7 @@ export class LanguageErrorChecker {
         message: `${diag.message} [${diag.code}]`,
         severity,
         code: diag.code,
-        source: 'NexusEngine Language Engine'
+        source: 'NexusEngine Syntax Engine'
       };
     });
 

@@ -41,8 +41,11 @@ import {
   Check,
   Package,
   Server,
-  FolderSync
+  FolderSync,
+  Gauge
 } from 'lucide-react';
+import PluginSandboxTestRunPanel from './PluginSandboxTestRunPanel';
+import { PluginSandboxIsolationEngine } from '../utils/PluginSandboxIsolationEngine';
 
 interface SandboxConfig {
   blockFileSystem: boolean;
@@ -363,8 +366,9 @@ export default function NexusPluginArchitect() {
   ]);
 
   const [activePluginId, setActivePluginId] = useState<string | null>('plg_001');
-  const [activeTab, setActiveTab] = useState<'code' | 'manifest' | 'events' | 'bulk_updates'>('code');
+  const [activeTab, setActiveTab] = useState<'code' | 'manifest' | 'events' | 'bulk_updates' | 'sandbox_test'>('code');
   const [showSandboxDetails, setShowSandboxDetails] = useState<boolean>(false);
+  const [testRunVersion, setTestRunVersion] = useState<number>(0);
 
   // Bulk-Action & Batch Installer States
   const [detectedUpdates, setDetectedUpdates] = useState<DetectedPluginUpdate[]>(INITIAL_DETECTED_UPDATES);
@@ -1101,6 +1105,45 @@ export default function NexusPluginArchitect() {
                   >
                     Policies
                   </button>
+
+                  {/* Sandbox Test Run Isolated Compute & Memory Profiler Toggle */}
+                  <button
+                    id={`toggle-sandbox-test-run-${activePlugin.id}`}
+                    onClick={() => {
+                      const isNowActive = PluginSandboxIsolationEngine.getInstance().toggleTestRun(
+                        activePlugin.id,
+                        activePlugin.name,
+                        activePlugin.type,
+                        activePlugin.sandboxConfig.memoryQuotaMB
+                      );
+                      if (isNowActive) {
+                        setActiveTab('sandbox_test');
+                      }
+                      setTestRunVersion(v => v + 1);
+                    }}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold border transition-all ${
+                      PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive
+                        ? 'bg-[#bc8cff]/20 border-[#bc8cff] text-[#bc8cff] hover:bg-[#bc8cff]/30 shadow-[0_0_12px_rgba(188,140,255,0.3)]'
+                        : 'bg-[#21262d] border-[#30363d] text-[#c9d1d9] hover:border-[#bc8cff]/60 hover:text-white'
+                    }`}
+                    title="Isolate and test this plugin's memory and compute usage without affecting the primary simulation engine state"
+                  >
+                    <Gauge size={13} className={
+                      PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive
+                        ? 'text-[#bc8cff] animate-pulse'
+                        : 'text-[#8b949e]'
+                    } />
+                    <span>Sandbox Test Run: {
+                      PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive
+                        ? 'ACTIVE'
+                        : 'OFF'
+                    }</span>
+                    <span className={`w-2 h-2 rounded-full ${
+                      PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive
+                        ? 'bg-[#bc8cff] animate-ping'
+                        : 'bg-[#484f58]'
+                    }`} />
+                  </button>
                 </div>
               </div>
 
@@ -1232,6 +1275,21 @@ export default function NexusPluginArchitect() {
                   <FileCode2 size={12}/> manifest.json
                 </button>
                 <button 
+                  id="tab-sandbox-test"
+                  onClick={() => setActiveTab('sandbox_test')}
+                  className={`px-4 py-1 text-[11px] font-bold border-r border-[#30363d] transition-colors flex items-center gap-1.5 ${
+                    activeTab === 'sandbox_test' 
+                      ? 'bg-[#161b22] text-[#bc8cff] border-t-2 border-t-[#bc8cff]' 
+                      : 'text-[#8b949e] hover:text-[#bc8cff] hover:bg-[#161b22] border-t-2 border-t-transparent'
+                  }`}
+                >
+                  <Gauge size={12} className={PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive ? "text-[#bc8cff] animate-pulse" : "text-[#8b949e]"} />
+                  <span>Sandbox Test Run {PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive ? '(Profiling)' : ''}</span>
+                  {PluginSandboxIsolationEngine.getInstance().getSession(activePlugin.id, activePlugin.name, activePlugin.type, activePlugin.sandboxConfig.memoryQuotaMB).isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#bc8cff] animate-ping" />
+                  )}
+                </button>
+                <button 
                   id="tab-events"
                   onClick={() => setActiveTab('events')}
                   className={`px-4 py-1 text-[11px] font-bold border-r border-[#30363d] transition-colors flex items-center gap-1.5 ${
@@ -1281,7 +1339,21 @@ export default function NexusPluginArchitect() {
             </div>
 
             {/* Tab Views */}
-            {activeTab === 'bulk_updates' ? (
+            {activeTab === 'sandbox_test' ? (
+              /* Dedicated Sandbox Test Run Isolated Telemetry & Benchmarking Panel */
+              <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0c10]">
+                <PluginSandboxTestRunPanel
+                  pluginId={activePlugin.id}
+                  pluginName={activePlugin.name}
+                  pluginType={activePlugin.type}
+                  memoryQuotaMB={activePlugin.sandboxConfig.memoryQuotaMB}
+                  onToggleTestRun={(active) => {
+                    setTestRunVersion(v => v + 1);
+                    setPlugins(prev => [...prev]);
+                  }}
+                />
+              </div>
+            ) : activeTab === 'bulk_updates' ? (
               /* Dedicated Bulk Updates & Batch Installer Hub */
               <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117]">
                 {/* Header Metrics & Quick Action Strip */}

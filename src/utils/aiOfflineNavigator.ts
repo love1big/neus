@@ -248,6 +248,19 @@ export const ALL_NAV_TARGETS: NavTarget[] = [
     keywords: ["auto tag", "asset tag", "tagger", "จัดระเบียบ", "แท็กโมเดล", "ai tag"],
     iconName: "FolderTree"
   },
+  {
+    id: "AssetDependencyGraphStudio",
+    title: "Asset Dependency Graph (Force Topology)",
+    thaiTitle: "แผนผังโครงข่ายความสัมพันธ์สินทรัพย์และเท็กเจอร์ (Force Graph)",
+    hubId: "ArtStudioHub",
+    hubCategory: "🎨 ART STUDIO",
+    activeColor: "#e3b341",
+    description: "Interactive D3 force-directed graph visualizer mapping relationships between 3D models, PBR textures, materials, and shaders.",
+    thaiDescription: "ระบบแสดงโครงข่ายความเชื่อมโยงของโมเดล 3D แมทีเรียล และเท็กเจอร์ PBR ด้วย Force-directed Graph พร้อมตรวจจับสินทรัพย์ตกค้าง",
+    keywords: ["asset dependency", "asset graph", "force directed", "texture dependency", "model dependency", "ความสัมพันธ์สินทรัพย์", "แผนผังสินทรัพย์", "ความเชื่อมโยง", "กราฟโมเดล", "asset topology", "orphan assets"],
+    iconName: "Network",
+    badge: "TOPOLOGY"
+  },
 
   // 3. ⚙️ SETTINGS & CONFIGURATION
   {
