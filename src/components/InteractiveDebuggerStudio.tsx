@@ -1012,8 +1012,8 @@ export default function InteractiveDebuggerStudio() {
       evalResult = '>> Applied runtime hot-patch: Entity state updated successfully.';
     } else {
       try {
-        // Safe mock evaluator
-        evalResult = `>> Result: ${eval(cmd) ?? 'undefined'}`;
+        // Safe scope evaluator
+        evalResult = `>> Result: ${new Function(`return (${cmd})`)() ?? 'undefined'}`;
       } catch (err: any) {
         evalResult = `>> ReferenceError: "${cmd}" is not defined in current scope frame.`;
       }

@@ -78,6 +78,15 @@ export interface NetworkDiagnosticMetrics {
 }
 
 export class HighPerformanceNetcodeEngine {
+  private static instance: HighPerformanceNetcodeEngine | null = null;
+
+  public static getInstance(): HighPerformanceNetcodeEngine {
+    if (!HighPerformanceNetcodeEngine.instance) {
+      HighPerformanceNetcodeEngine.instance = new HighPerformanceNetcodeEngine();
+    }
+    return HighPerformanceNetcodeEngine.instance;
+  }
+
   private currentTick: number = 0;
   private sequenceCounter: number = 0;
 
@@ -339,5 +348,17 @@ export class HighPerformanceNetcodeEngine {
       snapshotRateHz: 60,
       interpolationDelayMs: this.interpolationDelayMs
     };
+  }
+
+  public setSimulatedLatency(pingMs: number): void {
+    this.simulatedPingMs = Math.max(0, pingMs);
+  }
+
+  public setPacketLoss(rate: number): void {
+    this.simulatedPacketLossRate = Math.max(0, Math.min(1, rate));
+  }
+
+  public getNetMetrics(): NetworkDiagnosticMetrics {
+    return this.getMetrics();
   }
 }

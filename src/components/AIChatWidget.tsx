@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect } from "react";
 import { MessageCircle, Bot, X, Grip, Sparkles, MoveDiagonal } from "lucide-react";
-import AIChat from "./AIChat";
+const AIChat = React.lazy(() => import("./AIChat"));
 import { LanguageCode } from "../contexts/LanguageContext";
 
 interface AIChatWidgetProps {
@@ -141,15 +141,17 @@ export default function AIChatWidget({ activeTool, tools }: AIChatWidgetProps) {
 
           {/* Chat Body */}
           <div className="flex-1 overflow-hidden relative bg-[#07090e]">
-            <AIChat
-              code={globalCode}
-              setCode={setGlobalCode}
-              language={globalLanguage}
-              setLanguage={setGlobalLanguage}
-              activeToolId={activeTool}
-              activeToolName={activeToolObj?.title}
-              activeToolCategory={activeToolObj?.category}
-            />
+            <React.Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-mono">Loading Copilot...</div>}>
+              <AIChat
+                code={globalCode}
+                setCode={setGlobalCode}
+                language={globalLanguage}
+                setLanguage={setGlobalLanguage}
+                activeToolId={activeTool}
+                activeToolName={activeToolObj?.title}
+                activeToolCategory={activeToolObj?.category}
+              />
+            </React.Suspense>
           </div>
         </div>
       )}

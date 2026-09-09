@@ -231,4 +231,17 @@ export class ThaiSingingAndChantingProsodyEngine {
 
     return result;
   }
+
+  private static instance: ThaiSingingAndChantingProsodyEngine | null = null;
+
+  public static getInstance(): ThaiSingingAndChantingProsodyEngine {
+    if (!ThaiSingingAndChantingProsodyEngine.instance) {
+      ThaiSingingAndChantingProsodyEngine.instance = new ThaiSingingAndChantingProsodyEngine();
+    }
+    return ThaiSingingAndChantingProsodyEngine.instance;
+  }
+
+  public analyzeChantingNotes(text: string, meterId: string = 'meter-contemporary-vocal'): Array<{ syllable: string; note: string; durationSec: number }> {
+    return ThaiSingingAndChantingProsodyEngine.generateMelodicChantNotes(text, meterId);
+  }
 }

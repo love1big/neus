@@ -47,7 +47,8 @@ import {
   OfflineGlossaryRule,
   OfflineTranslationConfig,
   OfflineTranslationResult,
-  SubwordToken
+  SubwordToken,
+  TranslationDomain
 } from '../types/offlineTranslation70';
 import {
   GLOBAL_70_LANGUAGES,
@@ -649,5 +650,41 @@ export class GlobalOfflineAITranslationEngine {
     }
 
     return tokens;
+  }
+
+  private static instance: GlobalOfflineAITranslationEngine | null = null;
+
+  public static getInstance(): GlobalOfflineAITranslationEngine {
+    if (!GlobalOfflineAITranslationEngine.instance) {
+      GlobalOfflineAITranslationEngine.instance = new GlobalOfflineAITranslationEngine();
+    }
+    return GlobalOfflineAITranslationEngine.instance;
+  }
+
+  /**
+   * Async wrapper for convenient instance-based translation calls
+   */
+  public async translateText(options: {
+    text: string;
+    sourceLang?: string;
+    targetLang: string;
+    register?: 'neutral' | 'formal' | 'casual' | 'literary' | 'technical';
+    domain?: TranslationDomain;
+    glossary?: OfflineGlossaryRule[];
+  }): Promise<OfflineTranslationResult> {
+    return GlobalOfflineAITranslationEngine.translate(
+      options.text,
+      {
+        sourceLangId: options.sourceLang || 'auto',
+        targetLangId: options.targetLang,
+        register: options.register || 'neutral',
+        domain: options.domain || 'general',
+        preserveFormatting: true,
+        preserveGlossary: true,
+        subwordTokenization: true,
+        detectToneDrift: true
+      },
+      options.glossary || []
+    );
   }
 }

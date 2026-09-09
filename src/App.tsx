@@ -1,13 +1,13 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc, Languages } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, Gamepad, Compass, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc, Languages } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
 import OmniEngineIDE from "./components/OmniEngineIDE";
 import CommandPalette from "./components/CommandPalette";
 import NotificationSystem from "./components/NotificationSystem";
-import VisualScriptEditor from "./components/VisualScriptEditor";
+const VisualScriptEditor = React.lazy(() => import("./components/VisualScriptEditor"));
 import OptimizationHelperTooltip from "./components/OptimizationHelperTooltip";
 import PerformanceHUD from "./components/PerformanceHUD";
 import StudioRecoveryModal from "./components/StudioRecoveryModal";
@@ -340,6 +340,24 @@ export const componentImports: Record<string, () => Promise<any>> = {
   HardwareResourceOptimizer: () => import("./components/HardwareResourceOptimizer"),
   OfflineAIDataEngineManager: () => import("./components/OfflineAIDataEngineManager"),
   BuildPublishAudit: () => import("./components/BuildPublishAudit"),
+  WorldPartitionStreamingStudio: () => import("./components/WorldPartitionStreamingStudio"),
+  QuadRetopologyUVStudio: () => import("./components/QuadRetopologyUVStudio"),
+  PhysicsClothHairSimulationLab: () => import("./components/PhysicsClothHairSimulationLab"),
+  SubsurfaceScatteringSkinShaderStudio: () => import("./components/SubsurfaceScatteringSkinShaderStudio"),
+  CombatHitboxFrameDataStudio: () => import("./components/CombatHitboxFrameDataStudio"),
+  DynamicInteractiveMusicStateMachine: () => import("./components/DynamicInteractiveMusicStateMachine"),
+  GamepadConsoleFocusNavigationStudio: () => import("./components/GamepadConsoleFocusNavigationStudio"),
+  AIDiffusionConceptTextureGenerator: () => import("./components/AIDiffusionConceptTextureGenerator"),
+  ContinuousIntegrationBuildMatrixStudio: () => import("./components/ContinuousIntegrationBuildMatrixStudio"),
+  NetworkReplicationLagCompensationStudio: () => import("./components/NetworkReplicationLagCompensationStudio"),
+  LocalizationPolyglotAudioDubbingStudio: () => import("./components/LocalizationPolyglotAudioDubbingStudio"),
+  ProceduralDungeonLayoutGenerator: () => import("./components/ProceduralDungeonLayoutGenerator"),
+  GPUPipelineShaderCompilerStudio: () => import("./components/GPUPipelineShaderCompilerStudio"),
+  HTNUtilityAIBrainStudio: () => import("./components/HTNUtilityAIBrainStudio"),
+  VolumetricAtmosphereScatterStudio: () => import("./components/VolumetricAtmosphereScatterStudio"),
+  AudioRaytracingAcousticStudio: () => import("./components/AudioRaytracingAcousticStudio"),
+  AutomatedPlaytestBotSwarmStudio: () => import("./components/AutomatedPlaytestBotSwarmStudio"),
+  DynamicMeshSlicingDestructionStudio: () => import("./components/DynamicMeshSlicingDestructionStudio"),
 };
 
 export const preloadComponent = (id: string) => { if(componentImports[id]) componentImports[id]().catch(console.error); };
@@ -691,12 +709,14 @@ export const tools = [
       category: "🤖 NEURAL & MACHINE LEARNING",
       subTools: [
         { id: "GlobalOfflineAITranslationStudio", title: "🌟 🌐 AI แปลภาษาออฟไลน์ 70++ ภาษาทั่วโลก", icon: <Languages size={16} /> },
+        { id: "HTNUtilityAIBrainStudio", title: "Hierarchical Task Network (HTN) & Utility AI Studio", icon: <Brain size={16} /> },
         { id: "HeterogeneousMultiComputeStudio", title: "⚡ 🖥️ คลัสเตอร์ CPU/GPU/NPU หลากยี่ห้อ (Multi-Vendor Grid)", icon: <Microchip size={16} /> },
         { id: "OmniMegaEngine300Studio", title: "⚡ 335+ Mega Engine & AI Suite", icon: <Cpu size={16} /> },
         { id: "OfflineAIEngineSuite", title: "50x Offline AI Model Farm", icon: <Brain size={16} /> },
         { id: "OfflineAIDataEngineManager", title: "High-Speed Offline Vector Engine", icon: <Zap size={16} /> },
         { id: "AIOfflineDownloader", title: "Local Model & Weights Downloader", icon: <Download size={16} /> },
-        { id: "AICodeQualityAuditor", title: "Code Standards & Security Auditor", icon: <ShieldCheck size={16} /> }
+        { id: "AICodeQualityAuditor", title: "Code Standards & Security Auditor", icon: <ShieldCheck size={16} /> },
+        { id: "AIDiffusionConceptTextureGenerator", title: "AI Concept Art & Seamless Texture Studio", icon: <Wand2 size={16} /> }
       ]
     },
 
@@ -709,6 +729,9 @@ export const tools = [
       category: "🌍 LEVEL & ENVIRONMENT",
       subTools: [
         { id: "AdvancedWorldGenStudio", title: "🌟 AAA Procedural World & Map Studio", icon: <Globe size={16} /> },
+        { id: "VolumetricAtmosphereScatterStudio", title: "Volumetric Fog & Rayleigh/Mie Atmosphere Studio", icon: <Sun size={16} /> },
+        { id: "WorldPartitionStreamingStudio", title: "Open-World Partition & HLOD Streaming Studio", icon: <Layers size={16} /> },
+        { id: "ProceduralDungeonLayoutGenerator", title: "Procedural Dungeon & BSP Maze Generator", icon: <Compass size={16} /> },
         { id: "OmniWorldMapStudio", title: "Fractal Biome & 3D/2D World Map", icon: <Globe size={16} /> },
         { id: "OmniWorldBuilder", title: "MegaWorld Landscape & Foliage", icon: <Mountain size={16} /> },
         { id: "MapEdit", title: "Tilemap & Level Editor", icon: <Map size={16} /> },
@@ -728,6 +751,7 @@ export const tools = [
       subTools: [
         { id: "AssetDependencyGraphStudio", title: "🕸️ Asset Dependency Graph (Force Topology)", icon: <Network size={16} /> },
         { id: "Procedural3DMeshSynthesisStudio", title: "🌟 AAA Procedural 3D Mesh Synthesis Studio", icon: <Box size={16} /> },
+        { id: "QuadRetopologyUVStudio", title: "Automated Quad Retopology & UV Unwrap Studio", icon: <Grid size={16} /> },
         { id: "Omni3D2DVRModelStudio", title: "3D/2D/VR Parametric Mesh Studio", icon: <Box size={16} /> },
         { id: "ZBrushStyleSculptingStudio", title: "Multi-Res Sculpting Studio", icon: <Palette size={16} /> },
         { id: "RealTimeHouse3DPrintStudio", title: "3D Architectural CAD & Slicer", icon: <Home size={16} /> },
@@ -747,6 +771,8 @@ export const tools = [
       category: "🎨 TEXTURES & SHADERS",
       subTools: [
         { id: "CinematicCutsceneTextureStudio", title: "🌟 AAA Procedural Texture & PBR Baker", icon: <Layers size={16} /> },
+        { id: "GPUPipelineShaderCompilerStudio", title: "GPU Pipeline State Object (PSO) & Shader Compiler", icon: <Cpu size={16} /> },
+        { id: "SubsurfaceScatteringSkinShaderStudio", title: "Subsurface Scattering (SSS) & Skin Shader Studio", icon: <Palette size={16} /> },
         { id: "OmniTextureCinematicStudio", title: "4-Channel PBR Texture Synthesis", icon: <Layers size={16} /> },
         { id: "BatchAIProcessingDashboard", title: "🤖 Multi-Agent Batch AI PBR Synthesis", icon: <Cpu size={16} /> },
         { id: "VisualShaderGraphEditor", title: "Visual Node Shader Graph", icon: <Network size={16} /> },
@@ -786,6 +812,8 @@ export const tools = [
         { id: "GlobalOfflineAITranslationStudio", title: "🌟 🌐 AI แปลภาษาออฟไลน์ 70++ ภาษาทั่วโลก", icon: <Languages size={16} /> },
         { id: "GlobalPhonetics30Studio", title: "🌟 🌐 สัทศาสตร์ 30++ ภาษา & สตรีมมิ่ง AI ออฟไลน์", icon: <Globe size={16} /> },
         { id: "ThaiRoyalSpeechAndSingingStudio", title: "🌟 🇹🇭 ระบบอ่านออกเสียง & ร้องเพลงราชบัณฑิตยสถาน", icon: <Mic2 size={16} /> },
+        { id: "AudioRaytracingAcousticStudio", title: "Geometric Audio Raytracing & Acoustic Reverb Studio", icon: <Ear size={16} /> },
+        { id: "DynamicInteractiveMusicStateMachine", title: "Dynamic Interactive Music State Machine", icon: <Disc size={16} /> },
         { id: "OmniMusicVocalDAWStudio", title: "16-Step Polyphonic DAW & SFX Lab", icon: <Disc size={16} /> },
         { id: "ThaiVoiceDubbingStudio", title: "🇹🇭 Thai Phonetics & Neural Dubbing", icon: <Mic size={16} /> },
         { id: "NaturalVocalVoiceStudio", title: "Ultra-Natural Vocal & Singing Synthesis", icon: <Mic2 size={16} /> },
@@ -805,11 +833,13 @@ export const tools = [
       category: "🎮 GAME SYSTEMS & STORY",
       subTools: [
         { id: "OmniGameCreationStudio", title: "Core ECS Engine & Gameplay Sandbox", icon: <Gamepad2 size={16} /> },
+        { id: "CombatHitboxFrameDataStudio", title: "Combat Hitbox & 60 FPS Frame Data Studio", icon: <Swords size={16} /> },
         { id: "GameSystems", title: "Gameplay Ability System (GAS) & Stats", icon: <Blocks size={16} /> },
         { id: "EconomicBalancer", title: "Economy, Loot Tables & Crafting", icon: <Database size={16} /> },
         { id: "NPCEdit", title: "NPCs, MetaHuman & AI Behavior Trees", icon: <Users size={16} /> },
         { id: "MonsterEdit", title: "Monster & Boss AI Stat Configurator", icon: <Ghost size={16} /> },
         { id: "WorldLore", title: "World Lore, Quests & Dialogue Graphs", icon: <BookOpen size={16} /> },
+        { id: "LocalizationPolyglotAudioDubbingStudio", title: "Global Localization & Voice Dubbing Matrix", icon: <Globe2 size={16} /> },
         { id: "OmniLocalizationStudio", title: "Multilingual Game Translation & i18n", icon: <Languages size={16} /> },
         { id: "GlobalOfflineAITranslationStudio", title: "Global 70+ Offline AI Translation & Phonetics", icon: <Globe size={16} /> }
       ]
@@ -824,6 +854,8 @@ export const tools = [
       category: "⚛️ SIMULATION & RENDERING",
       subTools: [
         { id: "DeterministicEngineeringSuite", title: "Deterministic Physics & Math Engine", icon: <Calculator size={16} /> },
+        { id: "DynamicMeshSlicingDestructionStudio", title: "Real-Time Mesh Slicing & Cap Destruction Studio", icon: <Scissors size={16} /> },
+        { id: "PhysicsClothHairSimulationLab", title: "Verlet/XPBD Cloth & Hair Simulation Lab", icon: <Flame size={16} /> },
         { id: "ChaosPhysicsFluidEngine", title: "Chaos Destruction & Fluid Dynamics", icon: <Flame size={16} /> },
         { id: "OmniVFXStudio", title: "Ultimate GPU Particle Designer & VFX", icon: <Wand2 size={16} /> },
         { id: "VehicleDynamicsTuner", title: "Vehicle Suspension & Aerodynamics", icon: <Car size={16} /> },
@@ -843,14 +875,18 @@ export const tools = [
       category: "⚙️ INTERFACE & DEVOPS",
       subTools: [
         { id: "MegaUIUXMasterStudio", title: "UI/UX Component Design System", icon: <LayoutDashboard size={16} /> },
+        { id: "GamepadConsoleFocusNavigationStudio", title: "Gamepad & Console Spatial Focus Navigation", icon: <Gamepad size={16} /> },
         { id: "UIUXEdit", title: "Visual UI Layout & Canvas Builder", icon: <LayoutDashboard size={16} /> },
         { id: "UXUISimulatorTestbed", title: "Multi-Device Simulator & Safe Zones", icon: <Monitor size={16} /> },
         { id: "DataTableJSONEditor", title: "Game Data Tables & Serialization", icon: <Table size={16} /> },
         { id: "StateSerializationManager", title: "Save/Load Binary & JSON Serializer", icon: <Save size={16} /> },
+        { id: "ContinuousIntegrationBuildMatrixStudio", title: "Continuous Integration Multi-Platform Build Matrix", icon: <Cpu size={16} /> },
+        { id: "AutomatedPlaytestBotSwarmStudio", title: "Automated Multi-Agent Playtest Bot Swarm Matrix", icon: <Users size={16} /> },
         { id: "BuildPublishAudit", title: "Pre-Flight Build Safety Audit", icon: <ShieldCheck size={16} /> },
         { id: "BuildPublish", title: "Cross-Platform Build & Deploy Targets", icon: <Cloud size={16} /> },
         { id: "VersionControlUI", title: "Git Branching & Version Control", icon: <GitCommit size={16} /> },
         { id: "PerformanceDashboard", title: "System Resource Telemetry & Profiler", icon: <Gauge size={16} /> },
+        { id: "NetworkReplicationLagCompensationStudio", title: "Multiplayer Replication & Lag Compensation Lab", icon: <Wifi size={16} /> },
         { id: "HighPerformanceNetcodeStudio", title: "🌟 AAA High-Performance Netcode & Prediction Studio", icon: <Wifi size={16} /> },
         { id: "MultiplayerServerOrchestrator", title: "Dedicated Server Orchestrator", icon: <Server size={16} /> },
         { id: "AntiCheatSecurityHub", title: "Anti-Cheat & Memory Integrity Shield", icon: <Shield size={16} /> }
@@ -974,7 +1010,16 @@ const renderSubTool = (subToolId: string) => {
       </ErrorBoundary>
     );
   }
-  return <VisualScriptEditor toolId={subToolId} tools={tools} />;
+  return (
+    <Suspense fallback={
+      <div className="w-full h-full flex flex-col items-center justify-center text-[#8b949e] bg-[#0d1117]">
+        <div className="w-8 h-8 border-2 border-[#58a6ff] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="text-sm font-medium tracking-wide">Loading Visual Script Editor...</div>
+      </div>
+    }>
+      <VisualScriptEditor toolId={subToolId} tools={tools} />
+    </Suspense>
+  );
 };
 
   const renderActiveTool = () => {

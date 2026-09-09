@@ -20,6 +20,10 @@ import { Procedural3DMeshGenerator } from './src/utils/Procedural3DMeshGenerator
 import { ProceduralWorldMapGenEngine } from './src/utils/ProceduralWorldMapGenEngine';
 import { ThaiPhoneticsEngineCore } from './src/utils/ThaiPhoneticsEngineCore';
 import { OfflineAIErrorImmunityCore } from './src/utils/OfflineAIErrorImmunityCore';
+import { PluginSandboxIsolationEngine } from './src/utils/PluginSandboxIsolationEngine';
+import { HighPerformanceNetcodeEngine } from './src/utils/HighPerformanceNetcodeEngine';
+import { GlobalOfflineAITranslationEngine } from './src/utils/GlobalOfflineAITranslationEngine';
+import { ThaiSingingAndChantingProsodyEngine } from './src/utils/ThaiSingingAndChantingProsodyEngine';
 
 let passed = 0;
 let failed = 0;
@@ -239,6 +243,65 @@ async function runTestSuite() {
   assert(testErrorRecord.domain === 'TYPE_SAFETY_NARROWING', `Classifies error domain as '${testErrorRecord.domain}'`);
   assert(testErrorRecord.antiPattern !== undefined, 'Synthesizes anti-pattern rule');
   assert(testErrorRecord.immunityScore >= 90, `Immunity score is >= 90% (got ${testErrorRecord.immunityScore}%)`);
+
+  // -----------------------------------------------------------------
+  // 8. PluginSandboxIsolationEngine Tests
+  // -----------------------------------------------------------------
+  console.log('\n[8] Testing PluginSandboxIsolationEngine...');
+  const sandbox = PluginSandboxIsolationEngine.getInstance();
+  const session = sandbox.initializeSession('test_plg_alpha', 'WASM Mesh Solver', 'cpp', 128);
+  assert(session.pluginId === 'test_plg_alpha', 'Initializes sandbox session with correct pluginId');
+  assert(session.isolationMetrics.primaryEnginePollutionCount === 0, 'Zero-state pollution guarantee initialized at 0');
+  assert(session.isolationMetrics.isolationIntegrityPercent === 100, 'Isolation integrity is 100%');
+  
+  const activeSession = sandbox.startTestRun('test_plg_alpha', 'WASM Mesh Solver', 'cpp', 128);
+  assert(activeSession.isActive === true, 'Sandbox status transition to isActive=true');
+  
+  const tickSession = sandbox.runSimulationTick();
+  assert(tickSession.computeProfile.tickDurationMicroseconds >= 0, 'Computes microsecond tick duration');
+  assert(tickSession.isolationMetrics.primaryEnginePollutionCount === 0, 'Tick execution maintains zero pollution');
+  
+  sandbox.stopTestRun();
+  const resetSession = sandbox.resetShadowState();
+  assert(resetSession.isActive === false, 'State cleanly reset to isActive=false');
+  assert(resetSession.isolationMetrics.primaryEnginePollutionCount === 0, 'Primary simulation state pollution count strictly 0');
+
+  // -----------------------------------------------------------------
+  // 9. HighPerformanceNetcodeEngine Tests
+  // -----------------------------------------------------------------
+  console.log('\n[9] Testing HighPerformanceNetcodeEngine...');
+  const netcode = HighPerformanceNetcodeEngine.getInstance();
+  netcode.setSimulatedLatency(35);
+  netcode.setPacketLoss(0.01);
+  const netMetrics = netcode.getNetMetrics();
+  assert(netMetrics.rttMs >= 0, 'RTT ms is non-negative and valid');
+  assert(netMetrics.packetLossPercent === 1, 'Packet loss percent accurately calculated');
+  assert(netMetrics.snapshotRateHz === 60, 'Snapshot rate calibrated to 60Hz standard');
+
+  // -----------------------------------------------------------------
+  // 10. GlobalOfflineAITranslationEngine Tests
+  // -----------------------------------------------------------------
+  console.log('\n[10] Testing GlobalOfflineAITranslationEngine...');
+  const transEngine = GlobalOfflineAITranslationEngine.getInstance();
+  const transResult = await transEngine.translateText({
+    text: 'Welcome to the Nexus Engine sandbox',
+    sourceLang: 'en',
+    targetLang: 'th',
+    domain: 'gaming'
+  });
+  assert(typeof transResult.translatedText === 'string' && transResult.translatedText.length > 0, 'Generated valid translation text');
+  assert(transResult.sourceLangId === 'en', 'Source language matches configuration');
+  assert(transResult.targetLangId === 'th', 'Target language matches configuration');
+
+  // -----------------------------------------------------------------
+  // 11. ThaiSingingAndChantingProsodyEngine Tests
+  // -----------------------------------------------------------------
+  console.log('\n[11] Testing ThaiSingingAndChantingProsodyEngine...');
+  const prosody = ThaiSingingAndChantingProsodyEngine.getInstance();
+  const chantingNotes = prosody.analyzeChantingNotes('เร่งรัด พัฒนา วิทยาการ');
+  assert(Array.isArray(chantingNotes) && chantingNotes.length > 0, 'Generated chanting note sequence');
+  assert(typeof chantingNotes[0].note === 'string', 'First chanting note has valid musical pitch');
+  assert(chantingNotes[0].durationSec > 0, 'Chanting note duration is positive');
 
   // -----------------------------------------------------------------
   // SUMMARY

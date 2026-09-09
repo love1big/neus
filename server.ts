@@ -18,6 +18,11 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Health check endpoint for platform ingress and monitoring
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: Date.now() });
+  });
+
   // API Routes
   app.get("/api/tasks", (req, res) => {
     res.json(tasks);

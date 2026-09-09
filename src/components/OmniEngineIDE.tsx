@@ -18,11 +18,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import CommandPalette from "./CommandPalette";
 import GenericToolPanel from "./GenericToolPanel";
-import Viewport3D from "./Viewport3D";
-import OmniCreatorMaster from "./OmniCreatorMaster";
+const Viewport3D = React.lazy(() => import("./Viewport3D"));
 import PerformanceHUD from "./PerformanceHUD";
 import SystemHealthDashboard from "./SystemHealthDashboard";
-import SystemResourceMonitor from "./SystemResourceMonitor";
+const SystemResourceMonitor = React.lazy(() => import("./SystemResourceMonitor"));
 import FullEngineSemanticSearchModal from "./FullEngineSemanticSearchModal";
 import OmniWorkflowNavigatorModal from "./OmniWorkflowNavigatorModal";
 import GlobalAutoSaveStatusWidget from "./GlobalAutoSaveStatusWidget";
@@ -1254,13 +1253,15 @@ export default function OmniEngineIDE({
                                       {renderActiveTool()}
                                     </div>
                                   ) : (
-                                    <Viewport3D
-                                      activeTool={activeTool || ""}
-                                      activeFile={undefined}
-                                      globalActiveTransformTool={
-                                        activeSecondaryTool
-                                      }
-                                    />
+                                    <React.Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-[#0d1117] text-gray-500 text-xs font-mono">Initializing 3D Viewport...</div>}>
+                                      <Viewport3D
+                                        activeTool={activeTool || ""}
+                                        activeFile={undefined}
+                                        globalActiveTransformTool={
+                                          activeSecondaryTool
+                                        }
+                                      />
+                                    </React.Suspense>
                                   )}
                                 </div>
                               </Panel>
@@ -2425,20 +2426,24 @@ export default function OmniEngineIDE({
             </div>
           </div>
           <div className="flex-1 w-full relative">
-            <Viewport3D
-              activeTool={activeTool || ""}
-              activeFile={undefined}
-              globalActiveTransformTool={activeSecondaryTool}
-            />
+            <React.Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-[#0d1117] text-gray-500 text-xs font-mono">Initializing 3D Viewport...</div>}>
+              <Viewport3D
+                activeTool={activeTool || ""}
+                activeFile={undefined}
+                globalActiveTransformTool={activeSecondaryTool}
+              />
+            </React.Suspense>
           </div>
         </div>
       )}
 
       {showResourceOverlay && (
-        <SystemResourceMonitor
-          mode="overlay"
-          onClose={() => setShowResourceOverlay(false)}
-        />
+        <React.Suspense fallback={null}>
+          <SystemResourceMonitor
+            mode="overlay"
+            onClose={() => setShowResourceOverlay(false)}
+          />
+        </React.Suspense>
       )}
 
       <OmniWorkflowNavigatorModal

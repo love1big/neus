@@ -30,9 +30,14 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'esnext',
-      minify: 'esbuild',
-      cssCodeSplit: true,
-      chunkSizeWarningLimit: 2000
+      minify: false,
+      sourcemap: false,
+      reportCompressedSize: false,
+      modulePreload: false,
+      chunkSizeWarningLimit: 4000,
+      rollupOptions: {
+        maxParallelFileOps: 2,
+      },
     }
   };
 });
