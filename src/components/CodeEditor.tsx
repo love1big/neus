@@ -44,6 +44,10 @@ import {
 } from '../utils/CodeProjectManager';
 import ProjectSwitcherDropdown from './ProjectSwitcherDropdown';
 import ProjectWorkspaceModal from './ProjectWorkspaceModal';
+import { EngineAstLinterEngine } from '../utils/staticAnalysis/EngineAstLinterEngine';
+import { EngineAntiPatternIssue } from '../utils/staticAnalysis/EngineAntiPatternTypes';
+import { QuickFixRefactoringNode } from '../utils/staticAnalysis/QuickFixRefactoringNode';
+import EngineStaticAnalysisPanel from './EngineStaticAnalysisPanel';
 
 interface CodeEditorProps {
   code?: string;
@@ -59,7 +63,7 @@ const DEFAULT_FILES = [
   {
     name: 'PlayerCombatController.ts',
     lang: 'typescript',
-    code: `import { Component, Vector3, EventDispatcher } from '@nexus/engine';
+    code: `import { Component, Vector3, EventDispatcher, Entity, Rigidbody } from '@nexus/engine';
 
 export interface CombatStats {
   health: number;
@@ -69,12 +73,39 @@ export interface CombatStats {
 
 export class PlayerCombatController extends Component {
   private stats: CombatStats = { health: 100, attackPower: 25, criticalChance: 0.15 };
+  public position: Vector3 = new Vector3(0, 0, 0);
+
+  // Per-frame game engine update loop (Hot Path)
+  public update(deltaTime: number): void {
+    const target = this.getClosestTarget();
+    if (!target) return;
+
+    // ⚠️ Anti-Pattern 1: Allocating Vector3 heap objects inside 60fps tick (Generates GC churn)
+    const moveDirection = new Vector3(target.position.x - this.position.x, 0, target.position.z - this.position.z);
+
+    // ⚠️ Anti-Pattern 2: Searching scene graph component inside frame loop
+    const rb = this.GetComponent<Rigidbody>();
+
+    // ⚠️ Anti-Pattern 3: Incurring square root CPU penalty across distance checks
+    if (Vector3.Distance(this.position, target.position) < 5.0) {
+      this.executeAttack(target);
+    }
+
+    // ⚠️ Anti-Pattern 4: String comparison allocations on entity tags
+    if (target.tag == "Enemy") {
+      console.log("Engaging enemy at frame tick: " + deltaTime);
+    }
+  }
 
   public executeAttack(target: Entity): void {
     const isCrit = Math.random() < this.stats.criticalChance;
     const damage = isCrit ? this.stats.attackPower * 2.0 : this.stats.attackPower;
     target.applyDamage(damage);
     EventDispatcher.dispatch('COMBAT_HIT', { damage, isCrit });
+  }
+
+  private getClosestTarget(): Entity | null {
+    return null;
   }
 }`
   },
@@ -482,6 +513,11 @@ export default function CodeEditor({
   const errorCount = useMemo(() => diagnostics.filter(d => d.severity === 'error').length, [diagnostics]);
   const warningCount = useMemo(() => diagnostics.filter(d => d.severity === 'warning').length, [diagnostics]);
 
+  // 3.1 Real-Time Engine Static Analysis Anti-Pattern Detection
+  const engineAntiPatternIssues: EngineAntiPatternIssue[] = useMemo(() => {
+    return EngineAstLinterEngine.analyzeCode(activeCode, detectedResult.id);
+  }, [activeCode, detectedResult.id]);
+
   // 4. Available Language-Specific Completions & Snippets
   const languageCompletions: LanguageCompletionItem[] = useMemo(() => {
     return LanguageCompletionProvider.getCompletions(detectedResult.monacoId);
@@ -557,7 +593,23 @@ export default function CodeEditor({
     }
   }, [activeCode, diagnostics, updateCode]);
 
-  // Sync Monaco markers and register completion provider & error quick fix providers
+  // Fix Single Engine Anti-Pattern with Quick Fix
+  const handleApplyEngineQuickFix = useCallback((issue: EngineAntiPatternIssue) => {
+    try {
+      const result = QuickFixRefactoringNode.applySingleQuickFix(activeCode, issue);
+      if (result.success) {
+        updateCode(result.newCode);
+        setActionFeedback(`⚡ Optimized: ${issue.optimizedAlternative.title}`);
+        setTimeout(() => setActionFeedback(null), 3500);
+      }
+    } catch (err) {
+      console.error('Failed to apply engine quick fix:', err);
+      setActionFeedback(`❌ Failed to apply engine optimization`);
+      setTimeout(() => setActionFeedback(null), 3000);
+    }
+  }, [activeCode, updateCode]);
+
+  // Sync Monaco markers and register completion provider, error quick fix & engine anti-pattern providers
   useEffect(() => {
     if (monacoRef.current && editorRef.current) {
       LanguageCompletionProvider.registerWithMonaco(monacoRef.current, detectedResult.monacoId);
@@ -565,8 +617,13 @@ export default function CodeEditor({
       LanguageErrorChecker.registerMonacoProviders(monacoRef.current, detectedResult.monacoId, (diag) => {
         handleFixWithAI(diag);
       });
+      // Real-Time Engine Anti-Pattern Markers & CodeActions
+      EngineAstLinterEngine.applyMonacoAntiPatternMarkers(monacoRef.current, editorRef.current, engineAntiPatternIssues);
+      EngineAstLinterEngine.registerMonacoProviders(monacoRef.current, detectedResult.monacoId, (issue) => {
+        handleApplyEngineQuickFix(issue);
+      });
     }
-  }, [detectedResult.monacoId, diagnostics, handleFixWithAI]);
+  }, [detectedResult.monacoId, diagnostics, engineAntiPatternIssues, handleFixWithAI, handleApplyEngineQuickFix]);
 
   // Sync language back to parent if provided
   useEffect(() => {
@@ -588,8 +645,8 @@ export default function CodeEditor({
   const [matches, setMatches] = useState<any[]>([]);
   const [currentMatch, setCurrentMatch] = useState(0);
 
-  // IDE Layout State & Diagnostics Panel
-  const [bottomPanelTab, setBottomPanelTab] = useState<'none' | 'problems' | 'completions' | 'ai_copilot'>('none');
+  // IDE Layout State & Diagnostics Panel (including Real-Time Engine Static Analysis)
+  const [bottomPanelTab, setBottomPanelTab] = useState<'none' | 'problems' | 'completions' | 'ai_copilot' | 'engine_analysis'>('none');
   const [isPoppedOut, setIsPoppedOut] = useState(false);
   const [aiPromptInput, setAiPromptInput] = useState('');
   const [isAiGenerating, setIsAiGenerating] = useState(false);
@@ -776,6 +833,10 @@ export default function CodeEditor({
     LanguageErrorChecker.applyMonacoMarkers(monacoInstance, editor, diagnostics);
     LanguageErrorChecker.registerMonacoProviders(monacoInstance, detectedResult.monacoId, (diag) => {
       handleFixWithAI(diag);
+    });
+    EngineAstLinterEngine.applyMonacoAntiPatternMarkers(monacoInstance, editor, engineAntiPatternIssues);
+    EngineAstLinterEngine.registerMonacoProviders(monacoInstance, detectedResult.monacoId, (issue) => {
+      handleApplyEngineQuickFix(issue);
     });
 
     // Search Override
@@ -1293,6 +1354,28 @@ export default function CodeEditor({
                  Syntax: <span className="text-[#58a6ff] font-bold">{editorConfig.monacoLanguage}</span> | Tab: {editorConfig.tabSize} spaces | {editorConfig.encoding}
             </div>
             
+            {/* Engine Anti-Pattern Static Analysis Trigger Button */}
+            <button
+               onClick={() => setBottomPanelTab(prev => prev === 'engine_analysis' ? 'none' : 'engine_analysis')}
+               className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded border text-[10px] font-bold transition-all cursor-pointer ${
+                 bottomPanelTab === 'engine_analysis'
+                   ? 'bg-amber-500 text-black border-amber-400 shadow-md font-extrabold'
+                   : engineAntiPatternIssues.some(i => i.severity === 'CRITICAL')
+                   ? 'bg-[#f85149]/20 border-[#f85149]/50 text-[#f85149] animate-pulse'
+                   : engineAntiPatternIssues.length > 0
+                   ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                   : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+               }`}
+               title="Toggle Real-Time Engine Static Analysis & Performance Alternatives"
+            >
+               <Zap size={11} className={bottomPanelTab === 'engine_analysis' ? 'text-black' : engineAntiPatternIssues.length > 0 ? "text-amber-400" : "text-emerald-400"} />
+               {engineAntiPatternIssues.length > 0 ? (
+                 <span>{engineAntiPatternIssues.length} Anti-Pattern{engineAntiPatternIssues.length > 1 ? 's' : ''}</span>
+               ) : (
+                 <span>Engine: Clean</span>
+               )}
+            </button>
+
             {/* Problems Drawer Trigger Button */}
             <button
                onClick={() => setBottomPanelTab(prev => prev === 'problems' ? 'none' : 'problems')}
@@ -1529,10 +1612,24 @@ export default function CodeEditor({
 
          {/* Bottom Interactive Diagnostics / Snippets Drawer */}
          {bottomPanelTab !== 'none' && (
-           <div className="h-56 bg-[#0d1117] border-t border-[#30363d] flex flex-col shrink-0">
+           <div className={`${bottomPanelTab === 'engine_analysis' ? 'h-80' : 'h-56'} bg-[#0d1117] border-t border-[#30363d] flex flex-col shrink-0 transition-all`}>
              {/* Panel Header */}
              <div className="bg-[#161b22] px-3 py-1.5 border-b border-[#30363d] flex items-center justify-between">
-               <div className="flex items-center gap-3">
+               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                 <button
+                   onClick={() => setBottomPanelTab('engine_analysis')}
+                   className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded transition-colors ${
+                     bottomPanelTab === 'engine_analysis'
+                       ? 'bg-amber-500 text-black font-extrabold shadow-sm'
+                       : engineAntiPatternIssues.some(i => i.severity === 'CRITICAL')
+                       ? 'bg-red-950/40 text-red-300 border border-red-800/50'
+                       : 'text-amber-400 hover:text-white'
+                   }`}
+                   title="Real-Time Engine Anti-Pattern Detection & Performance Alternatives"
+                 >
+                   <Zap size={13} className={bottomPanelTab === 'engine_analysis' ? 'text-black' : 'text-amber-400'} />
+                   Anti-Patterns ({engineAntiPatternIssues.length})
+                 </button>
                  <button
                    onClick={() => setBottomPanelTab('problems')}
                    className={`flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded transition-colors ${
@@ -1776,6 +1873,30 @@ export default function CodeEditor({
                  </div>
                </div>
              )}
+
+             {/* Real-Time Engine Anti-Pattern Static Analysis Panel */}
+             {bottomPanelTab === 'engine_analysis' && (
+               <EngineStaticAnalysisPanel
+                 code={activeCode}
+                 languageId={detectedResult.id}
+                 issues={engineAntiPatternIssues}
+                 onUpdateCode={(newCode, feedback) => {
+                   updateCode(newCode);
+                   if (feedback) {
+                     setActionFeedback(feedback);
+                     setTimeout(() => setActionFeedback(null), 3500);
+                   }
+                 }}
+                 onJumpToLine={(line, col) => {
+                   if (editorRef.current) {
+                     editorRef.current.revealPositionInCenter({ lineNumber: line, column: col });
+                     editorRef.current.setPosition({ lineNumber: line, column: col });
+                     editorRef.current.focus();
+                   }
+                 }}
+                 onClose={() => setBottomPanelTab('none')}
+               />
+             )}
            </div>
          )}
       </div>
@@ -1792,6 +1913,21 @@ export default function CodeEditor({
           <span>Monaco: <strong className="text-[#58a6ff]">{editorConfig.monacoLanguage}</strong></span>
           <span>•</span>
           <span>Indent: {editorConfig.tabSize} spaces</span>
+          <span>•</span>
+          <button 
+            onClick={() => setBottomPanelTab(prev => prev === 'engine_analysis' ? 'none' : 'engine_analysis')}
+            className={`flex items-center gap-1 hover:underline cursor-pointer font-bold ${
+              engineAntiPatternIssues.some(i => i.severity === 'CRITICAL')
+                ? 'text-[#f85149]'
+                : engineAntiPatternIssues.length > 0
+                ? 'text-amber-400'
+                : 'text-emerald-400'
+            }`}
+            title="Toggle Engine Static Analysis Telemetry"
+          >
+            <Zap size={11} className={engineAntiPatternIssues.length > 0 ? 'text-amber-400' : 'text-emerald-400'} />
+            {engineAntiPatternIssues.length} Anti-Patterns
+          </button>
           <span>•</span>
           <button 
             onClick={() => setBottomPanelTab(prev => prev === 'problems' ? 'none' : 'problems')}

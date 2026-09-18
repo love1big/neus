@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { RecentFilesTracker, RecentFileItem } from '../utils/RecentFilesTracker';
 import CommandPaletteRecentSection from './CommandPaletteRecentSection';
+import FloatingCommandHistoryLog from './FloatingCommandHistoryLog';
+import { EngineCommandHistoryTracker } from '../utils/EngineCommandHistoryTracker';
 
 interface Asset {
   id: string;
@@ -173,11 +175,40 @@ export default function CommandPalette({ tools, onSelect }: CommandPaletteProps)
   const activeListLength = getActiveListLength();
 
   const handleSelect = (id: string) => {
+    const selectedTool = tools.find(t => t.id === id);
+    const toolName = selectedTool?.name || selectedTool?.title || id;
+    EngineCommandHistoryTracker.recordAction({
+      title: `Switch Subsystem: ${toolName}`,
+      description: `Activated ${toolName} (${id}) workspace perspective`,
+      category: 'ENGINE_SUBSYSTEM',
+      targetSubsystem: id,
+      status: 'SUCCESS',
+      author: 'COMMAND_PALETTE',
+      toolId: id,
+      reExecutable: true
+    });
     onSelect(id);
     setIsOpen(false);
   };
   
   const handleAssetSelect = (id: string) => {
+    const asset = globalMockAssets.find(a => a.id === id);
+    const assetName = asset?.name || id;
+    EngineCommandHistoryTracker.recordAction({
+      title: `Open Asset: ${assetName}`,
+      description: `Dispatched open-asset for [${asset?.type?.toUpperCase() || 'ASSET'}] to Content Browser`,
+      category: 'ASSET_PIPELINE',
+      targetSubsystem: 'ContentBrowser',
+      status: 'SUCCESS',
+      author: 'COMMAND_PALETTE',
+      toolId: 'ContentBrowser',
+      reExecutable: true,
+      details: {
+        affectedFile: assetName,
+        diffSummary: `Type: ${asset?.type || 'asset'} • Folder: #${asset?.folderId || '1'}`,
+        telemetryImpact: 'Texture/Mesh pipeline streamed to memory'
+      }
+    });
     onSelect("ContentBrowser"); 
     window.dispatchEvent(new CustomEvent('open-asset', { detail: id }));
     setIsOpen(false);
@@ -185,11 +216,20 @@ export default function CommandPalette({ tools, onSelect }: CommandPaletteProps)
 
   const handleSelectRecent = (item: RecentFileItem) => {
     RecentFilesTracker.openItem(item);
-    if (item.type === 'asset' || item.type === 'mesh' || item.type === 'texture' || item.type === 'audio') {
-      onSelect(item.hubId || 'ContentBrowser');
-    } else {
-      onSelect(item.id);
-    }
+    const targetToolId = (item.type === 'asset' || item.type === 'mesh' || item.type === 'texture' || item.type === 'audio')
+      ? (item.hubId || 'ContentBrowser')
+      : item.id;
+    EngineCommandHistoryTracker.recordAction({
+      title: `Resume Session: ${item.name}`,
+      description: `Restored workspace session for ${item.path || item.id}`,
+      category: item.type === 'subtool' || item.type === 'component' ? 'ENGINE_SUBSYSTEM' : 'PROJECT_STATE',
+      targetSubsystem: targetToolId,
+      status: 'SUCCESS',
+      author: 'COMMAND_PALETTE',
+      toolId: targetToolId,
+      reExecutable: true
+    });
+    onSelect(targetToolId);
     setIsOpen(false);
   };
 
@@ -243,17 +283,19 @@ export default function CommandPalette({ tools, onSelect }: CommandPaletteProps)
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-start justify-center pt-[8vh] sm:pt-[12vh] px-4 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[1000] flex items-start justify-center pt-[5vh] sm:pt-[7vh] px-4 animate-in fade-in duration-150 overflow-y-auto custom-scrollbar pb-10">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
         onClick={() => setIsOpen(false)}
       />
       
-      {/* Palette Container */}
-      <div 
-        className="relative w-full max-w-2xl bg-[#0d1117] border border-[#30363d] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col z-10"
-      >
+      {/* Centered Column: Palette + Floating Command History Log */}
+      <div className="relative w-full max-w-2xl flex flex-col gap-3 z-10">
+        {/* Palette Container */}
+        <div 
+          className="w-full bg-[#0d1117] border border-[#30363d] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col"
+        >
         {/* Input Area */}
         <div className="flex items-center px-4.5 border-b border-[#21262d] bg-[#161b22]/95">
           <Search size={18} className="text-[#38bdf8] shrink-0" />
@@ -507,7 +549,14 @@ export default function CommandPalette({ tools, onSelect }: CommandPaletteProps)
           </div>
         </div>
       </div>
+
+      {/* Floating 'Command History' log beneath the CommandPalette */}
+      <FloatingCommandHistoryLog
+        onSelectTool={onSelect}
+        onClosePalette={() => setIsOpen(false)}
+      />
     </div>
-  );
+  </div>
+);
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Settings, Play, Bot, Menu, ChevronRight, Search, Plus, PlayCircle, Box, Layers, MousePointer2, Move, RotateCw, Scaling, Grid, Camera, Pipette, Mountain, Sun, Film, Mic, Flame, Sparkles, Cuboid, Hexagon, Component, RefreshCw, FolderTree, Database, Code2, Waypoints, LayoutDashboard, Puzzle, AlertTriangle, XCircle, X, Maximize2, Move3d, Cloud, Image, Ghost, ChevronDown, UserSquare, Users, AudioWaveform as ObjectIcon, Waves, BookOpen, Map, Gamepad2, Terminal, TerminalSquare, Filter, Globe, Zap, MonitorPlay, Network, Server, Wifi, Activity, AlignLeft, Wrench, GitMerge, HardDrive, Microchip, Eye, BoxSelect, Paintbrush, Cpu, Workflow, } from "lucide-react";
+  Settings, Play, Bot, Menu, ChevronRight, Search, Plus, PlayCircle, Box, Layers, MousePointer2, Move, RotateCw, Scaling, Grid, Camera, Pipette, Mountain, Sun, Film, Mic, Flame, Sparkles, Cuboid, Hexagon, Component, RefreshCw, FolderTree, Database, Code2, Waypoints, LayoutDashboard, Puzzle, AlertTriangle, XCircle, X, Maximize2, Move3d, Cloud, Image, Ghost, ChevronDown, UserSquare, Users, AudioWaveform as ObjectIcon, Waves, BookOpen, Map, Gamepad2, Terminal, TerminalSquare, Filter, Globe, Zap, MonitorPlay, Monitor, Network, Server, Wifi, Activity, AlignLeft, Wrench, GitMerge, HardDrive, Microchip, Eye, BoxSelect, Paintbrush, Cpu, Workflow, } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -27,6 +27,12 @@ import OmniWorkflowNavigatorModal from "./OmniWorkflowNavigatorModal";
 import GlobalAutoSaveStatusWidget from "./GlobalAutoSaveStatusWidget";
 import { GlobalStudioAutoSaveManager } from "../utils/GlobalStudioAutoSaveManager";
 import { triggerNotification } from "./NotificationSystem";
+import { SidebarQuickActionsFloatingMenu } from "./SidebarQuickActionsFloatingMenu";
+import { sidebarQuickActionsTracker } from "../utils/SidebarQuickActionsNode";
+import DetachablePanelsManagerModal from "./DetachablePanelsManagerModal";
+import DetachableModuleHeaderButton from "./DetachableModuleHeaderButton";
+import { omniDetachablePanelManager } from "../utils/OmniDetachablePanelManager";
+import OfflineAITokenGuardStatusPill from "./OfflineAITokenGuardStatusPill";
 
 interface OmniEngineIDEProps {
   tools?: any[];
@@ -47,6 +53,14 @@ export default function OmniEngineIDE({
   const [isSemanticSearchOpen, setIsSemanticSearchOpen] = useState(false);
   const [semanticSearchInitialQuery, setSemanticSearchInitialQuery] = useState("");
   const [isWorkflowNavigatorOpen, setIsWorkflowNavigatorOpen] = useState(false);
+  const [isDetachableManagerOpen, setIsDetachableManagerOpen] = useState(false);
+  const [detachedCount, setDetachedCount] = useState<number>(() => omniDetachablePanelManager.getAllDetached().length);
+
+  useEffect(() => {
+    return omniDetachablePanelManager.subscribe((list) => {
+      setDetachedCount(list.length);
+    });
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -809,6 +823,26 @@ export default function OmniEngineIDE({
           >
             <Box size={14} /> Viewport 3D
           </button>
+          <button
+            onClick={() => setIsDetachableManagerOpen(true)}
+            className="px-3 py-1 text-[11px] font-bold rounded flex items-center gap-1.5 transition-colors border bg-[#1a1b2e] hover:bg-[#2a2b3d] text-gray-300 hover:text-white border-[#2a2b3d] cursor-pointer"
+            title="ระบบจัดการหน้าต่างแยก Multi-Monitor (Detachable Panels)"
+          >
+            <Monitor size={13} className="text-[#58a6ff]" /> จอแยก Multi-Monitor
+            {detachedCount > 0 && (
+              <span className="px-1.5 py-0.2 bg-blue-500 text-black rounded-full text-[9px] font-bold font-mono">
+                {detachedCount}
+              </span>
+            )}
+          </button>
+
+          <OfflineAITokenGuardStatusPill
+            onOpenDashboard={() => {
+              if (setActiveTool) {
+                setActiveTool("OfflineAITokenGuardDashboard");
+              }
+            }}
+          />
 
           <div className="flex bg-[#1a1b2e] rounded border border-[#2a2b3d] p-0.5">
             <button className="px-3 py-1 text-[11px] font-bold rounded hover:bg-[#2a2b3d] transition-colors">
@@ -1029,7 +1063,20 @@ export default function OmniEngineIDE({
       <div className="flex-1 flex overflow-hidden">
         {/* Left Icon Sidebar */}
         <div className="w-[64px] bg-[#141525] border-r border-[#2a2b3d] flex flex-col shrink-0 z-50 h-full">
-          <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col items-center py-4 gap-2 w-full">
+          {/* Floating Quick Actions Menu: 3 Most-Used Tools Based on Workspace Context */}
+          <div className="w-full pt-3 pb-2 border-b border-[#2a2b3d]/70 flex justify-center bg-[#10111d]/50">
+            <SidebarQuickActionsFloatingMenu
+              allTools={tools}
+              activeTool={activeTool || ""}
+              onSelectTool={(toolId) => {
+                sidebarQuickActionsTracker.recordToolUsage(toolId);
+                setActiveTool(toolId);
+              }}
+              getIconForTool={getIconForTool}
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col items-center py-3 gap-2 w-full">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -2452,6 +2499,15 @@ export default function OmniEngineIDE({
         onSelectTool={(id) => {
           setActiveTool(id);
           setIsWorkflowNavigatorOpen(false);
+        }}
+        tools={tools}
+      />
+
+      <DetachablePanelsManagerModal
+        isOpen={isDetachableManagerOpen}
+        onClose={() => setIsDetachableManagerOpen(false)}
+        onDetachModule={(id, title) => {
+          omniDetachablePanelManager.registerDetached({ moduleId: id, title }, null);
         }}
         tools={tools}
       />

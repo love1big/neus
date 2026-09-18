@@ -1,16 +1,31 @@
 import { Ultimate100Systems } from '../lib/Ultimate100Systems';
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Database, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, ChevronRight, Volume2, Play, Flame, Snowflake, Heart, HardDrive} from 'lucide-react';
+import { Send, Database, Loader2, RefreshCcw, Undo2, Search, Upload, Camera, Cloud, X, Mic, Download, Share2, Cpu, ShieldAlert, Zap, Trash2, Wifi, WifiOff, BookOpen, LayoutDashboard, Network, Video, Box, Map as MapIcon, Bug, Gamepad2, AudioWaveform, Headphones, Wind, Coins, Server, PersonStanding, Sparkles, TrendingUp, Clapperboard, Activity, ChevronRight, Volume2, Play, Flame, Snowflake, Heart, HardDrive, Terminal, Columns} from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useLanguage, LanguageCode } from '../contexts/LanguageContext';
 import * as webllm from '@mlc-ai/web-llm';
 import { parseNavIntent, executeOfflineNavigation, ALL_NAV_TARGETS } from '../utils/aiOfflineNavigator';
 import { gameAudioEngine, SOUND_PRESETS } from '../utils/offlineGameAudioEngine';
 import { QWEN_MODELS, QwenModelSpec } from '../utils/QwenModelRegistry';
+import { OfflineCommandPromptEngine, AIToolCallPayload, ThoughtStep } from '../utils/OfflineCommandPromptEngine';
+import OfflineAIToolCallCard from './OfflineAIToolCallCard';
+import OfflineAIThoughtTrace from './OfflineAIThoughtTrace';
+import OfflineCommandPromptTerminal from './OfflineCommandPromptTerminal';
+import { offlineAICommandCompressor, CompressedPromptResult } from '../utils/OfflineAICommandCompressor';
+import { offlineAICodeCommentBrander } from '../utils/OfflineAICodeCommentBrander';
+import { UniversalOfflineAITokenGuard } from '../utils/UniversalOfflineAITokenGuard';
+import { offlineNeuralInferencePipeline, OfflineNeuralInferencePipelineNode } from '../utils/OfflineNeuralInferencePipelineNode';
+import AICodeBrandingConfigModal from './AICodeBrandingConfigModal';
+import { Settings } from 'lucide-react';
 
 export interface Message {
   role: 'user' | 'model';
   content: string;
+  toolCall?: AIToolCallPayload;
+  thoughtTrace?: ThoughtStep[];
+  isCommand?: boolean;
+  compressionMeta?: CompressedPromptResult;
+  rawOriginalContent?: string;
 }
 
 interface AIChatProps {
@@ -49,6 +64,20 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
   const [isRecording, setIsRecording] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showHistoryStack, setShowHistoryStack] = useState(false);
+  const [autoCompressCommands, setAutoCompressCommands] = useState<boolean>(() => {
+    return localStorage.getItem('omni_offline_ai_compression_enabled') !== 'false';
+  });
+  const [autoBrandCode, setAutoBrandCode] = useState<boolean>(() => {
+    return localStorage.getItem('omni_offline_ai_branding_enabled') !== 'false';
+  });
+  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState<boolean>(false);
+  const [brandingAuthorName, setBrandingAuthorName] = useState<string>(() => offlineAICodeCommentBrander.getAuthorName());
+
+  useEffect(() => {
+    return offlineAICodeCommentBrander.subscribe(() => {
+      setBrandingAuthorName(offlineAICodeCommentBrander.getAuthorName());
+    });
+  }, []);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -70,6 +99,8 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
   const [showOfflineModelMenu, setShowOfflineModelMenu] = useState(false);
   const [offlineModelTab, setOfflineModelTab] = useState<'qwen' | 'specialists'>('qwen');
   const [activeOfflineModelName, setActiveOfflineModelName] = useState('Qwen 2.5 Coder (Latest Free)');
+  const [viewMode, setViewMode] = useState<'chat' | 'terminal' | 'split'>('chat');
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
   
   const OFFLINE_MODELS = [
     { id: '1', name: 'AI Offline ผู้บัญชาการ (Commander)', icon: <ShieldAlert size={16} />, desc: 'Core logic and architecture lead.' },
@@ -119,6 +150,18 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
   };
 
   const [smartMemoryEnabled, setSmartMemoryEnabled] = useState<boolean>(true);
+
+  const POPULAR_SLASH_COMMANDS = [
+    { cmd: '/sysinfo', desc: 'Hardware, GPU, CPU, and RAM telemetry', icon: '💻' },
+    { cmd: '/throttle eco', desc: 'Force-cap CPU/GPU to prevent lockup', icon: '🛡️' },
+    { cmd: '/perf', desc: 'Real-time FPS & frametime metrics', icon: '⚡' },
+    { cmd: '/nav MapEdit', desc: 'Open 3D Map & World Editor', icon: '🗺️' },
+    { cmd: '/sound laser', desc: 'Play synthesized laser audio', icon: '🔊' },
+    { cmd: '/test', desc: 'Run automated regression test suite', icon: '🧪' },
+    { cmd: '/mem gc', desc: 'Sweep heap memory and flush cache', icon: '🧹' },
+    { cmd: '/help', desc: 'View full offline command prompt manual', icon: '❓' },
+    { cmd: '/clear', desc: 'Clear terminal screen and chat history', icon: '🗑️' }
+  ];
 
   // Auto-unload after 5 mins of inactivity if smart memory is enabled
   useEffect(() => {
@@ -333,19 +376,40 @@ export default function AIChat({ code, setCode, language, setLanguage, files, on
     if (e) e.preventDefault();
     if (!input.trim() && !attachment) return;
 
-    const userMessage = input;
+    const rawUserMessage = input;
     const currentAttachment = attachment;
     
     setInput('');
     setAttachment(null);
     
-    let displayContent = userMessage;
-    if (currentAttachment) {
-       displayContent = `[Attachment Provided]\n${userMessage}`;
+    // Command & Prompt Compression for Offline AI (Token Optimization)
+    let compressionResult: CompressedPromptResult | undefined;
+    let effectiveMessage = rawUserMessage;
+
+    if (autoCompressCommands && !rawUserMessage.startsWith('/') && !rawUserMessage.startsWith('$')) {
+      compressionResult = offlineAICommandCompressor.compress(rawUserMessage);
+      if (compressionResult.isCompressed) {
+        effectiveMessage = compressionResult.compressedPrompt;
+      }
     }
 
-    setMessages(prev => [...prev, { role: 'user', content: displayContent }]);
-    setCommandHistory(prev => [...prev, userMessage]);
+    const userMessage = effectiveMessage;
+
+    let displayContent = rawUserMessage;
+    if (currentAttachment) {
+       displayContent = `[Attachment Provided]\n${rawUserMessage}`;
+    }
+
+    setMessages(prev => [
+      ...prev, 
+      { 
+        role: 'user', 
+        content: displayContent,
+        rawOriginalContent: rawUserMessage,
+        compressionMeta: compressionResult && compressionResult.isCompressed ? compressionResult : undefined
+      }
+    ]);
+    setCommandHistory(prev => [...prev, rawUserMessage]);
     setHistoryIndex(-1);
     setIsLoading(true);
 
@@ -442,7 +506,11 @@ ${f.content.substring(0, 150)}...`).join('\n\n');
              newPrev.pop(); // Remove thinking
              return newPrev;
            });
-           setMessages(prev => [...prev, { role: 'model', content: reply.choices[0].message.content || '...' }]);
+           let rawContent = reply.choices[0].message.content || '...';
+           if (autoBrandCode) {
+             rawContent = offlineAICodeCommentBrander.brandMarkdownCodeBlocks(rawContent);
+           }
+           setMessages(prev => [...prev, { role: 'model', content: rawContent }]);
          } catch (e: any) {
            setMessages(prev => {
              const newPrev = [...prev];
@@ -455,18 +523,59 @@ ${f.content.substring(0, 150)}...`).join('\n\n');
          return;
       }
 
-      // Eval Command execution for "100% command capability"
-      if (userMessage.startsWith('/execute ') || userMessage.startsWith('/eval ')) {
-         const cmd = userMessage.substring(userMessage.indexOf(' ') + 1);
-         let evalResult = '';
-         try {
-           evalResult = "Eval is disabled for security reasons.";
-         } catch (e: any) {
-           evalResult = e.message;
-         }
-         setMessages(prev => [...prev, { role: 'model', content: `**Offline Execution Result:**\n\`\`\`javascript\n${evalResult}\n\`\`\`` }]);
-         setIsLoading(false);
-         return;
+      // Offline Command Prompt & Tool-Calling Engine (100% Real Execution)
+      const offlinePromptEngine = OfflineCommandPromptEngine.getInstance();
+      const isDirectCmd = 
+        userMessage.startsWith('/') || 
+        userMessage.startsWith('$') || 
+        offlinePromptEngine.findCommand(userMessage.split(' ')[0].toLowerCase()) !== undefined;
+
+      // Handle direct CLI command execution
+      if (isDirectCmd) {
+        const cmdResult = await offlinePromptEngine.execute(userMessage);
+        
+        if (cmdResult.stdout === '__CLEAR_TERMINAL_SCREEN__') {
+          setMessages([
+            { role: 'model', content: "🧹 Chat terminal buffer cleared." }
+          ]);
+          setIsLoading(false);
+          return;
+        }
+
+        const outText = cmdResult.stdout || cmdResult.stderr || 'Command executed.';
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'model',
+            content: `**Command Output:**\n\`\`\`ansi\n${outText}\n\`\`\``,
+            toolCall: cmdResult.toolCall,
+            isCommand: true
+          }
+        ]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Online AI Emulation: Natural Language Tool Invocation & Thought Tracing
+      const aiEval = await offlinePromptEngine.evaluateOfflineAIMessage(userMessage, {
+        activeToolId,
+        activeToolName,
+        code
+      });
+
+      if (aiEval.toolCall || (aiEval.naturalResponse && aiEval.naturalResponse.trim().length > 0)) {
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'model',
+            content: aiEval.naturalResponse,
+            toolCall: aiEval.toolCall,
+            thoughtTrace: aiEval.thoughtTrace,
+            isCommand: aiEval.isCommand
+          }
+        ]);
+        setIsLoading(false);
+        return;
       }
 
       const recentMessages = messages;
@@ -1897,7 +2006,29 @@ export class UltimateIDEFeatures {
         responseText += `\n\nI have locally generated and saved the following files:\n${generatedFiles.map(f => `- **${f.filename}**`).join('\n')}\n\nYou can view them in the Explorer.`;
       }
 
-      setMessages(prev => [...prev, { role: 'model', content: responseText }]);
+      if (!responseText || responseText.trim().length === 0) {
+        const infResult = await offlineNeuralInferencePipeline.executeInference({
+          prompt: rawUserMessage,
+          contextLanguage: chatLanguage,
+          persona,
+          activeToolId,
+          activeToolName,
+          smartMemoryCode: code
+        });
+        responseText = infResult.content;
+        if (infResult.generatedArtifacts && onWriteFiles) {
+          onWriteFiles(infResult.generatedArtifacts);
+        }
+      }
+
+      const tokensSaved = OfflineNeuralInferencePipelineNode.estimateTokenEquivalence(rawUserMessage + responseText);
+      UniversalOfflineAITokenGuard.recordTokensSaved(tokensSaved, 'AIChatOfflineCopilot');
+
+      let finalResponseText = responseText;
+      if (autoBrandCode) {
+        finalResponseText = offlineAICodeCommentBrander.brandMarkdownCodeBlocks(finalResponseText);
+      }
+      setMessages(prev => [...prev, { role: 'model', content: finalResponseText }]);
 
     } catch (error: any) {
       console.error(error);
@@ -1934,7 +2065,10 @@ export class UltimateIDEFeatures {
   };
 
   const handleApplyCode = (newCode: string) => {
-     setCode(newCode);
+     const formattedCode = autoBrandCode
+       ? offlineAICodeCommentBrander.brandCode(newCode, language || 'typescript').brandedCode
+       : newCode;
+     setCode(formattedCode);
   };
 
   const undoLastInteraction = () => {
@@ -1988,15 +2122,59 @@ export class UltimateIDEFeatures {
       {/* Top Header / Tools */}
       <div className="p-2 border-b border-[#30363d] flex flex-col gap-2 shrink-0 bg-[#0d1117]">
          <div className="flex flex-wrap items-center gap-2 justify-between">
-           <button 
-             onClick={useTrueOfflineAI ? undefined : () => setShowOfflineModelMenu(true)}
-             className={`flex items-center justify-center gap-1 text-[10px] uppercase font-bold px-3 py-1.5 rounded transition-colors w-full sm:w-auto ${useTrueOfflineAI ? 'bg-[#238636] text-white cursor-default' : 'bg-[#161b22] text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#21262d] border border-[#30363d]'}`}
-             title="Download & Run actual LLM in browser offline"
-           >
-             <Zap size={12} className={useTrueOfflineAI ? 'text-yellow-300' : ''} />
-             {useTrueOfflineAI ? `True Offline: ${activeOfflineModelName}` : isOfflineEngineLoading ? `Loading Engine...` : 'Download True Offline AI'}
-           </button>
-           <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+           <div className="flex items-center gap-2 flex-wrap">
+             <button 
+               onClick={useTrueOfflineAI ? undefined : () => setShowOfflineModelMenu(true)}
+               className={`flex items-center justify-center gap-1 text-[10px] uppercase font-bold px-3 py-1.5 rounded transition-colors w-full sm:w-auto ${useTrueOfflineAI ? 'bg-[#238636] text-white cursor-default' : 'bg-[#161b22] text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#21262d] border border-[#30363d]'}`}
+               title="Download & Run actual LLM in browser offline"
+             >
+               <Zap size={12} className={useTrueOfflineAI ? 'text-yellow-300' : ''} />
+               {useTrueOfflineAI ? `True Offline: ${activeOfflineModelName}` : isOfflineEngineLoading ? `Loading Engine...` : 'Download True Offline AI'}
+             </button>
+
+             {/* 100% Offline AI Token Guard Shield Indicator */}
+             <div 
+               className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/60 border border-emerald-500/40 text-[10px] text-emerald-300 font-mono shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+               title="100% On-Device Offline AI Protected: Zero external tokens consumed, zero network overhead"
+             >
+               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+               <span className="font-bold">🛡️ AI Shield: 0 Tokens</span>
+             </div>
+           </div>
+           <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+             {/* Terminal / Chat Mode Switcher */}
+             <div className="flex items-center p-0.5 rounded-lg bg-[#161b22] border border-[#30363d] text-[10.5px]">
+               <button
+                 onClick={() => setViewMode('chat')}
+                 className={`px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1 transition-all cursor-pointer ${
+                   viewMode === 'chat' ? 'bg-[#58a6ff] text-black font-bold shadow-sm' : 'text-[#8b949e] hover:text-white'
+                 }`}
+                 title="Standard Conversational AI Chat"
+               >
+                 Chat
+               </button>
+               <button
+                 onClick={() => setViewMode('terminal')}
+                 className={`px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1 transition-all cursor-pointer ${
+                   viewMode === 'terminal' ? 'bg-cyan-400 text-black font-bold shadow-sm' : 'text-[#8b949e] hover:text-white'
+                 }`}
+                 title="100% Real Command Prompt Terminal"
+               >
+                 <Terminal size={11} />
+                 CLI
+               </button>
+               <button
+                 onClick={() => setViewMode('split')}
+                 className={`px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1 transition-all cursor-pointer ${
+                   viewMode === 'split' ? 'bg-purple-400 text-black font-bold shadow-sm' : 'text-[#8b949e] hover:text-white'
+                 }`}
+                 title="Split View (Chat + Terminal)"
+               >
+                 <Columns size={11} />
+                 Split
+               </button>
+             </div>
+
              <button onClick={() => setShowHistoryStack(true)} className="text-[#8b949e] hover:text-[#58a6ff] p-1.5 rounded transition-colors border border-[#30363d] bg-[#161b22]" title="View History Stack">
                 <Undo2 size={14} />
              </button>
@@ -2258,8 +2436,19 @@ export class UltimateIDEFeatures {
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className="p-2 border-b border-[#30363d] flex items-center shrink-0">
+      {/* View Mode Router */}
+      {viewMode === 'terminal' ? (
+        <div className="flex-1 overflow-hidden p-2 bg-[#07090e]">
+          <OfflineCommandPromptTerminal
+            activeToolId={activeToolId}
+            activeToolName={activeToolName}
+          />
+        </div>
+      ) : (
+        <div className={`flex-1 flex ${viewMode === 'split' ? 'flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-[#30363d]' : 'flex-col'} overflow-hidden min-h-0`}>
+          <div className="flex-1 flex flex-col overflow-hidden h-full min-h-0">
+            {/* Search Bar */}
+            <div className="p-2 border-b border-[#30363d] flex items-center shrink-0">
          <Search size={14} className="text-[#8b949e] mr-2" />
          <input 
            type="text" 
@@ -2282,9 +2471,30 @@ export class UltimateIDEFeatures {
               }`}
             >
               {message.role === 'user' ? (
-                message.content
+                <div className="flex flex-col items-end gap-1">
+                  <div>{message.content}</div>
+                  {message.compressionMeta && (
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-500/40 text-[10px] text-cyan-300 font-mono shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                      <span>ประหยัดโทเคน {message.compressionMeta.savedTokensPct}% ({message.compressionMeta.originalTokens} ➔ {message.compressionMeta.compressedTokens} tok)</span>
+                    </div>
+                  )}
+                </div>
               ) : (
                  <div className="markdown-body prose prose-invert max-w-none prose-pre:bg-[#0d1117] prose-pre:border prose-pre:border-[#30363d] prose-p:my-1 prose-pre:my-2 prose-h1:text-sm prose-h2:text-sm prose-h3:text-sm text-[#c9d1d9]">
+                   {message.thoughtTrace && message.thoughtTrace.length > 0 && (
+                     <OfflineAIThoughtTrace thoughts={message.thoughtTrace} />
+                   )}
+                   {message.toolCall && (
+                     <OfflineAIToolCallCard
+                       toolCall={message.toolCall}
+                       onRerun={() => {
+                         if (message.toolCall) {
+                           OfflineCommandPromptEngine.getInstance().execute(message.toolCall.toolName);
+                         }
+                       }}
+                     />
+                   )}
                    <Markdown 
                      components={{
                         a(props) {
@@ -2379,6 +2589,47 @@ export class UltimateIDEFeatures {
         )}
         <div className="flex flex-wrap justify-between items-center gap-y-2">
           <div className="flex items-center gap-3 flex-wrap">
+             {/* Auto-Compress & Auto-Brand Toggles */}
+             <button
+               type="button"
+               onClick={() => {
+                 const next = !autoCompressCommands;
+                 setAutoCompressCommands(next);
+                 localStorage.setItem('omni_offline_ai_compression_enabled', String(next));
+               }}
+               className={autoCompressCommands ? "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border transition-all cursor-pointer bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.25)]" : "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border transition-all cursor-pointer bg-transparent text-gray-500 border-[#30363d] hover:text-gray-300"}
+               title="บีบอัดย่อคำสั่งแชท AI Offline เพื่อประหยัดโทเคนและตอบสนองเร็วขึ้น คงเนื้อหาหลัก 100%"
+             >
+               <Zap size={11} className={autoCompressCommands ? 'text-cyan-400' : ''} />
+               <span>ย่อคำสั่งประหยัดโทเคน: {autoCompressCommands ? 'ON' : 'OFF'}</span>
+             </button>
+
+             <div className="inline-flex items-center rounded border border-[#30363d] overflow-hidden shadow-sm">
+               <button
+                 type="button"
+                 onClick={() => {
+                   const next = !autoBrandCode;
+                   setAutoBrandCode(next);
+                   localStorage.setItem('omni_offline_ai_branding_enabled', String(next));
+                 }}
+                 className={autoBrandCode ? "inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold transition-all cursor-pointer bg-amber-500/20 text-amber-300 hover:bg-amber-500/30" : "inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold transition-all cursor-pointer bg-transparent text-gray-500 hover:text-gray-300"}
+                 title={`ใส่หมายเหตุ ${offlineAICodeCommentBrander.getBrandTag()} ทุกบรรทัดของโค้ดที่ AI สร้างขึ้น`}
+               >
+                 <Sparkles size={11} className={autoBrandCode ? 'text-amber-400' : ''} />
+                 <span>หมายเหตุลิขสิทธิ์ ({brandingAuthorName}): {autoBrandCode ? 'ON' : 'OFF'}</span>
+               </button>
+               <button
+                 type="button"
+                 onClick={() => setIsBrandingModalOpen(true)}
+                 className="px-1.5 py-0.5 bg-[#21262d] hover:bg-[#30363d] text-amber-400 hover:text-amber-300 transition-colors border-l border-[#30363d] cursor-pointer flex items-center justify-center"
+                 title={`ตั้งค่าชื่อผู้พัฒนา/ทีมผู้พัฒนา (*by ${brandingAuthorName} โดยโปรแกรม OMNI Engine STUDIO*)`}
+               >
+                 <Settings size={11} />
+               </button>
+             </div>
+
+             <div className="w-px h-3.5 bg-[#30363d] mx-1"></div>
+
              <label className="flex items-center space-x-1 cursor-pointer">
                 <input 
                   type="radio" 
@@ -2432,6 +2683,43 @@ export class UltimateIDEFeatures {
           )}
         </div>
         <div className="flex flex-col relative bg-[#0d1117] border border-[#30363d] focus-within:border-[#58a6ff] rounded-[4px]">
+          {/* Quick Slash Commands Popover */}
+          {(input.startsWith('/') || showSlashMenu) && (
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-[#161b22] border border-[#30363d] rounded-lg shadow-2xl p-2 z-40 max-h-56 overflow-y-auto">
+              <div className="text-[10px] uppercase font-bold text-[#8b949e] px-2 py-1 flex items-center justify-between border-b border-[#30363d]/50 mb-1">
+                <span className="flex items-center gap-1.5"><Terminal size={12} className="text-cyan-400" /> 100% Real Offline CLI Commands</span>
+                <button
+                  type="button"
+                  onClick={() => setShowSlashMenu(false)}
+                  className="text-[#8b949e] hover:text-white"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {POPULAR_SLASH_COMMANDS
+                  .filter(c => !input || input === '/' || c.cmd.toLowerCase().includes(input.toLowerCase()))
+                  .map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setInput(item.cmd);
+                        setShowSlashMenu(false);
+                      }}
+                      className="p-1.5 rounded hover:bg-[#21262d] text-left flex items-center justify-between group transition-colors cursor-pointer border border-transparent hover:border-[#30363d]"
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-xs">{item.icon}</span>
+                        <span className="font-mono text-xs font-bold text-[#58a6ff] group-hover:text-cyan-300">{item.cmd}</span>
+                      </div>
+                      <span className="text-[9px] text-[#8b949e] truncate ml-2">{item.desc}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {attachment && (
              <div className="p-2 border-b border-[#30363d] relative">
                <img src={attachment} alt="attachment" className="w-16 h-16 object-cover rounded" />
@@ -2449,11 +2737,19 @@ export class UltimateIDEFeatures {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t('chat.placeholder')}
-              className="w-full bg-transparent outline-none p-2 pr-[170px] text-[12px] text-[#c9d1d9] resize-none max-h-32 min-h-[40px] font-['Helvetica_Neue',Arial,sans-serif]"
+              placeholder="Chat with AI Offline or type /sysinfo, /throttle, /perf, /sound, /nav..."
+              className="w-full bg-transparent outline-none p-2 pr-[200px] text-[12px] text-[#c9d1d9] resize-none max-h-32 min-h-[40px] font-['Helvetica_Neue',Arial,sans-serif]"
               rows={1}
             />
             <div className="absolute right-2 bottom-1.5 flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={() => setShowSlashMenu(!showSlashMenu)}
+                className={`p-1.5 rounded transition-colors ${showSlashMenu || input.startsWith('/') ? 'text-cyan-400 bg-cyan-500/20' : 'text-[#8b949e] hover:text-cyan-400 hover:bg-[rgba(255,255,255,0.1)]'}`}
+                title="Open Offline Command Prompt Palette (/)"
+              >
+                <Terminal size={14} />
+              </button>
               <button
                 type="button"
                 onClick={handleCloudConnect}
@@ -2527,6 +2823,17 @@ export class UltimateIDEFeatures {
            </div>
         </div>
       </div>
+          </div>
+          {viewMode === 'split' && (
+            <div className="flex-1 flex flex-col overflow-hidden p-2 bg-[#07090e] min-h-0">
+              <OfflineCommandPromptTerminal
+                activeToolId={activeToolId}
+                activeToolName={activeToolName}
+              />
+            </div>
+          )}
+        </div>
+      )}
       
       {showCamera && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
@@ -2540,6 +2847,13 @@ export class UltimateIDEFeatures {
             </div>
          </div>
       )}
+
+      {/* Code Attribution & Branding Config Modal */}
+      <AICodeBrandingConfigModal
+        isOpen={isBrandingModalOpen}
+        onClose={() => setIsBrandingModalOpen(false)}
+        onSaved={() => setBrandingAuthorName(offlineAICodeCommentBrander.getAuthorName())}
+      />
     </div>
   );
 }

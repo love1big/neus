@@ -62,6 +62,10 @@ import {
 } from "lucide-react";
 import RecentFilesSidebarPanel from "./RecentFilesSidebarPanel";
 import { RecentFilesTracker } from "../utils/RecentFilesTracker";
+import DetachableModuleHeaderButton from "./DetachableModuleHeaderButton";
+import DetachedModulePlaceholder from "./DetachedModulePlaceholder";
+import { omniDetachablePanelManager } from "../utils/OmniDetachablePanelManager";
+import OfflineAITokenGuardStatusPill from "./OfflineAITokenGuardStatusPill";
 
 interface UnifiedHubWorkspaceProps {
   hub: any;
@@ -77,6 +81,15 @@ export default function UnifiedHubWorkspace({ hub, renderSubTool }: UnifiedHubWo
   });
   const [subToolFilter, setSubToolFilter] = useState<string>("");
   const [recentCount, setRecentCount] = useState<number>(0);
+  const [isCurrentDetached, setIsCurrentDetached] = useState<boolean>(() =>
+    omniDetachablePanelManager.isDetached(activeTab)
+  );
+
+  useEffect(() => {
+    return omniDetachablePanelManager.subscribe(() => {
+      setIsCurrentDetached(omniDetachablePanelManager.isDetached(activeTab));
+    });
+  }, [activeTab]);
 
   // Subscribe to recent files count badge
   useEffect(() => {
@@ -182,6 +195,26 @@ export default function UnifiedHubWorkspace({ hub, renderSubTool }: UnifiedHubWo
 
         {/* Right Sidebar Quick Switcher Pills */}
         <div className="flex items-center gap-1.5">
+          <OfflineAITokenGuardStatusPill
+            onOpenDashboard={() => {
+              handleSelectSubTool("OfflineAITokenGuardDashboard");
+            }}
+          />
+
+          <DetachableModuleHeaderButton
+            moduleId={activeTab}
+            moduleTitle={hub?.subTools?.find((s: any) => s.id === activeTab)?.title || activeTab}
+            onToggleDetach={() => {
+              const subObj = hub?.subTools?.find((s: any) => s.id === activeTab);
+              const subTitle = subObj?.title || activeTab;
+              if (omniDetachablePanelManager.isDetached(activeTab)) {
+                omniDetachablePanelManager.reattachModule(activeTab);
+              } else {
+                omniDetachablePanelManager.registerDetached({ moduleId: activeTab, title: subTitle }, null);
+              }
+            }}
+          />
+
           <button
             onClick={() => {
               setIsSidebarOpen(true);
@@ -321,7 +354,15 @@ export default function UnifiedHubWorkspace({ hub, renderSubTool }: UnifiedHubWo
 
         {/* Main Tool Render Surface */}
         <div className="flex-1 bg-[#101015] relative overflow-hidden flex flex-col">
-          {renderSubTool(activeTab)}
+          {isCurrentDetached ? (
+            <DetachedModulePlaceholder
+              moduleId={activeTab}
+              title={hub?.subTools?.find((s: any) => s.id === activeTab)?.title || activeTab}
+              onReattach={() => omniDetachablePanelManager.reattachModule(activeTab)}
+            />
+          ) : (
+            renderSubTool(activeTab)
+          )}
         </div>
       </div>
     </div>

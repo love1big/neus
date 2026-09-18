@@ -11,6 +11,7 @@ import { AIAssetBackgroundWorker } from '../utils/AIAssetBackgroundWorker';
 import { AnalyzedProjectAsset, BackgroundWorkerMetrics } from '../utils/AssetClassificationTypes';
 import AssetAutoTagWorkerInspector from './AssetAutoTagWorkerInspector';
 import BatchAIProcessingDashboard from './BatchAIProcessingDashboard';
+import BatchResourceOptimizer from './BatchResourceOptimizer';
 
 interface Asset {
   id: string;
@@ -58,6 +59,8 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
   const [isInspectorModalOpen, setIsInspectorModalOpen] = useState(false);
   const [isBatchDashboardOpen, setIsBatchDashboardOpen] = useState(false);
   const [batchPresetSelectedIds, setBatchPresetSelectedIds] = useState<string[]>([]);
+  const [isOptimizerModalOpen, setIsOptimizerModalOpen] = useState(false);
+  const [optimizerPresetSelectedIds, setOptimizerPresetSelectedIds] = useState<string[]>([]);
   const [multiSelectedIds, setMultiSelectedIds] = useState<Set<string>>(new Set());
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -370,6 +373,25 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
     clearMultiSelection();
   };
 
+  const openBatchOptimizer = (specificIds?: string[]) => {
+    if (specificIds && specificIds.length > 0) {
+      setOptimizerPresetSelectedIds(specificIds);
+    } else if (multiSelectedIds.size > 0) {
+      setOptimizerPresetSelectedIds(Array.from(multiSelectedIds));
+    } else {
+      const candidates = assets.filter(a => ['obj', 'fbx', 'skm', 'tex', 'wav'].includes(a.type)).map(a => a.id);
+      setOptimizerPresetSelectedIds(candidates.length > 0 ? candidates : assets.map(a => a.id));
+    }
+    setIsOptimizerModalOpen(true);
+  };
+
+  const handleApplyOptimizedAssets = (updatedAssets: any[], manifest: any) => {
+    setAssets(updatedAssets);
+    worker.enqueueAssets(updatedAssets);
+    clearMultiSelection();
+    setIsOptimizerModalOpen(false);
+  };
+
   // A very simple recursive folder tree
   const renderFolderHierarchy = (parentId: string | null, depth = 0) => {
     const children = folders.filter(f => f.parentId === parentId);
@@ -429,6 +451,15 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
                     {untaggedCount}
                   </span>
                 )}
+             </button>
+
+             {/* Batch Resource Optimizer Launch Button */}
+             <button
+                onClick={() => openBatchOptimizer()}
+                className="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-500 hover:to-orange-500 text-white px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(245,158,11,0.35)] cursor-pointer"
+                title="Open Batch Resource Optimizer (Unified Mesh LOD, GPU Block Compression & Audio Bitrate Transcoder)"
+             >
+                <Zap size={13} className="text-yellow-200" /> Resource Optimizer
              </button>
 
              <button onClick={() => {
@@ -665,6 +696,14 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
                  >
                    <Cpu size={13} /> Run Multi-Agent Batch
                  </button>
+                 <button
+                   onClick={() => openBatchOptimizer(Array.from(multiSelectedIds))}
+                   disabled={multiSelectedIds.size === 0}
+                   className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                   title="Run unified compression and LOD pass on selected assets"
+                 >
+                   <Zap size={13} /> Optimize Selected ({multiSelectedIds.size})
+                 </button>
                </div>
              </div>
            )}
@@ -840,6 +879,14 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
                 <Cpu size={13} /> Synthesize PBR Maps (AI Multi-Agent)
               </button>
 
+              {/* Quick Launch Resource Optimizer for this asset */}
+              <button
+                onClick={() => openBatchOptimizer([selectedAsset.id])}
+                className="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-500 hover:to-orange-500 text-white py-1.5 rounded text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
+              >
+                <Zap size={13} /> Optimize Resource (LOD / Compress)
+              </button>
+
               <button 
                  className="w-full bg-[#238636] hover:bg-[#2ea043] text-white py-1.5 rounded text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
                  onClick={() => {
@@ -883,6 +930,23 @@ export default function ContentBrowser({ onOpenBlueprint }: { onOpenBlueprint?: 
               onApplyGeneratedAssets={(newAssets) => {
                 handleApplyBatchGeneratedAssets(newAssets);
                 setIsBatchDashboardOpen(false);
+              }}
+              embeddedMode={true}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Unified Batch Resource Optimizer Modal */}
+      {isOptimizerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0d1117] rounded-2xl border border-amber-500/40 shadow-2xl overflow-hidden flex flex-col">
+            <BatchResourceOptimizer
+              allAssets={assets}
+              onClose={() => setIsOptimizerModalOpen(false)}
+              initialSelectedAssetIds={optimizerPresetSelectedIds}
+              onApplyOptimizedAssets={(updatedAssets, manifest) => {
+                handleApplyOptimizedAssets(updatedAssets, manifest);
               }}
               embeddedMode={true}
             />

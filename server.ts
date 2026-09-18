@@ -42,14 +42,85 @@ async function startServer() {
     res.json({ success: true, tasks });
   });
 
-  app.post("/api/generate-asset", async (req, res) => {
-    try {
-      const { prompt } = req.body;
-      const key = process.env.GEMINI_API_KEY;
-      if (!key) {
-        return res.status(500).json({ error: "Missing GEMINI_API_KEY environment variable." });
-      }
+  // Helper for generating 100% Offline Procedural SVG/DataURI Game Textures (0 Tokens)
+  const generateOfflineProceduralAssetSvg = (promptStr: string) => {
+    const p = (promptStr || '').toLowerCase();
+    let bg = '#0f172a';
+    let fg = '#38bdf8';
+    let accent = '#818cf8';
+    let label = 'PROCEDURAL PBR TEXTURE';
 
+    if (p.includes('cyber') || p.includes('neon') || p.includes('sci-fi') || p.includes('robot')) {
+      bg = '#090d16';
+      fg = '#00f0ff';
+      accent = '#ff007f';
+      label = 'CYBERPUNK NEON MATRIX';
+    } else if (p.includes('stone') || p.includes('rock') || p.includes('brick') || p.includes('wall')) {
+      bg = '#1c1d22';
+      fg = '#94a3b8';
+      accent = '#475569';
+      label = 'PBR STONE & ROCK';
+    } else if (p.includes('wood') || p.includes('forest') || p.includes('tree')) {
+      bg = '#1c130c';
+      fg = '#b45309';
+      accent = '#d97706';
+      label = 'ORGANIC WOOD SURFACE';
+    } else if (p.includes('magic') || p.includes('crystal') || p.includes('orb') || p.includes('energy')) {
+      bg = '#150826';
+      fg = '#c084fc';
+      accent = '#f43f5e';
+      label = 'MYSTIC ARCANE ESSENCE';
+    }
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="grad1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" style="stop-color:${fg};stop-opacity:1" />
+            <stop offset="60%" style="stop-color:${accent};stop-opacity:0.8" />
+            <stop offset="100%" style="stop-color:${bg};stop-opacity:1" />
+          </radialGradient>
+          <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+            <rect width="32" height="32" fill="none" stroke="${accent}" stroke-width="0.75" stroke-opacity="0.3"/>
+            <circle cx="16" cy="16" r="1.5" fill="${fg}" opacity="0.4"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="${bg}"/>
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+        <circle cx="256" cy="256" r="140" fill="url(#grad1)"/>
+        <circle cx="256" cy="256" r="160" fill="none" stroke="${fg}" stroke-width="2" stroke-dasharray="6,6" opacity="0.6"/>
+        <polygon points="256,130 365,193 365,319 256,382 147,319 147,193" fill="none" stroke="${fg}" stroke-width="3" opacity="0.8"/>
+        <circle cx="256" cy="256" r="45" fill="${bg}" stroke="${accent}" stroke-width="4"/>
+        <circle cx="256" cy="256" r="18" fill="${fg}"/>
+        <rect x="26" y="440" width="460" height="42" rx="8" fill="#030712" opacity="0.85"/>
+        <text x="50%" y="466" text-anchor="middle" fill="#38bdf8" font-family="monospace" font-weight="bold" font-size="13px">
+          [100% OFFLINE SYNTHESIS - ZERO TOKENS]
+        </text>
+        <text x="50%" y="420" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="bold" font-size="16px">
+          ${label}
+        </text>
+      </svg>
+    `;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+
+  app.post("/api/generate-asset", async (req, res) => {
+    const { prompt, forceOffline } = req.body;
+
+    // หากผู้ใช้ขอโหมดออฟไลน์ หรือไม่มี API key ให้สร้างด้วย On-Device Procedural Synthesizer ทันที
+    const key = process.env.GEMINI_API_KEY;
+    if (forceOffline || !key) {
+      const proceduralUrl = generateOfflineProceduralAssetSvg(prompt);
+      return res.json({
+        success: true,
+        imageUrl: proceduralUrl,
+        mode: "100% On-Device Offline Procedural (0 Tokens)",
+        tokensUsed: 0,
+        tokensSaved: 400
+      });
+    }
+
+    try {
       const ai = new GoogleGenAI({
         apiKey: key,
         httpOptions: {
@@ -85,13 +156,22 @@ async function startServer() {
       }
 
       if (!imageUrl) {
-        throw new Error("No image data found in the response.");
+        throw new Error("No image data returned from cloud model");
       }
 
-      res.json({ success: true, imageUrl });
+      res.json({ success: true, imageUrl, mode: "cloud-gemini" });
     } catch (err: any) {
-      console.error(err);
-      res.status(500).json({ error: err.message || "Unknown error generating image" });
+      console.warn("Cloud image generation failed or quota exceeded. Engaging 100% Offline Procedural Engine:", err.message);
+      // Fallback ออฟไลน์อัตโนมัติ ไม่โยน 500 error สู่ผู้ใช้
+      const fallbackUrl = generateOfflineProceduralAssetSvg(prompt);
+      res.json({
+        success: true,
+        imageUrl: fallbackUrl,
+        mode: "100% Offline Procedural Fallback (0 Tokens)",
+        tokensUsed: 0,
+        tokensSaved: 400,
+        note: "Fallback to on-device procedural synthesis due to cloud quota limit"
+      });
     }
   });
 

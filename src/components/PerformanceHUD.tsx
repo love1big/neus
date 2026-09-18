@@ -63,6 +63,8 @@ import {
   Sliders
 } from 'lucide-react';
 import { useSystemTelemetry, setSimulatedStressProfile } from '../lib/telemetry';
+import ResourceThrottlingHUDControl from './ResourceThrottlingHUDControl';
+import { ResourceThrottlingControllerNode } from '../utils/ResourceThrottlingControllerNode';
 
 export type HUDMode = 'pill' | 'compact' | 'expanded';
 export type HUDPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'custom';
@@ -315,6 +317,9 @@ export default function PerformanceHUD({ onOpenFullMonitor, onSelectTool }: Perf
 
         {/* Action Controls */}
         <div className="flex items-center gap-1">
+          {/* Resource Throttling Quick Toggle */}
+          <ResourceThrottlingHUDControl variant="header-toggle" />
+
           {/* Mode Switcher */}
           <button
             onClick={() =>
@@ -405,6 +410,20 @@ export default function PerformanceHUD({ onOpenFullMonitor, onSelectTool }: Perf
               {config.pinned ? 'Pinned (Locked)' : 'Draggable'}
             </button>
           </div>
+
+          <div className="flex items-center justify-between pt-1 border-t border-[#30363d]/60">
+            <span className="text-[#8b949e]">Resource Throttle:</span>
+            <button
+              onClick={() => ResourceThrottlingControllerNode.getInstance().toggleThrottling()}
+              className={`px-2 py-0.5 rounded text-[9px] font-bold cursor-pointer transition-colors ${
+                stats.isThrottled
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                  : 'bg-[#21262d] text-[#8b949e] hover:text-white'
+              }`}
+            >
+              {stats.isThrottled ? `Cap Active (≤${stats.throttlingCpuCap ?? 50}%)` : 'Disabled (Full Power)'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -420,6 +439,11 @@ export default function PerformanceHUD({ onOpenFullMonitor, onSelectTool }: Perf
           <span className="flex items-center gap-1 text-[#3fb950]">
             <HardDrive size={11} /> {stats.ram.toFixed(0)}%
           </span>
+          {stats.isThrottled && (
+            <span className="px-1 py-0.2 rounded text-[8px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">
+              CAP ≤{stats.throttlingCpuCap}%
+            </span>
+          )}
           <span className="text-[#8b949e] text-[9px]">
             {stats.frameTime.toFixed(1)}ms
           </span>
@@ -461,6 +485,9 @@ export default function PerformanceHUD({ onOpenFullMonitor, onSelectTool }: Perf
             {renderSparkline(ramHistory, '#3fb950', 70, 14)}
             <span className="text-[9.5px] text-[#8b949e] w-10 text-right">{stats.ramUsedGB}G</span>
           </div>
+
+          {/* Resource Throttling Compact Chip Control */}
+          <ResourceThrottlingHUDControl variant="compact-chip" />
 
           {/* Secondary Stats Row */}
           <div className="pt-1.5 border-t border-[#30363d]/50 flex items-center justify-between text-[9px] text-[#8b949e]">
@@ -553,6 +580,9 @@ export default function PerformanceHUD({ onOpenFullMonitor, onSelectTool }: Perf
               />
             </div>
           </div>
+
+          {/* Resource Throttling Control Panel */}
+          <ResourceThrottlingHUDControl variant="expanded-panel" />
 
           {/* 16-Core Thread Micro Distribution */}
           <div className="p-2 bg-[#0d1117] border border-[#30363d] rounded-lg">

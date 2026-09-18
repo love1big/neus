@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Server, Download, CheckCircle, Database, Cpu, ShieldCheck, Zap, Globe} from 'lucide-react';
 import { useLanguage, languages } from '../contexts/LanguageContext';
+import AICodeBrandingSettingsTab from './AICodeBrandingSettingsTab';
+import { offlineAICodeCommentBrander } from '../utils/OfflineAICodeCommentBrander';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -296,6 +298,15 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                onClick={() => setActiveTab('keys')}
                className={`text-left px-4 py-2 text-[12px] transition-colors border-l-2 ${activeTab === 'keys' ? 'text-[#c9d1d9] border-[#58a6ff] bg-[#21262d]/50' : 'text-[#8b949e] border-transparent hover:text-[#c9d1d9]'}`}
              >API Keys & Credentials</button>
+             <button 
+               onClick={() => setActiveTab('attribution')}
+               className={`text-left px-4 py-2 text-[12px] transition-colors border-l-2 flex items-center justify-between ${activeTab === 'attribution' ? 'text-amber-400 border-amber-400 bg-[#21262d]/50' : 'text-[#8b949e] border-transparent hover:text-amber-400'}`}
+             >
+               <span>Code Attribution</span>
+               <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-full text-[9px] font-bold font-mono">
+                 {offlineAICodeCommentBrander.getAuthorName()}
+               </span>
+             </button>
           </div>
 
           {/* Content Area */}
@@ -958,7 +969,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             )}
 
-            {activeTab !== 'models' && activeTab !== 'general' && activeTab !== 'swarm' && activeTab !== 'acceleration' && activeTab !== 'keys' && (
+            {activeTab === 'attribution' && (
+              <AICodeBrandingSettingsTab />
+            )}
+
+            {activeTab !== 'models' && activeTab !== 'general' && activeTab !== 'swarm' && activeTab !== 'acceleration' && activeTab !== 'keys' && activeTab !== 'attribution' && (
               <div className="flex items-center justify-center h-full text-[#8b949e] text-[13px]">
                 Settings under development for {activeTab}. Check Local AI Models.
               </div>

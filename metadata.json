@@ -1,6 +1,6 @@
 {
   "name": "NexusEngine Sandbox",
-  "description": "Full-blown Game Engine IDE structure with offline-style code, 3D simulation editors, interactive D3 asset dependency topology visualizer, and heterogeneous multi-vendor CPU/GPU/NPU compute orchestrator.",
+  "description": "Full-blown Game Engine IDE with real-time static analysis for engine-specific anti-patterns, performance optimization alternatives, 3D simulation editors, and compute orchestration.",
   "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

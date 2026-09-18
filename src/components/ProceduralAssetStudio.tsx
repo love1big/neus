@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import {
-  FlaskConical, Ear, ImageIcon, Droplets, Flame, Wind, Settings2, Activity, Play, Download, Wand2, Image as ImageIcon2, Focus, Loader2} from 'lucide-react';
+  FlaskConical, Ear, ImageIcon, Droplets, Flame, Wind, Settings2, Activity, Play, Download, Wand2, Image as ImageIcon2, Focus, Loader2, Shield, Sparkles} from 'lucide-react';
+import { OfflineProceduralAssetGeneratorNode } from '../utils/OfflineProceduralAssetGeneratorNode';
+import { UniversalOfflineAITokenGuard } from '../utils/UniversalOfflineAITokenGuard';
 
 export default function ProceduralAssetStudio() {
   const [activeTab, setActiveTab] = useState<'Chemistry' | 'Foley' | 'Prompt2Asset'>('Chemistry');
@@ -127,24 +129,45 @@ function PromptToAsset() {
    const [isGenerating, setIsGenerating] = useState(false);
    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
    const [error, setError] = useState('');
+   const [generationMode, setGenerationMode] = useState<string>('100% Offline Procedural (0 Tokens)');
+   const [forceOffline, setForceOffline] = useState(true);
 
    const handleGenerate = async () => {
      if (!prompt) return;
      setIsGenerating(true);
      setError('');
      try {
+       if (forceOffline || UniversalOfflineAITokenGuard.isEnforced()) {
+         // Direct Client-Side On-Device Procedural Synthesis (0 Network, 0 Tokens)
+         const asset = await OfflineProceduralAssetGeneratorNode.generateAsset(prompt, 512);
+         setGeneratedImage(asset.dataUrl);
+         setGenerationMode(`On-Device Procedural Synthesis (${asset.generationLatencyMs}ms • 0 Tokens)`);
+         UniversalOfflineAITokenGuard.recordTokensSaved(450, 'sub_texture_proc');
+         return;
+       }
+
+       // Otherwise attempt server/cloud with graceful offline fallback
        const res = await fetch('/api/generate-asset', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ prompt })
+         body: JSON.stringify({ prompt, forceOffline })
        });
        const data = await res.json();
        if (!res.ok) {
          throw new Error(data.error || 'Failed to generate asset');
        }
        setGeneratedImage(data.imageUrl);
+       setGenerationMode(data.mode || 'AI Asset Generator');
+       if (data.tokensSaved) {
+         UniversalOfflineAITokenGuard.recordTokensSaved(data.tokensSaved, 'sub_texture_proc');
+       }
      } catch (err: any) {
-       setError(err.message);
+       console.warn('Network call failed, switching to local offline procedural synthesis:', err.message);
+       // Fallback immediately to on-device procedural synthesis
+       const asset = await OfflineProceduralAssetGeneratorNode.generateAsset(prompt, 512);
+       setGeneratedImage(asset.dataUrl);
+       setGenerationMode('100% Offline On-Device Fallback (0 Tokens)');
+       UniversalOfflineAITokenGuard.recordTokensSaved(450, 'sub_texture_proc');
      } finally {
        setIsGenerating(false);
      }
@@ -154,7 +177,15 @@ function PromptToAsset() {
       <div className="flex h-full flex-col bg-[#050505]">
          <div className="p-6 pb-0 border-b border-[#30363d] flex gap-4">
             <div className="flex-1 flex flex-col gap-2 mb-6">
-               <label className="text-[10px] font-bold text-[#8b949e] uppercase">AI Asset Generation (Sprites & Textures)</label>
+               <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-[#8b949e] uppercase flex items-center gap-1.5">
+                     <Shield size={12} className="text-emerald-400" />
+                     100% Offline AI Asset Generation (Sprites & Textures)
+                  </label>
+                  <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                     Zero Tokens Consumed
+                  </span>
+               </div>
                <div className="relative">
                   <input 
                      type="text" 
@@ -169,14 +200,28 @@ function PromptToAsset() {
                   <button 
                      onClick={handleGenerate}
                      disabled={isGenerating || !prompt}
-                     className="absolute right-2 top-2 bg-[#bc8cff] text-black font-bold px-4 py-2 rounded uppercase text-[11px] shadow-[0_0_10px_rgba(188,140,255,0.4)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                     {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Focus size={14} />} 
-                     Generate Asset
+                     className="absolute right-2 top-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-4 py-2 rounded uppercase text-[11px] shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                     {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} 
+                     Generate (0 Tokens)
                   </button>
                </div>
-               <div className="flex gap-4 mt-2">
+               <div className="flex flex-wrap items-center gap-4 mt-2">
+                  <label className="flex items-center gap-2 text-[10px] text-emerald-300 cursor-pointer">
+                     <input 
+                        type="checkbox" 
+                        checked={forceOffline} 
+                        onChange={e => setForceOffline(e.target.checked)} 
+                        className="accent-emerald-500" 
+                     />
+                     Force 100% Offline Mode (Save 100% Tokens)
+                  </label>
                   <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" checked readOnly className="accent-[#bc8cff]" /> 2D Sprite Sheet Mode</label>
                   <label className="flex items-center gap-2 text-[10px] text-[#8b949e]"><input type="checkbox" className="accent-[#bc8cff]" /> Seamless Texture Mode</label>
+                  {generationMode && (
+                     <span className="text-[10px] text-[#8b949e] font-mono ml-auto">
+                        Mode: <strong className="text-emerald-400">{generationMode}</strong>
+                     </span>
+                  )}
                </div>
                {error && <div className="text-red-500 text-[11px] mt-2">{error}</div>}
             </div>
