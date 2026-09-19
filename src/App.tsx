@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from "react";
 import UnifiedHubWorkspace from "./components/UnifiedHubWorkspace";
-import { Link2, Activity, Zap, Command, Droplet, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, Gamepad, Compass, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc, Languages, Scale, Radio, Trees, History } from 'lucide-react';
+import { Link2, Activity, Zap, Command, Droplet, Droplets, Paintbrush, Boxes, Camera, Gauge, Flame, Server, Share2, Microchip, TerminalSquare, Network, Crosshair, LayoutDashboard, Brain, Rocket, Bot, Map, GitPullRequest, GitFork, Globe, PersonStanding, Cpu, MonitorPlay, Orbit, Gamepad2, Gamepad, Compass, ShieldCheck, Blocks, FolderTree, Globe2, Users, Ghost, Box, Clapperboard, UserSquare, Waypoints, Database, Palette, Image, Swords, FlaskConical, Bug, Video, Layers, BrainCircuit, Glasses, Terminal, HardDrive, Mic2, GitMerge, Binary, Wrench, SearchCode, SplitSquareHorizontal, AlignLeft, Search, Eye, Cloud, BookOpen, GitBranch, X, Grip, Download, Wifi, Puzzle, CircuitBoard, Sparkles, MessageCircle, Ear, Mountain, Volume2, Code2, Dna, FileText, FileCode, MessageSquare, CloudRain, Scissors, Car, Bone, Smile, Archive, ShoppingBag, GitCommit, Grid, Award, Trophy, DollarSign, Building, Shield, Sun, Lightbulb, Sticker, Route, Bird, PenTool, MapPin, Flag, TrendingUp, Gift, Hammer, Table, DatabaseBackup, Monitor, CheckCircle, Store, Minimize, Music, PlayCircle, AlertTriangle, Sliders, Save, ListTree, Vibrate, Mic, Wand2, Bomb, Film, Home, Calculator, Disc, Languages, Scale, Radio, Trees, History } from 'lucide-react';
 import { LanguageCode } from "./contexts/LanguageContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AIChatWidget from "./components/AIChatWidget";
@@ -389,6 +389,17 @@ export const componentImports: Record<string, () => Promise<any>> = {
   VSIntelliTraceTimeTravelDebuggerStudio: () => import("./components/VSIntelliTraceTimeTravelDebuggerStudio"),
   UE5MetaHumanFacialStudio: () => import("./components/UE5MetaHumanFacialStudio"),
   UnityShaderGraphSubGraphStudio: () => import("./components/UnityShaderGraphSubGraphStudio"),
+  BlenderEEVEENextStudio: () => import("./components/BlenderEEVEENextStudio"),
+  Fusion360FEASimulationStudio: () => import("./components/Fusion360FEASimulationStudio"),
+  VSRoslynAnalyzerCodeFixStudio: () => import("./components/VSRoslynAnalyzerCodeFixStudio"),
+  UE5GameplayAbilitySystemStudio: () => import("./components/UE5GameplayAbilitySystemStudio"),
+  UnityAddressablesMemoryStudio: () => import("./components/UnityAddressablesMemoryStudio"),
+  VSTestImpactAnalyzerStudio: () => import("./components/VSTestImpactAnalyzerStudio"),
+  UE5StateTreeAIStudio: () => import("./components/UE5StateTreeAIStudio"),
+  UnityDOTSArchetypeChunkStudio: () => import("./components/UnityDOTSArchetypeChunkStudio"),
+  BlenderMantaflowFluidStudio: () => import("./components/BlenderMantaflowFluidStudio"),
+  Fusion360SheetMetalStudio: () => import("./components/Fusion360SheetMetalStudio"),
+  SketchUpDynamicComponentsStudio: () => import("./components/SketchUpDynamicComponentsStudio"),
 };
 
 export const preloadComponent = (id: string) => { if(componentImports[id]) componentImports[id]().catch(console.error); };
@@ -731,6 +742,9 @@ export const tools = [
         { id: "ConcurrencyThreadVisualizerStudio", title: "Concurrency & Multi-Core Thread Visualizer", icon: <Layers size={16} /> },
         { id: "VSHotReloadMemoryLeakProfilerStudio", title: "VS Hot Reload & Memory Snapshot Leak Profiler", icon: <Flame size={16} /> },
         { id: "VSIntelliTraceTimeTravelDebuggerStudio", title: "VS IntelliTrace & Time-Travel Historical Debugger", icon: <History size={16} /> },
+        { id: "VSRoslynAnalyzerCodeFixStudio", title: "VS Roslyn Diagnostic Analyzer & Quick CodeFix", icon: <Wrench size={16} /> },
+        { id: "VSTestImpactAnalyzerStudio", title: "VS Test Impact Analysis (TIA) & Dynamic Code Coverage", icon: <FileCode size={16} /> },
+        { id: "UnityDOTSArchetypeChunkStudio", title: "Unity DOTS ECS Archetype Chunk Memory & SIMD", icon: <Boxes size={16} /> },
         { id: "CodeProfilerTracer", title: "Code Profiler & Function Call Tracer", icon: <Activity size={16} /> },
         { id: "ModuleDependencyVisualizerStudio", title: "Module & Node Dependency Tree", icon: <Network size={16} /> }
       ]
@@ -794,8 +808,11 @@ export const tools = [
         { id: "BlenderGeometryNodesProceduralStudio", title: "Blender Geometry Nodes & Procedural Studio", icon: <Boxes size={16} /> },
         { id: "Fusion360GenerativeDesignCADStudio", title: "Fusion 360 Parametric CAD & Generative Design", icon: <Compass size={16} /> },
         { id: "Fusion360CAMToolpathStudio", title: "Fusion 360 CAM & Multi-Axis CNC Toolpath", icon: <Wrench size={16} /> },
+        { id: "Fusion360FEASimulationStudio", title: "Fusion 360 Non-Linear FEA Stress & Thermal Simulation", icon: <Activity size={16} /> },
+        { id: "Fusion360SheetMetalStudio", title: "Fusion 360 Sheet Metal Flange Bending & Flat Pattern", icon: <Compass size={16} /> },
         { id: "SketchUpPushPullBIMStudio", title: "SketchUp Push/Pull & BIM Architectural Studio", icon: <Home size={16} /> },
         { id: "SketchUpLayOutDocStudio", title: "SketchUp LayOut Construction Docs & Scaled Sheets", icon: <FileText size={16} /> },
+        { id: "SketchUpDynamicComponentsStudio", title: "SketchUp Dynamic Components & Formula Math", icon: <Sliders size={16} /> },
         { id: "Procedural3DMeshSynthesisStudio", title: "🌟 AAA Procedural 3D Mesh Synthesis Studio", icon: <Box size={16} /> },
         { id: "QuadRetopologyUVStudio", title: "Automated Quad Retopology & UV Unwrap Studio", icon: <Grid size={16} /> },
         { id: "Omni3D2DVRModelStudio", title: "3D/2D/VR Parametric Mesh Studio", icon: <Box size={16} /> },
@@ -890,6 +907,8 @@ export const tools = [
         { id: "MassEntityCrowdSimulationStudio", title: "Mass Entity ECS & Crowd Processor Studio", icon: <Users size={16} /> },
         { id: "EnhancedInputMappingContextStudio", title: "Enhanced Input System & Mapping Context (IMC) Studio", icon: <Gamepad2 size={16} /> },
         { id: "CombatHitboxFrameDataStudio", title: "Combat Hitbox & 60 FPS Frame Data Studio", icon: <Swords size={16} /> },
+        { id: "UE5GameplayAbilitySystemStudio", title: "UE5 Gameplay Ability System (GAS) & Attribute Sets", icon: <Zap size={16} /> },
+        { id: "UE5StateTreeAIStudio", title: "UE5 StateTree AI & Hierarchical State Machine (HSM)", icon: <GitFork size={16} /> },
         { id: "GameSystems", title: "Gameplay Ability System (GAS) & Stats", icon: <Blocks size={16} /> },
         { id: "EconomicBalancer", title: "Economy, Loot Tables & Crafting", icon: <Database size={16} /> },
         { id: "NPCEdit", title: "NPCs, MetaHuman & AI Behavior Trees", icon: <Users size={16} /> },
@@ -918,6 +937,8 @@ export const tools = [
         { id: "ActiveRagdollEuphoriaEngine", title: "Euphoria Active Ragdoll & Muscles", icon: <Activity size={16} /> },
         { id: "ChaosFleshMuscleDeformationStudio", title: "Chaos Flesh Muscle & Soft-Body Deformation Studio", icon: <Flame size={16} /> },
         { id: "CinematicLightingEditor", title: "Cinematic Lighting, GI & Raytracing", icon: <Sun size={16} /> },
+        { id: "BlenderEEVEENextStudio", title: "Blender EEVEE-Next Real-Time Raytracing & GI", icon: <Sun size={16} /> },
+        { id: "BlenderMantaflowFluidStudio", title: "Blender Mantaflow Navier-Stokes Fluid & FLIP Particles", icon: <Droplets size={16} /> },
         { id: "RuntimeGraphicsStreamingOptimizer", title: "4K Texture & Mesh Streaming Optimizer", icon: <Zap size={16} /> },
         { id: "RenderFarmManager", title: "Distributed Render Farm Manager", icon: <Server size={16} /> }
       ]
@@ -938,6 +959,7 @@ export const tools = [
         { id: "DataTableJSONEditor", title: "Game Data Tables & Serialization", icon: <Table size={16} /> },
         { id: "StateSerializationManager", title: "Save/Load Binary & JSON Serializer", icon: <Save size={16} /> },
         { id: "ContinuousIntegrationBuildMatrixStudio", title: "Continuous Integration Multi-Platform Build Matrix", icon: <Cpu size={16} /> },
+        { id: "UnityAddressablesMemoryStudio", title: "Unity Addressables Asset & Memory Profiler", icon: <Layers size={16} /> },
         { id: "AutomatedPlaytestBotSwarmStudio", title: "Automated Multi-Agent Playtest Bot Swarm Matrix", icon: <Users size={16} /> },
         { id: "BuildPublishAudit", title: "Pre-Flight Build Safety Audit", icon: <ShieldCheck size={16} /> },
         { id: "BuildPublish", title: "Cross-Platform Build & Deploy Targets", icon: <Cloud size={16} /> },
